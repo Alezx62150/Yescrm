@@ -30,6 +30,7 @@ h3{font-size:13px;color:var(--mu);margin:16px 0 4px;font-weight:600}
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--bd);margin-bottom:12px;overflow-x:auto}
 .tab{padding:8px 14px;white-space:nowrap;border-bottom:3px solid transparent;color:var(--mu);cursor:pointer}
 .tab.on{border-color:var(--ac);color:var(--ac);font-weight:600}
+.hp{display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--bd);padding:6px 4px;margin-bottom:6px;font-size:12px;color:var(--mu,#777)}.fp{border-top:1px solid var(--bd);padding:6px 4px;margin-top:6px;font-size:12px;text-align:center;color:var(--mu,#777)}\n.pnl{border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin:0 0 10px}.pnl>summary{cursor:pointer;font-weight:600}.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;align-items:start}
 .dg{display:grid;grid-template-columns:270px 1fr;gap:18px;align-items:start}
 @media(max-width:860px){.dg{grid-template-columns:1fr}}
 .tbox{background:var(--hd);color:#fff;border-radius:6px;padding:14px;font-weight:600}
@@ -117,6 +118,7 @@ summary{cursor:pointer;color:var(--ac);font-size:14px;margin-top:14px}
 .mf{width:100%;border:1px solid var(--bd);border-radius:8px;background:#fff;height:300px;display:block}
 .gmp{white-space:pre-wrap;overflow-wrap:anywhere;padding:8px 0}
 @media(max-width:1000px){.gm{display:block}.gn{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--bd);align-items:center;max-height:none}.gn .gw{margin:0}.gnh{display:none}.gni{white-space:nowrap}.gl{border-right:0;max-height:none}.gp{max-height:none}.gm.cur .gl{display:none}.gm:not(.cur) .gp{display:none}.gm.cur .gn{display:none}.gback{display:inline-block}}
+.ftr{margin:28px 0 8px;padding-top:10px;border-top:1px solid var(--bd);font-size:12px;color:var(--mu);line-height:1.6}.ftr a{color:inherit;cursor:pointer;text-decoration:underline}.pv{font-size:14px;line-height:1.5}.pv h3{margin:0 0 6px}.pv p{margin:0 0 8px}
 #cfm{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9999}
 .cfb{max-height:92vh;overflow:auto;background:var(--sf);color:var(--tx,inherit);border:1px solid var(--bd);border-radius:12px;padding:18px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
 .cfb h3{margin:0}.cfr{display:flex;flex-direction:column;overflow-wrap:anywhere}
@@ -213,7 +215,7 @@ function seed(){
  return {f:[f],c:S.c};
 }
 let S=null;
-try{S=JSON.parse(window.__PLAIN||localStorage.getItem(KEY))}catch(e){}
+try{S=JSON.parse(window.__PLAIN||sessionStorage.getItem(KEY))}catch(e){}
 if(!S||!Array.isArray(S.f))S=window.__WEB?{f:[],c:[]}:seed();
 if(!Array.isArray(S.c))S.c=[];
 S.f.forEach(f=>[['vendeur','vid'],['acquereur','aid']].forEach(([k,i])=>{if(!f[i]&&f[k]){const c=Object.assign(blankC(),{civ:'',nom:f[k]});S.c.push(c);f[i]=c.id}}));
@@ -229,19 +231,30 @@ S.f.forEach(f=>f.d.forEach(d=>{const g=d.grp||'Divers';if(!S.cats.some(c=>c.n===
 const CR=window.CRYPT;
 const FULL='Stockage plein : les dernières modifications ne sont pas enregistrées. Supprimez des images ou des documents volumineux.';
 let svP=Promise.resolve();
-const SB=window.SB,DK=KEY+':dirty';
+const SB=window.SB,DK=KEY+':dirty',VK=KEY+':v';
+const SS={g:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}},s:(k,v)=>{try{sessionStorage.setItem(k,v);return true}catch(e){return false}},r:k=>{try{sessionStorage.removeItem(k)}catch(e){}}};
 function sync(st){let e=document.getElementById('syn');if(!e){e=document.createElement('div');e.id='syn';e.style.cssText='position:fixed;left:10px;bottom:8px;font-size:12px;color:#777;background:rgba(255,255,255,.85);padding:2px 8px;border-radius:10px;z-index:50;pointer-events:none';document.body.appendChild(e)}
- e.textContent=st==='ok'?'☁️ Enregistré':st==='err'?'⚠️ Non synchronisé : réessai automatique':'☁️ Enregistrement…';e.style.color=st==='err'?'#b3261e':'#777'}
+ e.textContent=st==='ok'?'☁️ Enregistré':st==='err'?'⚠️ Non synchronisé : réessai automatique':st==='conf'?'⚠️ Conflit : version plus récente en ligne':'☁️ Enregistrement…';e.style.color=st==='err'||st==='conf'?'#b3261e':'#777'}
 function save(){
- try{localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(DK,'1')}catch(e){toast(FULL)}
- sync();clearTimeout(save.t);save.t=setTimeout(flush,1200)}
+ if(!SS.s(KEY,JSON.stringify(S)))toast(FULL);SS.s(DK,'1');sync();clearTimeout(save.t);save.t=setTimeout(flush,1200)}
+async function conflict(){
+ window.__CONF=true;sync('conf');
+ const rl=await confirmDlg({title:'Version plus récente en ligne',text:'Ce CRM a été modifié ailleurs (autre appareil ou autre onglet). Vos dernières modifications ne sont pas enregistrées. Recharger la version en ligne ? Vos modifications faites ici seront perdues.',ok:'Recharger la version en ligne',warn:true});
+ if(rl){SS.r(KEY);SS.r(DK);SS.r(VK);location.reload();return}
+ const ow=await confirmDlg({title:'Écraser la version en ligne ?',text:'La version en ligne sera remplacée par celle de cet écran. Les modifications faites ailleurs seront perdues.',ok:'Écraser',danger:true,warn:true});
+ if(ow){try{const r=await SB.from('crm_data').select('updated_at').eq('user_id',window.__UID).maybeSingle();window.__V=r.data?r.data.updated_at:null;window.__CONF=false;flush()}catch(e){sync('err')}}}
 function flush(){
  clearTimeout(save.t);
- svP=svP.then(async()=>{if(!localStorage.getItem(DK))return;const snap=JSON.stringify(S);
-  try{const r=await SB.from('crm_data').upsert({user_id:window.__UID,data:JSON.parse(snap),updated_at:new Date().toISOString()});if(r.error)throw r.error;
-   if(JSON.stringify(S)===snap)localStorage.removeItem(DK);sync('ok')}
+ svP=svP.then(async()=>{if(!SS.g(DK)||window.__CONF)return;const snap=JSON.stringify(S),obj=JSON.parse(snap),now=new Date().toISOString(),uid=window.__UID;
+  try{let r;
+   if(window.__V)r=await SB.from('crm_data').update({data:obj,updated_at:now}).eq('user_id',uid).eq('updated_at',window.__V).select('updated_at');
+   else r=await SB.from('crm_data').insert({user_id:uid,data:obj,updated_at:now}).select('updated_at');
+   if(r.error){if(!window.__V&&(r.error.code==='23505'||/duplicate/i.test(r.error.message||''))){conflict();return}throw r.error}
+   if(window.__V&&!(r.data&&r.data.length)){conflict();return}
+   window.__V=(r.data&&r.data[0]&&r.data[0].updated_at)||now;SS.s(VK,window.__V);
+   if(JSON.stringify(S)===snap)SS.r(DK);sync('ok')}
   catch(e){sync('err')}});return svP}
-setInterval(()=>{if(localStorage.getItem(DK))flush()},30000);
+setInterval(()=>{if(SS.g(DK))flush()},30000);
 if(window.__PUSH)setTimeout(save,300);
 addEventListener('pagehide',()=>{flush()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});
@@ -253,13 +266,16 @@ const FF=id=>id==='__lib'?lib():S.f.find(x=>x.id===id);
 const F=()=>FF(V.fid);
 const D=()=>F().d.find(x=>x.id===V.did);
 const catTab=g=>(S.cats.find(c=>c.n===g)||{}).t||'p';
-const inTab=d=>catTab(d.grp||'Divers')===V.tab;
-function go(v,fid,did){if(!['read','edit','pdf'].includes(v))V.rd=null;if(v==='list')setTimeout(()=>mcRefresh(),50);V.v=v;if(fid!==undefined)V.fid=fid;V.did=did||null;V.sel=new Set();V.nd=false;V.arm=null;V.dirty=false;V.msg='';V.det=false;V.notes=false;V.mp=false;V.mmsg='';V.q='';$('#q').value='';render();scrollTo(0,0)}
+const inTab=d=>V.tab==='all'||catTab(d.grp||'Divers')===V.tab;
+function navPush(v,fid,did){if(V.nb)return;const h=V.hist=V.hist||[];if(V.v==='read'||(V.v===v&&(fid===undefined||fid===V.fid)&&(did||null)===(V.did||null)))return;h.push({v:V.v,fid:V.fid,did:V.did,tab:V.tab,cid:V.cid,nid:V.nid});if(h.length>30)h.shift()}
+function navBack(){const s=(V.hist||[]).pop();if(!s)return;V.nb=true;try{go(s.v,s.fid,s.did)}finally{V.nb=false}V.tab=s.tab;V.cid=s.cid;V.nid=s.nid;render()}
+function navBtn(){return(V.hist&&V.hist.length&&!['home','edit','pdf','read'].includes(V.v))?[`<div class='tab' data-a='navBack' title='Revenir à l’écran précédent'>← Retour</div>`]:[]}
+function go(v,fid,did){navPush(v,fid,did);if(!['read','edit','pdf'].includes(v))V.rd=null;if(v==='list')setTimeout(()=>mcRefresh(),50);V.v=v;if(fid!==undefined)V.fid=fid;V.did=did||null;V.sel=new Set();V.nd=false;V.arm=null;V.dirty=false;V.msg='';V.det=false;V.notes=false;V.mp=false;V.mmsg='';V.q='';$('#q').value='';render();scrollTo(0,0)}
 function setLogo(){$('#logo').innerHTML=`<img src='${LG()}' alt='YES Immobilier'>`}
 function logoFile(file){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,160/im.height,480/im.width),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);S.logo=c.toDataURL('image/png');save();setLogo()};im.src=r.result};r.readAsDataURL(file)}
 
 function tabsBar(){
- const t=[`<div class='tab ${V.v==='home'?'on':''}' data-a='home'>Accueil</div>`];
+ const t=[...navBtn(),`<div class='tab ${V.v==='home'?'on':''}' data-a='home'>Accueil</div>`];
  if(V.v==='list')t.push(`<div class='tab on'>Dossiers de vente</div>`);
  if(V.v==='not')t.push(`<div class='tab on'>Notaires</div>`);
  if(V.v==='notf')t.push(`<div class='tab' data-a='notaires'>Notaires</div><div class='tab on'>${esc(((S.not||[]).find(n=>n.id===V.nid)||{}).etude||'Fiche notaire')}</div>`);
@@ -421,10 +437,10 @@ function vNot(){
  <div class='bar'><button class='p' data-a='notNew'>+ Nouveau notaire</button><button data-a='notImp'>Importer une liste</button><a href='https://www.notaires.fr/' target='_blank' rel='noopener noreferrer' style='text-decoration:none'><button type='button'>🔎 Annuaire officiel ↗</button></a></div>
  <p class='m' style='margin:0 0 10px'>${L.length} étude${L.length>1?'s':''}. Pour en ajouter : recherchez-la dans l’annuaire officiel, puis « Nouveau notaire ».</p><div id='nl'>${nl(L)}</div>`}
 function nl(L){const q=norm(V.nq||'');L=L.filter(n=>!q||norm([n.etude,n.nom,n.clerc,n.adr,n.cp,n.ville,n.tel,n.email].join(' ')).includes(q));
- return L.length?L.map(n=>`<div class='card click' data-a='notEdit' data-id='${n.id}'><div style='min-width:0'><div class='t'>${esc(ntLabel(n))}</div><div class='m'>${[n.nom&&n.etude?n.nom:'',[n.cp,n.ville].filter(Boolean).join(' '),n.tel,n.email].filter(Boolean).map(esc).join(' · ')}</div></div><span class='sp'></span><div class='qa'>${n.tel?`<a href="tel:${esc(telN(n.tel))}" target="_blank" rel="noopener noreferrer"><button type="button" title="Appeler" aria-label="Appeler">📞</button></a>`:''}${okMail(n.email||'')?`<button data-a='notMail' data-id='${n.id}' title='Écrire' aria-label='Écrire'>✉</button>`:''}</div></div>`).join(''):`<p class='m'>Aucun notaire${q?' trouvé':' pour l’instant'}.</p>`}
+ return L.length?L.map(n=>`<div class='card click' data-a='notEdit' data-id='${n.id}'><div style='min-width:0'><div class='t'>${esc(ntLabel(n))}</div><div class='m'>${[n.nom&&n.etude?n.nom:'',[n.cp,n.ville].filter(Boolean).join(' '),n.tel,n.email].filter(Boolean).map(esc).join(' · ')}</div></div><span class='sp'></span><div class='qa'>${n.tel?`<a href="tel:${esc(telN(n.tel))}"><button type="button" title="Appeler" aria-label="Appeler">📞</button></a>`:''}${okMail(n.email||'')?`<button data-a='notMail' data-id='${n.id}' title='Écrire' aria-label='Écrire'>✉</button>`:''}</div></div>`).join(''):`<p class='m'>Aucun notaire${q?' trouvé':' pour l’instant'}.</p>`}
 function vNotF(){const n=(S.not||[]).find(x=>x.id===V.nid);if(!n)return `<p class='m'>Fiche introuvable.</p>`;
  const used=S.f.filter(f=>f.notaire===n.id).length;
- return `<div class='bar'><button data-a='notaires'>← Retour</button><h1 style='margin:0 0 0 8px'>${esc(ntLabel(n))}</h1><span class='sp'></span>${n.tel?`<a href="tel:${esc(telN(n.tel))}" target="_blank" rel="noopener noreferrer"><button type="button">📞 Appeler</button></a>`:''}${okMail(n.email||'')?`<button data-a='notMail' data-id='${n.id}'>✉ Écrire</button>`:''}</div>
+ return `<div class='bar'><button data-a='notaires'>← Retour</button><h1 style='margin:0 0 0 8px'>${esc(ntLabel(n))}</h1><span class='sp'></span>${n.tel?`<a href="tel:${esc(telN(n.tel))}"><button type="button">📞 Appeler</button></a>`:''}${okMail(n.email||'')?`<button data-a='notMail' data-id='${n.id}'>✉ Écrire</button>`:''}</div>
  <div class='card' style='flex-direction:column;gap:10px'><div class='grid'>${NF.map(([k,l,ph])=>`<div><label>${l}</label><input data-nf='${k}' value="${esc(n[k])}" placeholder="${esc(ph)}"></div>`).join('')}</div><div><label>Notes</label><textarea data-nf='notes' rows='3'>${esc(n.notes)}</textarea></div></div>
  <p class='m'>${used?'Utilisé dans '+used+' dossier'+(used>1?'s':'')+'.':'Pas encore choisi dans un dossier.'} Les modifications sont enregistrées automatiquement.</p>
  <div class='bar'><button class='d' data-a='notDel' data-id='${n.id}'>Supprimer ce notaire</button></div>`}
@@ -441,14 +457,86 @@ function notParse(txt){
  return lines.slice(start).map(l=>{const c=cut(l),o={};map.forEach((k,i)=>{if(k&&c[i])o[k]=c[i]});return o}).filter(o=>o.etude||o.nom)}
 const MODELO0='https://fnaim.modelo.fr/';
 const modeloUrl=()=>/^https:\/\//i.test((S.set&&S.set.modelo)||'')?S.set.modelo:MODELO0;
+function bkBanner(){if(!window.__WEB)return '';let t=0;try{t=+localStorage.getItem('yescrm-lastbk:'+window.__UID)||0}catch(e){}
+ const d=t?Math.floor((Date.now()-t)/864e5):null;if(d!==null&&d<7)return '';
+ return `<div class='card' style='margin:0 0 12px;gap:10px;align-items:center;flex-wrap:wrap'><span>⚠️ ${d===null?'Aucune sauvegarde exportée à ce jour.':'Dernière sauvegarde il y a '+d+' jours.'} Exportez-en une régulièrement.</span><button class='p' data-a='bkExp'>Sauvegarder maintenant</button></div>`}
 function vHome(){
  const nf=S.f.filter(f=>!f.arch).length,nd=lib().d.length,nc=S.c.length;
  const inb=(M.labels||[]).find(l=>l.labelId==='INBOX'||l.name==='INBOX'),un=inb&&inb.threadsUnread;
- const h=new Date().getHours(),hi=h<18?'Bonjour':'Bonsoir';
+ const h=new Date().getHours(),hi=h<18?'Bonjour':'Bonsoir',me=((S.set||{}).me||'').trim(),fn=me.split(/\s+/)[0];
  const T=(a,ic,t,m)=>`<button class='hm' data-a='${a}'><span class='hi'>${ic}</span><span class='ht'>${t}</span><span class='hs'>${m}</span></button>`;
- return `<div class='bar'><h1>${hi} 👋</h1></div><p class='m' style='margin:-6px 0 14px'>Que souhaitez-vous faire ?</p>
+ return `<div class='bar' style='align-items:center'><h1>${hi}${fn?' '+esc(fn):''} 👋</h1><span class='m' style='margin-left:auto;font-weight:600;text-align:right;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end'>${me?'👤 '+esc(me):"<a data-a='settings' style='cursor:pointer;text-decoration:underline'>Indiquer mon nom</a>"}<button type='button' data-a='${window.__WEB?"logout":locked()?"secLock":"noLock"}' style='padding:4px 10px;font-weight:400'>⏻ Se déconnecter</button></span></div><p class='m' style='margin:-6px 0 14px'>Que souhaitez-vous faire ?</p>${bkBanner()}
  <div class='hg'>${T('dossiers','📁','Dossiers de vente',nf+' dossier'+(nf>1?'s':'')+' en cours')}${T('mail','✉️','Courriels',un?un+' non lu'+(un>1?'s':''):(MC?'Ouvrir ma boîte Gmail':'Écrire un courriel'))}${T('contacts','👥','Contacts',nc+' fiche'+(nc>1?'s':''))}${T('docs','📄','Documents',nd?nd+' modèle'+(nd>1?'s':'')+' juridique'+(nd>1?'s':''):'Modèles juridiques à alimenter')}${T('notaires','🏛️','Notaires',(S.not||[]).length?(S.not.length)+' étude'+(S.not.length>1?'s':'')+' enregistrée'+(S.not.length>1?'s':''):'Votre annuaire à alimenter')}<a class='hm' href="${esc(modeloUrl())}" target='_blank' rel='noopener noreferrer' style='text-decoration:none;color:inherit'><span class='hi'>⚖️</span><span class='ht'>Modelo (FNAIM) ↗</span><span class='hs'>S’ouvre dans un nouvel onglet</span></a></div>
- <div class='bar' style='margin-top:14px'><button class='p' data-a='newFH'>+ Nouveau dossier</button><button data-a='settings'>⚙️ Réglages</button>${locked()?"<button data-a='secLock'>🔒 Verrouiller</button>":''}<button data-a='modeloLink' title='Changer l’adresse ouverte par la tuile Modelo'>🔗 Lien Modelo</button></div>`}
+ ${honHome()}${agHome()}<div class='bar' style='margin-top:14px'><button class='p' data-a='newFH'>+ Nouveau dossier</button><button data-a='settings'>⚙️ Réglages</button>${locked()?"<button data-a='secLock'>🔒 Verrouiller</button>":''}<button data-a='modeloLink' title='Changer l’adresse ouverte par la tuile Modelo'>🔗 Lien Modelo</button></div>`}
+const AGS=['Signature du compromis / promesse de vente','Fin du délai de rétractation','Conditions suspensives de prêt','Obtention du prêt','Purge du droit de préemption','Remise des clés','Signature de l’acte définitif','Diagnostics à fournir'];
+const agRel=d=>{const n=Math.round((new Date(d+'T00:00')-new Date(new Date().toDateString()))/864e5);return[n,n===0?'aujourd’hui':n===1?'demain':n>1?'dans '+n+' j':'il y a '+(-n)+' j']};
+const agGcal=(e,f)=>{const a=e.d.replace(/-/g,''),b=new Date(e.d+'T12:00');b.setDate(b.getDate()+1);const z=b.getFullYear()+String(b.getMonth()+1).padStart(2,'0')+String(b.getDate()).padStart(2,'0');return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(e.t+' - '+f.name)+'&dates='+a+'/'+z+'&details='+encodeURIComponent('Dossier de vente : '+f.name)};
+const agFmt=d=>{const x=new Date(d+'T12:00');return isNaN(x)?d:x.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'})};
+const agRow=(e,f,home)=>{const[n,r]=agRel(e.d),late=!e.ok&&n<0;return `<div class='rw' style='align-items:center;gap:6px'>${home?'':`<input type='checkbox' data-a='agOk' data-id='${e.id}' ${e.ok?'checked':''} title='Fait'>`}<span style='flex:1;min-width:0;${e.ok?'text-decoration:line-through;opacity:.6':''}'><b>${esc(agFmt(e.d))}</b><br>${esc(e.t)}${home?` <span class='m'>· ${esc(f.name)}</span>`:''}</span><span class='m' style='white-space:nowrap;${late?'color:#b3261e;font-weight:600':''}'>${e.ok?'fait ✓':r}</span>${home?'':`<a href="${esc(agGcal(e,f))}" target="_blank" rel="noopener noreferrer" title="Ajouter à Google Agenda" aria-label="Ajouter à Google Agenda" style="text-decoration:none"><button type='button' style='padding:2px 8px'>📅</button></a><button type='button' data-a='agDel' data-id='${e.id}' title='Retirer' aria-label='Retirer' style='padding:2px 8px'>×</button>`}</div>`};
+function agHtml(f){const L=(f.ag||[]).slice().sort((a,b)=>a.d.localeCompare(b.d));
+ return `<h3>Date d’ouverture</h3><input type='date' data-k='dopen' value="${esc(f.dopen||'')}">
+<h3>Agenda du dossier</h3>${L.length?L.map(e=>agRow(e,f,false)).join(''):`<div class='rw'><span class='m'>Aucune échéance</span></div>`}
+<div style='display:flex;flex-direction:column;gap:6px;margin-top:8px'><input type='date' id='agd' aria-label='Date'><input id='agt' list='agl' placeholder='Ex. : Conditions de prêt' aria-label='Intitulé'><datalist id='agl'>${AGS.map(s=>`<option value="${esc(s)}">`).join('')}</datalist><button type='button' class='p' data-a='agAdd'>+ Ajouter à l’agenda</button></div>`}
+function agHome(){const up=[];S.f.filter(x=>!x.arch).forEach(x=>(x.ag||[]).forEach(e=>{if(!e.ok)up.push([e,x])}));up.sort((a,b)=>a[0].d.localeCompare(b[0].d));
+ if(!up.length)return '';return `<h3 style='margin:16px 0 6px'>Prochaines échéances</h3><div>${up.slice(0,6).map(([e,x])=>`<div data-a='openF' data-id='${x.id}' style='cursor:pointer'>${agRow(e,x,true)}</div>`).join('')}</div>${up.length>6?`<p class='m'>+ ${up.length-6} autre${up.length-6>1?'s':''} dans les dossiers</p>`:''}`}
+const ETAPES=['Mandat','Visites','Offre','Compromis','Conditions suspensives','Acte authentique','Terminé'];
+const num=v=>{let s=String(v==null?'':v).replace(/[\s €]/g,'');if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,'');s=s.replace(',','.').replace(/[^\d.]/g,'');const n=parseFloat(s);return isNaN(n)?0:n};
+const eur=n=>(Math.round(n*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:2})+' €';
+const CKV=['Mandat de vente signé','Pièce d’identité des vendeurs','Titre de propriété','Dernière taxe foncière','Diagnostics (DPE, amiante, plomb, électricité, gaz, ERP, Carrez…)','Situation matrimoniale (livret de famille, contrat de mariage)','Copropriété : règlement, PV des 3 dernières assemblées, état daté, carnet d’entretien','Bail et dernières quittances (si le bien est loué)','Factures et garanties des travaux récents'];
+const CKA=['Pièce d’identité des acquéreurs','Justificatif de domicile','Offre d’achat signée','Accord de principe ou financement','Justificatif d’apport','Offre de prêt','Situation matrimoniale (livret de famille, contrat de mariage)','Avis d’imposition (si demandé par la banque)'];
+const REG={anc:['Ancien – taux courant (Pas-de-Calais)',6.32],prim:['Ancien – primo-accédant (Pas-de-Calais)',5.81],neuf:['Neuf (moins de 5 ans)',0.715],perso:['Personnalisé',null]};
+function emol(p){const T=[[6500,.0387],[17000,.01596],[60000,.01064],[Infinity,.00799]];let r=0,lo=0;for(const[hi,t]of T){if(p>lo)r+=(Math.min(p,hi)-lo)*t;lo=hi}return r}
+const pc=x=>String(Math.round(x*1000)/1000).replace('.',',');
+function calcOut(f){const c=f.calc||{},P=num(f.prix),H=num(c.hon),pay=c.pay==='acq'?'acq':'ven',reg=c.reg||'anc',tx=c.taux!==undefined&&c.taux!==''?num(c.taux):(REG[reg][1]||0),deb=c.deb!==undefined&&c.deb!==''?num(c.deb):1000;
+ if(!P)return `<p class='m'>Renseignez le prix de vente pour voir le calcul.</p>`;
+ const em=emol(P)*1.2,dr=P*tx/100,csi=Math.max(15,P*.001),nt=em+dr+csi+deb,net=P-(pay==='ven'?H:0)-num(c.crd),tot=P+(pay==='acq'?H:0)+nt;
+ const R=(l,v,b)=>`<div class='rw'${b?" style='font-weight:700'":''}><span>${l}</span><span>${v}</span></div>`;
+ return R('Prix de vente',eur(P))+R('Honoraires '+(pay==='acq'?'(à la charge de l’acquéreur)':'(à la charge du vendeur)'),eur(H)+(H?' · '+pc(H/P*100)+' %':''))+R('Net vendeur (avant impôt sur la plus-value)',eur(net),true)
+ +`<h3 style='margin-top:12px'>Frais de notaire estimés (à la charge de l’acquéreur)</h3>`+R('Émoluments du notaire (TTC)',eur(em))+R('Droits de mutation et taxes ('+pc(tx)+' %)',eur(dr))+R('Contribution de sécurité immobilière',eur(csi))+R('Débours (estimation)',eur(deb))+R('Total frais de notaire',eur(nt)+' · '+pc(nt/P*100)+' %',true)+R('Coût total pour l’acquéreur',eur(tot),true)
+ +`<p class='m'>Estimation indicative : barème des notaires en vigueur depuis 2021, sans remise, hors frais de prêt et de garantie. Vérifiez les taux selon le département et la date de l’acte.</p>`}
+function calcUpd(src){const f=F(),c=f.calc=f.calc||{},o=$('#calcOut');if(o)o.innerHTML=calcOut(f);const P=num(f.prix),H=num(c.hon);
+ if(src!=='honp'){const e=$('#cHonp');if(e)e.value=P&&H?pc(H/P*100):''}
+ if(src==='honp'||src==='prix'&&c.honp){}
+ const s=$('#pnlC');if(s)s.textContent='💶 Prix, frais et honoraires'+(H?' · '+eur(H):'')}
+function ckState(f){f.chk=f.chk||{};f.chkx=f.chkx||[];let t=CKV.length+CKA.length+f.chkx.length,d=0;CKV.forEach((_,i)=>{if(f.chk['v'+i])d++});CKA.forEach((_,i)=>{if(f.chk['a'+i])d++});f.chkx.forEach(x=>{if(x.ok)d++});return[d,t]}
+function ckCol(f,s,L,title){V.ck=V.ck||new Set();const sk=k=>f.id+':'+k,nSel=[...V.ck].filter(x=>x.startsWith(f.id+':'+s)).length;
+ const row=(k,t,ok,cu)=>`<div class='rw' style='align-items:center;gap:6px'><input type='checkbox' data-a='ckS' data-id='${k}' ${V.ck.has(sk(k))?'checked':''} title='Cocher pour demander cette pièce'><span style='flex:1;min-width:0;${ok?'text-decoration:line-through;opacity:.6':''}'>${esc(t)}</span><button type='button' data-a='ckT' data-id='${k}' title='Marquer comme reçue' style='padding:2px 8px;font-size:12px;${ok?'background:#e3f1e3':''}'>${ok?'✓ Reçue':'Reçue ?'}</button>${cu?`<button type='button' data-a='ckDel' data-id='${k}' title='Retirer' aria-label='Retirer' style='padding:2px 8px'>×</button>`:''}</div>`;
+ return `<div><h3>${title}</h3>${L.map((t,i)=>row(s+i,t,(f.chk||{})[s+i],false)).join('')}${(f.chkx||[]).filter(x=>x.s===s).map(x=>row(x.id,x.t,x.ok,true)).join('')}<div style='display:flex;gap:6px;margin-top:6px'><input id='ckt_${s}' placeholder='Ajouter une pièce…' style='flex:1;min-width:0'><button type='button' data-a='ckAdd' data-id='${s}'>+</button></div><button type='button' class='p' data-a='ckMail' data-id='${s}' style='margin-top:8px;width:100%'>✉ Demander les pièces cochées${nSel?' ('+nSel+')':''}</button></div>`}
+async function ckLetter(f,s){const sel=V.ck||new Set(),items=[];
+ (s==='v'?CKV:CKA).forEach((t,i)=>{if(sel.has(f.id+':'+s+i))items.push(t)});(f.chkx||[]).filter(x=>x.s===s&&sel.has(f.id+':'+x.id)).forEach(x=>items.push(x.t));
+ if(!items.length){toast('Cochez d’abord les pièces à demander.');return}
+ const cs=partyC(f,s==='v'?'vids':'aids'),names=cs.map(c=>nom(c)).filter(Boolean),sal=names.length?names.join(', ')+',':'Madame, Monsieur,';
+ const st=S.set=S.set||{};if(!String(st.ftr||'').trim())st.ftr='YES Immobilier · 33 place du 73ème, 62400 Béthune';
+ const dt=new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),me=String(st.me||'').trim();
+ let im={w:226,h:200};try{im=await imgSize(LG())||im}catch(e){}
+ const h=`<p style='text-align:center'><img src="${LG()}" data-w="${im.w}" data-h="${im.h}" style="width:260px" alt="YES Immobilier"></p><p style='text-align:right'>Béthune, le ${dt}</p><p><b>Objet : Demande de pièces</b></p><p>${esc(sal)}</p><p>Dans le cadre de la vente du bien situé ${esc(f.bien||'…')}, merci de bien vouloir m’envoyer les éléments suivants :</p><ul>${items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><p>Je reste à votre disposition pour tout renseignement complémentaire.</p><p>Cordialement,</p><p>${me?esc(me)+'<br>':''}YES Immobilier</p>`;
+ const g=s==='v'?'Courrier vendeurs':'Courrier acquéreurs',d={id:uid(),t:'Demande de pièces – '+(s==='v'?'vendeurs':'acquéreurs')+' – '+dt,h,u:today(),cat:catTab(g),grp:g,code:'COUR',st:'Brouillon',nologo:1};
+ f.d.push(d);[...V.ck].forEach(x=>{if(x.startsWith(f.id+':'+s))V.ck.delete(x)});save();go('edit',f.id,d.id);toast('Courrier créé : relisez-le, puis exportez-le en PDF ou Word (logo en en-tête, adresse en pied de page) ou envoyez-le.')}
+function suiviHtml(f){const c=f.calc||{},[d,t]=ckState(f),op=k=>V['pn_'+k]?' open':'',P=num(f.prix),H=num(c.hon),reg=c.reg||'anc';
+ const sel=(a,b)=>a===b?' selected':'';
+ return `<details class='pnl'${op('s')} data-pn='s'><summary>📋 Suivi du dossier · ${esc(f.etape||'Étape non indiquée')} · ${d}/${t} pièces</summary>
+<div style='max-width:320px'><label>Étape du dossier</label><select data-xf='etape'><option value=''>— Choisir —</option>${ETAPES.map(e=>`<option${sel(f.etape,e)}>${e}</option>`).join('')}</select></div>
+<div class='cgrid' style='margin-top:6px'>${ckCol(f,'v',CKV,'Pièces vendeur')}${ckCol(f,'a',CKA,'Pièces acquéreur')}</div></details>
+<details class='pnl'${op('c')} data-pn='c'><summary id='pnlC'>💶 Prix, frais et honoraires${H?' · '+eur(H):''}</summary>
+<div class='cgrid'>
+<div><label>Prix de vente (honoraires inclus)</label><input data-xf='prix' inputmode='decimal' value="${esc(f.prix)}" placeholder='250 000'></div>
+<div><label>Honoraires TTC (€)</label><input id='cHon' data-xc='hon' inputmode='decimal' value="${esc(c.hon||'')}"></div>
+<div><label>Honoraires (% du prix)</label><input id='cHonp' data-xc='honp' inputmode='decimal' value="${P&&H?pc(H/P*100):''}"></div>
+<div><label>Honoraires à la charge de</label><select data-xc='pay'><option value='ven'${sel(c.pay||'ven','ven')}>Vendeur</option><option value='acq'${sel(c.pay,'acq')}>Acquéreur</option></select></div>
+<div><label>Capital restant dû du vendeur (facultatif)</label><input data-xc='crd' inputmode='decimal' value="${esc(c.crd||'')}"></div>
+<div><label>Nature de la vente</label><select data-xc='reg'>${Object.keys(REG).map(k=>`<option value='${k}'${sel(reg,k)}>${REG[k][0]}</option>`).join('')}</select></div>
+<div><label>Droits de mutation et taxes (%)</label><input data-xc='taux' inputmode='decimal' value="${esc(c.taux!==undefined&&c.taux!==''?c.taux:pc(REG[reg][1]||0))}"></div>
+<div><label>Débours estimés (€)</label><input data-xc='deb' inputmode='decimal' value="${esc(c.deb!==undefined&&c.deb!==''?c.deb:'1000')}"></div>
+</div>
+<div id='calcOut' style='margin-top:10px'>${calcOut(f)}</div>
+<h3 style='margin-top:12px'>Encaissement des honoraires</h3>
+<div class='cgrid'><div><label>Date d’encaissement</label><input type='date' data-xc='hdate' value="${esc(c.hdate||'')}"></div><label style='display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx)'><input type='checkbox' data-xc='hok'${c.hok?' checked':''}> Honoraires encaissés</label></div></details>`}
+function etFilter(){return `<div style='margin:0 0 10px;max-width:260px'><select data-xl='etf' aria-label='Filtrer par étape'><option value=''>Toutes les étapes</option>${ETAPES.map(e=>`<option${V.etf===e?' selected':''}>${e}</option>`).join('')}</select></div>`}
+function honHome(){let pr=0,en=0;const y=String(new Date().getFullYear());S.f.forEach(f=>{const c=f.calc||{},H=num(c.hon);if(!H)return;if(c.hok){if(!c.hdate||c.hdate.slice(0,4)===y)en+=H}else if(!f.arch)pr+=H});
+ if(!pr&&!en)return '';return `<h3 style='margin:16px 0 6px'>Honoraires</h3><div class='rw'><span>À encaisser</span><span><b>${eur(pr)}</b></span></div><div class='rw'><span>Encaissés en ${y}</span><span><b>${eur(en)}</b></span></div>`}
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.pn)V['pn_'+d.dataset.pn]=d.open},true);
+function hdrPrev(){const st=S.set||{},hl=String(st.hdr||'').split('\n').filter(Boolean).slice(0,4);return `<div class='hp' contenteditable='false' title='Aperçu : l’en-tête est ajouté automatiquement à l’export PDF / Word (réglable dans Réglages)'>${st.logo!==false&&!(V.did&&D()&&D().nologo)?`<img src="${LG()}" alt="Logo" style="height:46px;width:auto">`:''}<div>${hl.map(esc).join('<br>')}</div></div>`}
+function ftrPrev(){const st=S.set||{},fl=String(st.ftr||'').split('\n').filter(Boolean).slice(0,3);return fl.length?`<div class='fp' contenteditable='false' title='Aperçu : le pied de page est ajouté automatiquement à l’export PDF / Word'>${fl.map(esc).join('<br>')}</div>`:''}
 function vDocs(){
  const L=lib(),q=norm(V.dq||''),cats=[...L.lc];L.d.forEach(d=>{const g=d.grp||'Divers';if(!cats.includes(g))cats.push(g)});
  const ok=d=>!q||norm(d.t+' '+(d.grp||'')).includes(q);
@@ -483,10 +571,10 @@ async function libCopy(id,w){
  return n}
 const isEmptyF=f=>!f.d.length&&!(f.vids||[]).length&&!(f.aids||[]).length&&!f.mandat&&!f.bien&&!f.prix&&!(f.notes||'').trim();
 function vList(){
- const arch=S.f.filter(f=>f.arch).length,vis=S.f.filter(f=>!f.arch||V.showArch),emp=S.f.filter(isEmptyF).length;
- const card=f=>{const v=partyC(f,'vids'),a=partyC(f,'aids');return `<div class='card click' ${f.arch?"style='opacity:.65'":''} data-a='openF' data-id='${f.id}'><div><div class='t'>${esc(f.name)}${f.arch?" <span class='badge'>Archivé</span>":''}</div><div class='m'>${f.d.length} document${f.d.length>1?'s':''}${f.mandat?' · Mandat n° '+esc(f.mandat):''}${v.length?' · Vendeur'+(v.length>1?'s':'')+' : '+esc(joinEt(v.map(nom))):''}${a.length?' · Acquéreur'+(a.length>1?'s':'')+' : '+esc(joinEt(a.map(nom))):''}</div></div><span class='sp'></span><div class='qa'><button data-a='callF' data-id='${f.id}' title='${cTitle(f)}' aria-label='Appeler'>📞${cCall(f)}</button><button data-a='mailQ' data-id='${f.id}' title='${mTitle(f)}' aria-label='Écrire'>✉${cMail(f)}</button><button data-a='fMenu' data-id='${f.id}' title='Modifier, dupliquer, supprimer…' aria-label='Plus d’actions'>⋯</button></div></div>`};
+ const arch=S.f.filter(f=>f.arch).length,vis=S.f.filter(f=>(!f.arch||V.showArch)&&(!V.etf||f.etape===V.etf)),emp=S.f.filter(isEmptyF).length;
+ const card=f=>{const v=partyC(f,'vids'),a=partyC(f,'aids');return `<div class='card click' ${f.arch?"style='opacity:.65'":''} data-a='openF' data-id='${f.id}'><div><div class='t'>${esc(f.name)}${f.arch?" <span class='badge'>Archivé</span>":''}${f.etape?` <span class='badge'>${esc(f.etape)}</span>`:''}</div><div class='m'><a data-a='openFD' data-id='${f.id}' style='cursor:pointer;text-decoration:underline' title='Afficher tous les documents de ce dossier'>${f.d.length} document${f.d.length>1?'s':''}</a>${f.mandat?' · Mandat n° '+esc(f.mandat):''}${v.length?' · Vendeur'+(v.length>1?'s':'')+' : '+esc(joinEt(v.map(nom))):''}${a.length?' · Acquéreur'+(a.length>1?'s':'')+' : '+esc(joinEt(a.map(nom))):''}</div></div><span class='sp'></span><div class='qa'><button data-a='callF' data-id='${f.id}' title='${cTitle(f)}' aria-label='Appeler'>📞${cCall(f)}</button><button data-a='mailQ' data-id='${f.id}' title='${mTitle(f)}' aria-label='Écrire'>✉${cMail(f)}</button><button data-a='fMenu' data-id='${f.id}' title='Modifier, dupliquer, supprimer…' aria-label='Plus d’actions'>⋯</button></div></div>`};
  return `<div class='bar'><h1>Dossiers de vente</h1><span class='sp'></span>${emp>1||(emp===1&&S.f.length>1)?`<button data-a='delEmpty' title='Supprime les dossiers sans aucun contenu'>🧹 Supprimer les dossiers vides (${emp})</button>`:''}<button class='p' data-a='newF'>+ Nouveau dossier</button></div>`+
- (vis.length?vis.map(card).join(''):`<p class='m'>Aucun dossier${arch?' actif':''}. Créez-en un pour commencer.</p>`)+
+ etFilter()+(vis.length?vis.map(card).join(''):`<p class='m'>Aucun dossier${arch?' actif':''}. Créez-en un pour commencer.</p>`)+
  (arch?`<div class='bar'><button data-a='togArch'>${V.showArch?'Masquer':'Afficher'} les dossiers archivés (${arch})</button></div>`:'')+
  `<p class='m' style='margin-top:20px'>Les données restent enregistrées dans ce navigateur uniquement.</p>`;
 }
@@ -495,20 +583,22 @@ function partyEd(f,k,l){const ids=Array.isArray(f[k])?f[k]:[];
  return `<div><label>${l}</label>${ids.map((id,i)=>`<div style='display:flex;gap:6px;margin-bottom:6px'><select data-pk='${k}' data-pi='${i}'>${opt(id)}</select><button data-a='ficheC' data-id='${esc(id)}'>Fiche</button><button data-a='partyDel' data-k='${k}' data-i='${i}' aria-label='Retirer ce contact'>✕</button></div>`).join('')}<div style='display:flex;gap:6px'><select data-padd='${k}'><option value=''>+ Ajouter un contact existant…</option>${opt('')}</select><button data-a='newCF' data-k='${k}'>+ Nouveau</button></div></div>`}
 function selC(f,k,l){return `<div><label>${l}</label><div style='display:flex;gap:6px'><select data-k='${k}'><option value=''>— Choisir —</option>${S.c.map(c=>`<option value='${c.id}' ${f[k]===c.id?'selected':''}>${esc(nom(c)||'Sans nom')}</option>`).join('')}</select><button data-a='ficheC' data-id='${f[k]||''}' ${f[k]?'':'disabled'}>Fiche</button><button data-a='newCF' data-k='${k}' aria-label='Nouveau contact'>+</button></div></div>`}
 function vFolder(){
+ const f0=F();if(f0.d.length&&!f0.d.some(inTab)&&V.tabPick!==f0.id+':'+V.tab){const k=TABS.find(([k])=>f0.d.some(d=>catTab(d.grp||'Divers')===k));if(k)V.tab=k[0]}
  const f=F(),n=V.sel.size,ds=f.d.filter(inTab),all=ds.length>0&&ds.every(d=>V.sel.has(d.id));
  const grps=[...new Set(ds.map(d=>d.grp||'Divers'))];
  const rw=(c,r)=>c?`<div class='rw' data-a='ficheC' data-id='${c.id}'><span>${esc(nom(c)||'Sans nom')}</span><span class='m'>${r}</span></div>`:`<div class='rw'><span class='m'>${r} : non renseigné</span></div>`;
  const side=(k,r)=>{const cs=partyC(f,k);return cs.length?cs.map(c=>rw(c,r+(c.qual?' · '+esc(c.qual):'')+(c.type==='pm'?' · société':c.type==='succ'?' · succession':''))).join(''):`<div class='rw'><span class='m'>${r} : non renseigné</span></div>`};
  const fld=(k,l)=>`<div><label>${l}</label><input data-k='${k}' value="${esc(f[k])}"></div>`;
  const row=d=>{const s=STS.indexOf(d.st||'Brouillon');return `<div class='dr ${V.sel.has(d.id)?'sel':''}' data-a='openD' data-id='${d.id}'><input type='checkbox' data-a='chk' data-id='${d.id}' ${V.sel.has(d.id)?'checked':''}><span class='cd ${catTab(d.grp||'Divers')}'>${esc(d.code||'DOC')}</span><span class='dt'>${esc(d.t)}${d.lu?" <span class='m' title='Relu le "+esc(d.lu)+"'>✓ relu</span>":''}</span><span class='m dd'>${esc(d.u)}</span><span class='stb s${s}' data-a='st' data-id='${d.id}' title='Changer le statut'>${STS[s]}</span></div>`};
- return `${tabsBar()}<div class='dg'><aside><div class='tbox'>${esc(f.name)}<div style='font-weight:400;font-size:13px'>${f.d.length} document${f.d.length>1?'s':''}</div></div>
+ return `${tabsBar()}<div class='dg'><aside><div class='tbox'>${esc(f.name)}<div style='font-weight:400;font-size:13px'><a data-a='tab' data-id='all' style='cursor:pointer;text-decoration:underline' title='Afficher tous les documents du dossier'>${f.d.length} document${f.d.length>1?'s':''}</a></div></div>
 <h3>Mandat</h3><div class='rw' data-a='tab' data-id='m' title='Ouvrir l’onglet Mandat'><span>${f.mandat?'Mandat n° '+esc(f.mandat):'N° de mandat non renseigné'}</span><span class='m'>${f.d.filter(d=>catTab(d.grp||'Divers')==='m').length} doc.</span></div>
 <h3>Vendeurs</h3>${side('vids','Vendeur')}<h3>Acquéreurs</h3>${side('aids','Acquéreur')}
 <h3>Immeuble</h3><div class='rw'><span>${esc(f.bien||'Non renseigné')}</span><span class='m'>${esc(f.prix)}</span></div>
 <h3>Notaire</h3>${(()=>{const n=(S.not||[]).find(x=>x.id===f.notaire);return n?`<div class='rw' data-a='notEdit' data-id='${n.id}'><span>${esc(ntLabel(n))}</span><span class='m'>${esc(n.tel||'')}</span></div>`:`<div class='rw'><span class='m'>Notaire : non renseigné</span></div>`})()}
+${agHtml(f)}
 <details ${V.det?'open':''}><summary>Modifier le dossier</summary>${fld('name','Nom du dossier')}${fld('mandat','N° de mandat')}${fld('prix','Prix')}${partyEd(f,'vids','Vendeurs')}${partyEd(f,'aids','Acquéreurs')}${fld('bien','Bien vendu (adresse)')}<div><label>Notaire</label><select data-k='notaire'><option value=''>— Choisir —</option>${(S.not||[]).slice().sort((a,b)=>ntLabel(a).localeCompare(ntLabel(b),'fr')).map(n=>`<option value='${n.id}' ${f.notaire===n.id?'selected':''}>${esc(ntLabel(n))}${n.ville?' · '+esc(n.ville):''}</option>`).join('')}</select></div><button class='d' data-a='delF' style='margin-top:12px'>${V.arm==='F'?'Confirmer la suppression':'Supprimer le dossier'}</button></details></aside>
 <section><div class='bar' style='margin:0 0 8px'><h1>${esc(f.name)}</h1><span class='sp'></span><button data-a='callF' data-id='${f.id}' title='${cTitle(f)}'>📞 Appeler${cCall(f)}</button><button data-a='mailQ' data-id='${f.id}' title='${mTitle(f)}'>✉ Écrire${cMail(f)}</button><button data-a='fMenu' data-id='${f.id}' title='Plus d’actions' aria-label='Plus d’actions'>⋯</button></div>
-<div class='tabs2'>${TABS.map(([k,l])=>`<button class='${V.tab===k?'on':''}' data-a='tab' data-id='${k}'>${l} (${f.d.filter(d=>catTab(d.grp||'Divers')===k).length})</button>`).join('')}</div>
+${suiviHtml(f)}<div class='tabs2'>${[...TABS,['all','Tous']].map(([k,l])=>`<button class='${V.tab===k?'on':''}' data-a='tab' data-id='${k}'>${l} (${k==='all'?f.d.length:f.d.filter(d=>catTab(d.grp||'Divers')===k).length})</button>`).join('')}</div>
 <div class='cards'><div class='kc k1'>Documents (${f.d.length})</div><div class='kc k2' data-a='contacts'>Contacts (${S.c.length})</div><div class='kc k3' data-a='notes'>Notes${f.notes?' ●':''}</div></div>
 <div class='bar'><button data-a='readStart' title='Relire le compromis et ses annexes en mode lecture (verrouillé). Si vous cochez des documents, seuls ceux-là sont lus.'>📖 Lecture compromis &amp; annexes</button><button data-a='mailF'>✉ Courriels de ce dossier (Gmail)</button><button data-a='impBtn' title='Importez un acte rédigé dans Modelo (PDF ou Word) : il est classé automatiquement selon son nom. Vous pouvez aussi glisser les fichiers sur la page.'>📥 Importer un acte (Modelo…)</button>${V.tab==='m'?`<button data-a='detM'>🔍 Détecter le n° de mandat</button>`:''}</div>
 ${V.notes?`<textarea data-k='notes' rows='4' placeholder='Notes du dossier' style='margin-bottom:12px'>${esc(f.notes)}</textarea>`:''}
@@ -519,7 +609,7 @@ ${V.nd?`<div class='card' style='flex-direction:column;gap:10px'>
 <div class='bar' style='margin:0'><select id='tpl' style='flex:1'>${TPL.map((t,i)=>`<option value='${i}'>${esc(t.n)}</option>`).join('')}</select><button class='p' data-a='createD'>Créer un document</button></div>
 <div class='bar' style='margin:0'><button data-a='impBtn'>Importer des fichiers (PDF, Word, texte)</button></div>
 <div class='bar' style='margin:0'><input id='nc' placeholder='Nouvelle catégorie' style='flex:1;min-width:140px'><select id='nct' style='width:auto'>${TABS.map(([k,l])=>`<option value='${k}' ${k===V.tab?'selected':''}>${l}</option>`).join('')}</select><button data-a='newCat'>Ajouter</button></div></div>`:''}
-${S.cats.filter(c=>c.t===V.tab).map(c=>{const g=c.n,rs=ds.filter(d=>(d.grp||'Divers')===g),cl=V.cl[g];return `<div><div class='gh' data-a='grp' data-id="${esc(g)}">${cl?'▸':'▾'} ${esc(g)} (${rs.length})${rs.length?'':` <span data-a='delCat' data-id="${esc(g)}" title='Supprimer cette catégorie vide'>✕</span>`}</div>${cl?'':rs.map(row).join('')}</div>`}).join('')}
+${[...S.cats.filter(c=>V.tab==='all'||c.t===V.tab),...[...new Set(ds.map(d=>d.grp||'Divers'))].filter(g=>!S.cats.some(c=>c.n===g)).map(g=>({n:g,t:V.tab,orph:1}))].map(c=>{const g=c.n,rs=ds.filter(d=>(d.grp||'Divers')===g),cl=V.cl[g];return `<div><div class='gh' data-a='grp' data-id="${esc(g)}">${cl?'▸':'▾'} ${esc(g)} (${rs.length})${rs.length||c.orph?'':` <span data-a='delCat' data-id="${esc(g)}" title='Supprimer cette catégorie vide'>✕</span>`}</div>${cl?'':rs.map(row).join('')}</div>`}).join('')}
 </section></div>`;
 }
 function vEdit(){
@@ -531,7 +621,7 @@ function vEdit(){
 <details class="tpan"><summary>Image</summary><div class="tb"><button data-im="add" class="p">Insérer une image</button><button data-im="sm">− Réduire</button><button data-im="lg">+ Agrandir</button><button data-im="del" class="d">Supprimer</button><input type="file" id="imgf" accept="image/*" hidden></div><p class="m" style="margin:0 0 6px">Touchez une image dans le document pour la sélectionner. Pour un cachet ou une signature, préférez un fichier PNG à fond transparent.</p></details>
 </div><div id="mpan">${V.mp?mailPanel():''}</div>
 <input id="ti" value="${esc(d.t)}" aria-label="Titre du document"><div style='display:flex;gap:8px;align-items:center;margin-top:8px'><span class='m'>Catégorie</span><select id='mvc' style='width:auto'>${catOpts(d.grp||'Divers')}</select></div>
-<div id="ed" contenteditable="true">${d.h}</div>`;
+${hdrPrev()}<div id="ed" contenteditable="true">${d.h}</div>${ftrPrev()}<p class="m">Aperçu : le logo, l’en-tête et le pied de page sont ajoutés à l’export PDF et Word. Ils se règlent dans Réglages.</p>`;
 }
 function vContacts(){return `${tabsBar()}<div class='bar'><h1>Contacts</h1><span class='sp'></span><button class='p' data-a='newC'>+ Nouveau contact</button></div>`+(S.c.length?S.c.map(c=>`<div class='card click' data-a='ficheC' data-id='${c.id}'><div><div class='t'>${esc(nom(c)||'Sans nom')}</div><div class='m'>${esc([c.type==='pm'?'Société':c.type==='succ'?'Succession':c.matri,c.type==='pm'?'':c.prof,c.qual,c.tel].filter(Boolean).join(' · '))}</div></div></div>`).join(''):`<p class='m'>Aucun contact. Créez la fiche d’un vendeur ou d’un acquéreur.</p>`)}
 function vContact(){const c=C(),ty=c.type||'pp';
@@ -559,7 +649,7 @@ function vSearch(){
  const r=sec('Dossiers',fs.map(f=>card('openF',`data-id='${f.id}'`,f.name,f.bien||'')))+sec('Contacts',cs.map(c=>card('ficheC',`data-id='${c.id}'`,nom(c)||'Sans nom',[c.tel,c.email].filter(Boolean).join(' · '))))+sec('Documents',ds.map(([f,d])=>card('openDD',`data-id='${d.id}' data-fid='${f.id}'`,d.t,f.name)));
  return `<div class='tabs'><div class='tab on'>Résultats pour « ${esc(V.q.trim())} »</div></div>`+(r||`<p class='m'>Aucun résultat. Essayez un nom, une adresse ou un mot du document.</p>`);
 }
-function render(){$('#app').innerHTML=V.q.trim()?vSearch():V.v==='home'?tabsBar()+vHome():V.v==='read'?tabsBar()+vRead():V.v==='not'?tabsBar()+vNot():V.v==='notf'?tabsBar()+vNotF():V.v==='docs'?tabsBar()+vDocs():V.v==='list'?tabsBar()+vList():V.v==='folder'?vFolder():V.v==='contacts'?vContacts():V.v==='contact'?vContact():V.v==='pdf'?vPdf():V.v==='settings'?vSet():V.v==='mail'?vMail():vEdit();if(V.v==='pdf'&&!V.q.trim())pdfPreview();if(V.v==='read'&&!V.q.trim())readPdf();if(V.v==='mail'&&!V.q.trim())mailPost()}
+function render(){$('#app').innerHTML=V.q.trim()?vSearch():V.v==='home'?tabsBar()+vHome():V.v==='read'?tabsBar()+vRead():V.v==='not'?tabsBar()+vNot():V.v==='notf'?tabsBar()+vNotF():V.v==='docs'?tabsBar()+vDocs():V.v==='list'?tabsBar()+vList():V.v==='folder'?vFolder():V.v==='contacts'?vContacts():V.v==='contact'?vContact():V.v==='pdf'?vPdf():V.v==='settings'?vSet():V.v==='mail'?vMail():vEdit();if(V.v==='pdf'&&!V.q.trim())pdfPreview();if(V.v==='read'&&!V.q.trim())readPdf();if(V.v==='mail'&&!V.q.trim())mailPost();ftrAdd()}
 function openContact(id,back){V.cid=id;V.back=back;go('contact')}
 function refreshDocs(cid){const c=cOf(cid);if(!c)return;S.f.forEach(f=>f.d.forEach(d=>{if(d.h.indexOf('data-ct="'+cid+'"')<0)return;const t=document.createElement('template');t.innerHTML=d.h;let ch=0;t.content.querySelectorAll('.ct').forEach(n=>{if(n.dataset.ct!==cid)return;const x=ctText(c,n.dataset.m);if(n.textContent!==x){n.textContent=x;ch=1}});if(ch){d.h=t.innerHTML;d.u=today()}}));save()}
 function clean(h){const t=document.createElement('template');t.innerHTML=h;t.content.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(n=>n.remove());t.content.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^\s*javascript:/i.test(a.value))n.removeAttribute(a.name)}));return t.innerHTML}
@@ -601,8 +691,9 @@ async function openF(o,key){const ab=await CR.decB(key,o);return o.k==='a'?ab:ne
 async function rawPut(id,v){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('f','readwrite');t.objectStore('f').put(v,id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
 const stPath=id=>window.__UID+'/'+String(id).replace(/[^\w.-]/g,'_');
 async function fput(id,b){await rawPut(id,b);
- try{const bl=b instanceof Blob?b:new Blob([b],{type:'application/pdf'});const r=await SB.storage.from('pdfs').upload(stPath(id),bl,{upsert:true,contentType:bl.type||'application/pdf'});if(r.error)throw r.error}
- catch(e){toast('Le fichier est enregistré sur cet appareil mais n’a pas pu être envoyé en ligne.')}}
+ const bl=b instanceof Blob?b:new Blob([b],{type:'application/pdf'});
+ for(let t=0;t<3;t++){try{const r=await SB.storage.from('pdfs').upload(stPath(id),bl,{upsert:true,contentType:bl.type||'application/pdf'});if(!r.error)return;throw r.error}catch(e){await new Promise(z=>setTimeout(z,1500*(t+1)))}}
+ toast('Le fichier n’a pas pu être envoyé en ligne : vérifiez votre connexion et réimportez-le.')}
 async function fget(id){const db=await idb();let r=await new Promise((res,rej)=>{const q=db.transaction('f').objectStore('f').get(id);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
  if(r&&r.enc===1){if(!window.CK)return null;r=await openF(r,window.CK)}
  if(!r){try{const d=await SB.storage.from('pdfs').download(stPath(id));if(d.data){r=d.data;await rawPut(id,r)}}catch(e){}}
@@ -872,6 +963,7 @@ function imgOp(op){const ed=$('#ed');if(!ed)return;
  markDirty()}
 function addImage(file){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const png=/png|svg|gif|webp/.test(file.type),k=Math.min(1,(png?500:900)/im.width),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k)),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');if(!png){x.fillStyle='#fff';x.fillRect(0,0,w,h)}x.drawImage(im,0,0,w,h);const u=c.toDataURL(png?'image/png':'image/jpeg',.82);exec('insertHTML','<img src="'+u+'" data-w="'+w+'" data-h="'+h+'" style="width:'+Math.min(w,300)+'px">')};im.onerror=()=>toast('Image illisible.');im.src=r.result};r.readAsDataURL(file)}
 function vSet(){const st=S.set||{};return `${tabsBar()}<h1 style='margin-bottom:6px'>Réglages des documents</h1><p class='m'>Ces réglages s’appliquent à l’en-tête et au pied de page de chaque page des exports PDF et Word.</p>
+<label>Votre nom (affiché sur la page d’accueil)</label><input data-s='me' placeholder='Alexandre Desfontaines' value="${esc(st.me)}" autocomplete='name'>
 <label>Texte d’en-tête, à côté du logo (une ligne par ligne, 4 au maximum)</label><textarea data-s='hdr' rows='3' placeholder="YES Immobilier&#10;12 rue Exemple, 75000 Paris&#10;Tél. 01 23 45 67 89">${esc(st.hdr)}</textarea>
 <label>Texte de pied de page (3 lignes au maximum)</label><textarea data-s='ftr' rows='3' placeholder="Raison sociale · SIRET · Carte professionnelle n°">${esc(st.ftr)}</textarea>
 <label style='display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx);margin-top:12px'><input type='checkbox' data-s='logo' ${st.logo!==false?'checked':''}> Afficher le logo en en-tête</label>
@@ -1039,7 +1131,7 @@ function pickDlg(kind,fid){
   const c=e.c,val=String(call?e.tel||'':e.em||'').trim(),ok=call?telN(val).length>=6:okMail(val);
   const who=`<div style="min-width:0"><b>${e.r}</b> · ${esc(e.nm)}${e.ql?` <span class="m">(${esc(e.ql)} · ${esc(e.of)})</span>`:''}<div class="m" style="overflow-wrap:anywhere">${val?esc(val):(call?'Aucun numéro de téléphone':'Aucune adresse e-mail')}</div></div>`;
   if(!ok)return `<div class="pkr">${who}<button data-a="ficheC" data-id="${esc(c.id)}">Compléter la fiche</button></div>`;
-  return call?`<div class="pkr">${who}<div class="bar" style="margin:0;flex:none;justify-content:flex-end"><a class="pka" href="tel:${esc(telN(val))}" target="_blank" rel="noopener noreferrer"><button class="p" type="button">📞 Appeler</button></a><a class="pka" href="https://wa.me/${esc(waN(val))}" target="_blank" rel="noopener noreferrer"><button type="button">WhatsApp</button></a><button type="button" data-cp="${esc(val)}">Copier</button></div></div>`
+  return call?`<div class="pkr">${who}<div class="bar" style="margin:0;flex:none;justify-content:flex-end"><a class="pka" href="tel:${esc(telN(val))}"><button class="p" type="button">📞 Appeler</button></a><a class="pka" href="https://wa.me/${esc(waN(val))}" target="_blank" rel="noopener noreferrer"><button type="button">WhatsApp</button></a><button type="button" data-cp="${esc(val)}">Copier</button></div></div>`
    :`<div class="pkr">${who}<button class="p" data-a="mailTo" data-id="${esc(c.id)}" data-fid="${esc(fid)}" data-to="${esc(val)}">✉ Écrire</button></div>`}).join('');
  d.innerHTML=`<div class="cfb"><h3>${call?'Qui souhaitez-vous appeler ?':'À qui écrire ?'}</h3><div class="m">${esc(f.name)}</div>${rows}${call?`<div class="m">${(f.calls||[]).length?(f.calls.length)+' appel'+(f.calls.length>1?'s':'')+' · dernier le '+new Date(f.calls[f.calls.length-1].t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})+' <button data-a="callUndo" data-id="'+esc(fid)+'" style="padding:2px 8px">Retirer le dernier</button>':'Aucun appel enregistré'}</div>`:''}${call?'<p class="m" style="margin:2px 0">Si « Appeler » est bloqué par le navigateur, utilisez WhatsApp ou copiez le numéro.</p>':''}<div class="bar" style="margin:0"><button id="pkno">Fermer</button></div></div>`;
  const end=()=>{document.removeEventListener('keydown',kd,true);d.remove()};
@@ -1162,7 +1254,7 @@ const locked=()=>!!lockMeta();
 async function verifyPw(pw){const m=lockMeta();if(!m)return null;try{const k=await CR.derive(pw,CR.unb(m.salt),m.it);await CR.dec(k,m.chk);return k}catch(e){return null}}
 let idleOn=false;
 function armIdle(){if(idleOn)return;idleOn=true;let t;const rs=()=>{clearTimeout(t);t=setTimeout(function chk(){if(!window.CK)return;if(V.dirty){t=setTimeout(chk,60000);return}lockNow()},15*60000)};['pointerdown','keydown','scroll'].forEach(e=>addEventListener(e,rs,true));rs()}
-async function lockNow(){await flush();location.reload()}
+async function lockNow(){await flush();try{await window.CRYPT.remClear()}catch(e){}location.reload()}
 async function secOn(){
  const r=await pwDlg({title:'Activer le mot de passe',text:'Ce mot de passe chiffre vos dossiers et vos PDF sur cet appareil. S’il est perdu, vos données sont irrécupérables : faites d’abord une sauvegarde chiffrée.',fields:[{l:'Mot de passe (8 caractères minimum)'},{l:'Confirmer le mot de passe'}],ok:'Activer'});
  if(!r)return;if(r[0].length<8){toast('Mot de passe trop court (8 caractères minimum).');return}if(r[0]!==r[1]){toast('Les deux mots de passe sont différents.');return}
@@ -1191,7 +1283,7 @@ async function bkExp(){
   for(const [id,v] of await idbAll()){let p=v;if(v&&v.enc===1){if(!window.CK)continue;p=await openF(v,window.CK)}files[id]={type:p.type||'',k:(p instanceof Blob)?'b':'a',d:CR.b64(await bufOf(p))}}
   let json=JSON.stringify({app:'yescrm',v:1,s:S,files});
   if(r[0]){const salt=crypto.getRandomValues(new Uint8Array(16)),key=await CR.derive(r[0],salt),o=await CR.enc(key,json);json=JSON.stringify({app:'yescrm',v:1,enc:1,salt:CR.b64(salt),it:CR.IT,iv:o.iv,ct:o.ct})}
-  await DL.save({filename:'YES CRM - sauvegarde '+new Date().toISOString().slice(0,10)+'.json',data:new Blob([json],{type:'application/json'})});
+  await DL.save({filename:'YES CRM - sauvegarde '+new Date().toISOString().slice(0,10)+'.json',data:new Blob([json],{type:'application/json'})});try{localStorage.setItem('yescrm-lastbk:'+window.__UID,String(Date.now()))}catch(e){}window.AUDIT&&window.AUDIT('export_sauvegarde');if(V.v==='home')render();
  }catch(e){if(!e||e.code!=='declined')toast('Sauvegarde impossible.')}}
 async function bkImp(file){
  if(!file)return;let o;
@@ -1203,20 +1295,84 @@ async function bkImp(file){
  if(!await confirmDlg({title:'Restaurer cette sauvegarde ?',text:'Toutes les données actuelles (dossiers, contacts, modèles, PDF) seront remplacées par celles de la sauvegarde.',ok:'Remplacer',danger:true,warn:true}))return;
  toast('Restauration en cours…');
  try{await idbClear();for(const id of Object.keys(o.files||{})){const f=o.files[id],ab=CR.unb(f.d).buffer;await fput(id,f.k==='a'?ab:new Blob([ab],{type:f.type||''}))}
-  S=o.s;save();await flush();location.reload()}
+  S=o.s;save();await flush();window.AUDIT&&window.AUDIT('restauration_sauvegarde');location.reload()}
  catch(e){toast('Échec de la restauration.')}}
-function vSec(){return `<h2 style='margin:30px 0 4px;font-size:18px'>Mon compte et sauvegarde</h2>
-<p class='m'>Connecté avec <b>${esc(window.__EMAIL||'')}</b>. Vos dossiers sont enregistrés en ligne sur votre compte et ne sont visibles que de vous.</p>
-<div class='bar'><button data-a='logout'>Se déconnecter</button></div>
-<p class='m' style='margin-top:14px'>La sauvegarde exporte tous vos dossiers, contacts, modèles et PDF dans un fichier. Vous pouvez aussi y restaurer la sauvegarde d’un autre CRM YES.</p>
+function vSec(){setTimeout(mfaBox,0);return `<h2 style='margin:30px 0 4px;font-size:18px'>Mon compte et sécurité</h2>
+<p class='m'>Connecté avec <b>${esc(window.__EMAIL||'')}</b>. Vos dossiers sont enregistrés en ligne sur votre compte et ne sont visibles que de vous. Déconnexion automatique après 20 minutes d’inactivité.</p>
+<div class='bar'><button data-a='logout'>Se déconnecter</button><button data-a='privacy'>Protection des données</button></div>
+<div id='mfabox'></div>
+<p class='m' style='margin-top:14px'>La sauvegarde exporte tous vos dossiers, contacts, modèles et PDF dans un fichier (chiffré si vous choisissez un mot de passe). Vous pouvez aussi y restaurer la sauvegarde d’un autre CRM YES.</p>
 <div class='bar'><button data-a='bkExp'>⬇️ Exporter une sauvegarde</button><button data-a='bkImp'>⬆️ Restaurer une sauvegarde</button></div><input type='file' id='bkf' accept='.json,application/json' hidden>`}
+async function logoutNow(inactive){
+ try{await SB.auth.signOut()}catch(e){}try{localStorage.removeItem('yescrm-remember')}catch(e){}
+ const u=window.__UID;SS.r(KEY);SS.r(DK);SS.r(VK);try{indexedDB.deleteDatabase('yescrm-'+u)}catch(e){}
+ if(inactive)SS.s('yescrm-msg','Vous avez été déconnecté pour inactivité.');
+ location.reload()}
 async function doLogout(){
  await flush();
- if(localStorage.getItem(DK)&&!await confirmDlg({title:'Se déconnecter ?',text:'Des modifications ne sont pas encore synchronisées en ligne et seraient perdues.',ok:'Se déconnecter',danger:true,warn:true}))return;
- try{await SB.auth.signOut()}catch(e){}
- try{localStorage.removeItem(KEY);localStorage.removeItem(DK);indexedDB.deleteDatabase('yescrm-'+window.__UID)}catch(e){}
- location.reload()}
+ if(SS.g(DK)&&!await confirmDlg({title:'Se déconnecter ?',text:'Des modifications ne sont pas encore synchronisées en ligne et seraient perdues.',ok:'Se déconnecter',danger:true,warn:true}))return;
+ window.AUDIT&&window.AUDIT('deconnexion');await new Promise(z=>setTimeout(z,300));logoutNow(false)}
+(function(){let t;const out=async()=>{if(V.dirty){t=setTimeout(out,60000);return}await flush();try{window.AUDIT&&window.AUDIT('deconnexion_inactivite')}catch(e){}await new Promise(z=>setTimeout(z,300));logoutNow(true)};
+ const rs=()=>{clearTimeout(t);t=setTimeout(out,20*60000)};['pointerdown','keydown','scroll','touchstart'].forEach(e=>addEventListener(e,rs,true));rs()})();
+function mfaDlg(qr,secret){return new Promise(res=>{const old=document.getElementById('cfm');if(old)old.remove();const d=document.createElement('div');d.id='cfm';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
+ d.innerHTML=`<div class="cfb"><h3>Activer la double authentification</h3><p class="m" style="margin:0">1. Installez une application d’authentification (Google Authenticator, Microsoft Authenticator, 1Password…). 2. Scannez ce QR code. 3. Saisissez le code à 6 chiffres affiché.</p><img src="${esc(qr)}" alt="QR code" style="width:180px;height:180px;align-self:center;background:#fff"><p class="m" style="margin:0;word-break:break-all">Clé manuelle : ${esc(secret)}</p><input id="mfc" inputmode="numeric" autocomplete="one-time-code" placeholder="Code à 6 chiffres"><div class="bar" style="margin:0"><button class="p" id="cfok">Valider</button><button id="cfno">Annuler</button></div></div>`;
+ const end=v=>{document.removeEventListener('keydown',kd,true);d.remove();res(v)};const kd=e=>{if(e.key==='Escape'){e.stopPropagation();end(null)}else if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='mfc'){e.preventDefault();end(d.querySelector('#mfc').value)}};document.addEventListener('keydown',kd,true);
+ document.body.appendChild(d);d.querySelector('#cfok').addEventListener('click',()=>end(d.querySelector('#mfc').value));d.querySelector('#cfno').addEventListener('click',()=>end(null));d.querySelector('#mfc').focus()})}
+async function mfaBox(){const b=document.getElementById('mfabox');if(!b)return;
+ try{const l=await SB.auth.mfa.listFactors();const f=((l.data&&l.data.totp)||[]).find(x=>x.status==='verified');
+  b.innerHTML=f?`<p class='m'>🔐 <b>Double authentification activée.</b> Un code de votre téléphone est demandé à chaque connexion.</p><div class='bar'><button data-a='mfaOff' data-id='${esc(f.id)}'>Désactiver</button></div>`:`<p class='m'>🔓 La double authentification n’est pas activée. Elle ajoute un code à 6 chiffres (application sur votre téléphone) à chaque connexion : fortement recommandé.</p><div class='bar'><button class='p' data-a='mfaOn'>Activer la double authentification</button></div>`}
+ catch(e){b.textContent=''}}
+async function mfaOn(){
+ try{const l=await SB.auth.mfa.listFactors();for(const f of (l.data&&l.data.all)||[])if(f.status==='unverified')await SB.auth.mfa.unenroll({factorId:f.id});
+  const r=await SB.auth.mfa.enroll({factorType:'totp',friendlyName:'YES CRM '+Date.now()});if(r.error)throw r.error;
+  const code=await mfaDlg(r.data.totp.qr_code,r.data.totp.secret);
+  if(!code){await SB.auth.mfa.unenroll({factorId:r.data.id});return}
+  const v=await SB.auth.mfa.challengeAndVerify({factorId:r.data.id,code:String(code).replace(/\s/g,'')});if(v.error)throw v.error;
+  window.AUDIT&&window.AUDIT('mfa_activee');toast('Double authentification activée.');mfaBox()}
+ catch(e){toast('Activation impossible : code incorrect ou expiré.')}}
+async function mfaOff(id){
+ if(!await confirmDlg({title:'Désactiver la double authentification ?',text:'Votre compte sera moins protégé : seul le mot de passe sera demandé.',ok:'Désactiver',danger:true,warn:true}))return;
+ try{const r=await SB.auth.mfa.unenroll({factorId:id});if(r.error)throw r.error;window.AUDIT&&window.AUDIT('mfa_desactivee');toast('Double authentification désactivée.');mfaBox()}
+ catch(e){toast('Désactivation impossible.')}}
 if(locked())armIdle();
+const PRESTA=()=>window.__WEB?[['Supabase','hébergement des données, Irlande (UE)'],['GitHub Pages','hébergement de l’application'],['IONOS','nom de domaine'],['Google Gmail','messagerie : ouverture d’un brouillon dans votre compte Gmail']]:[['Claude (Anthropic)','hébergement de l’application ; les données restent enregistrées dans votre navigateur'],['Google Gmail','messagerie, via la connexion Claude'],['Modelo (FNAIM)','lien externe vers le logiciel de rédaction d’actes']];
+const PRIV0=`<h3>Politique de gestion des données personnelles</h3>
+<p>YES IMMO, agence immobilière dont l’établissement de Béthune est situé 33 place du 73ème, 62400 Béthune, attache une grande importance à la protection des données à caractère personnel qu’elle collecte et traite dans le cadre de son activité, notamment au moyen de son outil de gestion « YES CRM ».</p>
+<p>La collecte et le traitement de ces données sont régis par la présente politique et respectent la loi « Informatique et libertés » du 6 janvier 1978 modifiée ainsi que le Règlement général sur la protection des données (règlement UE 2016/679, « RGPD »). YES IMMO met en œuvre des procédures internes pour sensibiliser ses collaborateurs à ces règles.</p>
+<h4>Définitions</h4>
+<p><b>Données personnelles</b> : toute information se rapportant à une personne physique identifiée ou identifiable. <b>Personne concernée</b> : cette personne physique. <b>Responsable du traitement</b> : celui qui détermine les finalités et les moyens du traitement. <b>Sous-traitant</b> : celui qui traite des données pour le compte du responsable. <b>Traitement</b> : toute opération sur des données (collecte, enregistrement, conservation, consultation, communication, effacement…).</p>
+<p>Pour les données de ses clients (vendeurs, acquéreurs, mandants) et de ses collaborateurs utilisateurs du CRM, YES IMMO est <b>responsable du traitement</b>.</p>
+<h4>1. Nos engagements</h4>
+<p>YES IMMO s’engage à garantir un niveau de protection élevé des données personnelles et à respecter les principes des articles 5 et 6 du RGPD : les données sont traitées de manière licite, loyale et transparente ; collectées pour des finalités déterminées, explicites et légitimes ; limitées à ce qui est nécessaire ; exactes et tenues à jour. YES IMMO met en œuvre des mesures techniques et organisationnelles adaptées au risque et n’a recours qu’à des sous-traitants respectant le RGPD.</p>
+<h4>2. Données collectées</h4>
+<p>Données d’identification et de situation : civilité, nom, prénom, date et lieu de naissance, nationalité, situation matrimoniale, profession, adresse postale, adresse e-mail, numéro de téléphone. Données relatives à l’opération : adresse et description du bien, prix, documents du dossier (mandat, compromis, annexes, diagnostics, courriers, pièces justificatives). Données de connexion des utilisateurs du CRM : adresse e-mail du compte, journal des connexions et des sauvegardes.</p>
+<h4>3. Moyens de collecte</h4>
+<p>Les données sont communiquées à YES IMMO par les personnes concernées lors de leurs échanges avec l’agence (rendez-vous, mandat, courriers, e-mails, téléphone), par des documents qu’elles transmettent, ou saisies et importées dans le CRM par les collaborateurs habilités.</p>
+<h4>4. Finalités et bases juridiques</h4>
+<p><b>Exécution du contrat ou de mesures précontractuelles</b> : gestion des mandats et des dossiers de vente, préparation et suivi des compromis et actes, gestion des communications avec les clients et les partenaires (notaires, diagnostiqueurs…). <b>Obligations légales et réglementaires</b> : respect de la réglementation applicable à l’activité immobilière, réponses aux demandes des autorités habilitées, gestion des demandes d’exercice de droits. <b>Intérêt légitime</b> : sécurité et prévention des atteintes aux systèmes, gestion administrative interne, établissement de preuves nécessaires à la défense des droits de YES IMMO.</p>
+<h4>5. Durées de conservation</h4>
+<p>YES IMMO conserve les données pendant une durée n’excédant pas celle nécessaire aux finalités pour lesquelles elles sont traitées, augmentée du délai de prescription légale et des durées de conservation imposées par les lois applicables.</p>
+<h4>6. Destinataires et transferts</h4>
+<p>Les données sont accessibles au personnel habilité de YES IMMO et, selon les dossiers, aux partenaires intervenant dans l’opération (notaires, diagnostiqueurs, banques…) et aux sous-traitants listés au point 9. YES IMMO leur demande des mesures strictes de confidentialité et de sécurité, et peut être tenue de communiquer des informations aux autorités publiques habilitées.</p>
+<p>Certains prestataires (notamment Google) peuvent être établis hors de l’Union européenne. YES IMMO veille alors à ce que le transfert soit encadré par des clauses contractuelles types de la Commission européenne ou tout autre mécanisme conforme au RGPD.</p>
+<h4>7. Droits des personnes concernées</h4>
+<p>Toute personne concernée peut exercer à tout moment ses droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité. Lorsque le traitement repose sur le consentement, celui-ci peut être retiré à tout moment. Ces droits s’exercent par e-mail à contact-ard@yes-immobilier.com ou par courrier à YES IMMO, 33 place du 73ème, 62400 Béthune, en joignant les éléments nécessaires à l’identification (nom, prénom, e-mail). En cas de manquement, une réclamation peut être adressée à la CNIL (3 place de Fontenoy, TSA 80715, 75334 Paris cedex 07 ; cnil.fr), sans préjudice de tout autre recours.</p>
+<h4>8. Sécurité</h4>
+<p>YES IMMO met en œuvre les mesures utiles pour préserver la sécurité des données et empêcher toute destruction, perte, altération, divulgation ou accès non autorisé. Les données sont enregistrées dans le navigateur de l’appareil de l’utilisateur, avec une option de verrouillage par mot de passe et de chiffrement ; la messagerie passe par Gmail. L’accès au CRM peut être protégé par un mot de passe avec chiffrement des données sur l’appareil, et se verrouille après une période d’inactivité. En cas de violation de données, YES IMMO la notifie à la CNIL dans les 72 heures lorsque la réglementation l’exige et informe les personnes concernées si le risque pour elles est élevé.</p>
+<p><b>Engagements des utilisateurs du CRM :</b> n’accéder qu’aux dossiers utiles à son travail ; garder son mot de passe secret et ne jamais partager son compte ; fermer sa session en quittant son poste, surtout sur un ordinateur partagé ; ne pas copier de données hors du CRM sans nécessité ; exporter régulièrement une sauvegarde et la conserver en lieu sûr ; signaler immédiatement toute perte, tout vol de matériel ou tout accès suspect.</p>
+<h4>9. Sous-traitants de YES IMMO</h4>
+<p>YES IMMO fait appel aux prestataires suivants et s’assure qu’ils présentent des garanties suffisantes au sens de l’article 28 du RGPD :</p>
+<ul style="margin:0 0 8px;padding-left:20px"><li><b>Claude (Anthropic)</b> : hébergement de l’application, les données restant enregistrées dans le navigateur de l’utilisateur ;</li><li><b>Google (Gmail)</b> : messagerie, par la connexion Claude ;</li><li><b>Modelo (FNAIM)</b> : simple lien externe vers le logiciel de rédaction d’actes, sans transmission de données par le CRM.</li></ul>
+<h4>10. Liens vers d’autres sites</h4>
+<p>Le CRM peut contenir des liens vers d’autres sites (par exemple Modelo). YES IMMO recommande de consulter leur politique de protection des données et n’est pas responsable des traitements qu’ils effectuent.</p>
+<h4>11. Modifications</h4>
+<p>YES IMMO se réserve le droit d’adapter la présente politique.</p>`;
+const privHtml=()=>window.PRIV_HTML||PRIV0;
+function ftrAdd(){const a=$('#app');if(!a)return;a.insertAdjacentHTML('beforeend',`<div class='ftr'><b>Prestataires utilisés :</b> ${PRESTA().map(([n,d])=>esc(n)+' ('+esc(d)+')').join(' · ')} · <a data-a='privacy'>Protection des données</a></div>`)}
+function privDlg(){return new Promise(res=>{const old=document.getElementById('cfm');if(old)old.remove();const d=document.createElement('div');d.id='cfm';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
+ d.innerHTML=`<div class="cfb" style="max-width:640px"><div class="pv">${privHtml()}</div><div class="bar" style="margin:0"><button class="p" id="cfok">Fermer</button></div></div>`;
+ const end=()=>{document.removeEventListener('keydown',kd,true);d.remove();res()};const kd=e=>{if(e.key==='Escape'){e.stopPropagation();end()}};document.addEventListener('keydown',kd,true);
+ d.addEventListener('click',e=>{if(e.target===d)end()});document.body.appendChild(d);d.querySelector('#cfok').addEventListener('click',end);d.querySelector('#cfok').focus()})}
 function confirmDlg(o){return new Promise(res=>{
  const old=document.getElementById('cfm');if(old)old.remove();
  const d=document.createElement('div');d.id='cfm';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
@@ -1418,7 +1574,7 @@ async function mkPdf(l){
  });
  const N=doc.getNumberOfPages(),ht=(st.hdr||'').split('\n').map(t=>t.trim()).filter(Boolean).slice(0,4),ft=(st.ftr||'').split('\n').map(t=>t.trim()).filter(Boolean).slice(0,3);
  for(let pg=1;pg<=N;pg++){doc.setPage(pg);
-  if(st.logo!==false){try{doc.addImage(lg,'PNG',M,34,46*im.w/im.h,46)}catch(e){}}
+  if(st.logo!==false&&!l.some(x=>String(x.h).includes('alt="YES Immobilier"'))){try{doc.addImage(lg,'PNG',M,34,46*im.w/im.h,46)}catch(e){}}
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,90,90);
   ht.forEach((t,k)=>doc.text(t,595-M,44+k*11,{align:'right'}));
   doc.setDrawColor(200,160,145);doc.setLineWidth(.8);doc.line(M,88,595-M,88);doc.line(M,842-54,595-M,842-54);
@@ -1444,7 +1600,7 @@ async function mkDocx(l){
  const body=l.map((d,n)=>(n?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':'')+blocks(d.h).map(b=>b.tbl?tbl(b):b.hr?hr:para(b)).join('')).join('');
  const hl=(st.hdr||'').split('\n').map(t=>t.trim()).filter(Boolean).slice(0,4),fl=(st.ftr||'').split('\n').map(t=>t.trim()).filter(Boolean).slice(0,3);
  const hp=t=>`<w:p><w:pPr><w:spacing w:after="0"/><w:jc w:val="right"/></w:pPr>${run({t,f:'Arial',c:'5A5A5A'},8)}</w:p>`;
- const hdr=H+`<w:hdr ${NS}><w:tbl><w:tblPr><w:tblW w:w="9638" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="4819"/><w:gridCol w:w="4819"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="4819" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr>${st.logo!==false?`<w:r>${drw('rId1',1,cx,cy,'Logo')}</w:r>`:''}</w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="4819" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${hl.length?hl.map(t=>hp(t)).join(''):'<w:p/>'}</w:tc></w:tr></w:tbl><w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="C8A091"/></w:pBdr><w:spacing w:after="0"/></w:pPr></w:p></w:hdr>`;
+ const hdr=H+`<w:hdr ${NS}><w:tbl><w:tblPr><w:tblW w:w="9638" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="4819"/><w:gridCol w:w="4819"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="4819" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr>${st.logo!==false&&!l.some(x=>String(x.h).includes('alt="YES Immobilier"'))?`<w:r>${drw('rId1',1,cx,cy,'Logo')}</w:r>`:''}</w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="4819" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>${hl.length?hl.map(t=>hp(t)).join(''):'<w:p/>'}</w:tc></w:tr></w:tbl><w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="C8A091"/></w:pBdr><w:spacing w:after="0"/></w:pPr></w:p></w:hdr>`;
  const fr=fl.map((t,k)=>(k?'<w:r><w:br/></w:r>':'')+run({t,f:'Arial',c:'5A5A5A'},8)).join('');
  const pg=st.num!==false?`<w:r><w:tab/></w:r><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:color w:val="5A5A5A"/><w:sz w:val="16"/></w:rPr><w:t xml:space="preserve">Page </w:t></w:r><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>`:'';
  const ftr=H+`<w:ftr ${NS}><w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="6" w:space="4" w:color="C8A091"/></w:pBdr><w:tabs><w:tab w:val="right" w:pos="9638"/></w:tabs></w:pPr>${fr}${pg}</w:p></w:ftr>`;
@@ -1459,13 +1615,28 @@ async function mkDocx(l){
  imgs.forEach(i=>z.file(`word/media/img${i.n}.${i.ext}`,i.data,{base64:true}));
  return z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
 }
+function exportPreview(blob,fmt){return new Promise(async res=>{
+ const old=document.getElementById('cfm');if(old)old.remove();
+ const d=document.createElement('div');d.id='cfm';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
+ d.innerHTML=`<div class="cfb" style="max-width:860px;width:96vw;max-height:92vh;display:flex;flex-direction:column;gap:8px"><h3 style="margin:0">Aperçu avant enregistrement</h3>${fmt==='docx'?'<div class="m">Aperçu de la mise en page (affiché en PDF). Le fichier Word peut différer légèrement.</div>':''}<div id="xpv" style="overflow:auto;flex:1;min-height:200px;padding:8px;border:1px solid var(--bd)">Chargement de l’aperçu…</div><div class="bar" style="margin:0;justify-content:flex-end"><button id="xno">Annuler</button><button class="p" id="xok">Enregistrer ${fmt==='pdf'?'le PDF':'le Word'}</button></div></div>`;
+ const kd=e=>{if(e.key==='Escape'){e.stopPropagation();end(false)}},end=v=>{document.removeEventListener('keydown',kd,true);d.remove();res(v)};
+ document.addEventListener('keydown',kd,true);d.addEventListener('click',e=>{if(e.target===d)end(false)});document.body.appendChild(d);
+ d.querySelector('#xno').onclick=()=>end(false);d.querySelector('#xok').onclick=()=>end(true);d.querySelector('#xok').focus();
+ const box=d.querySelector('#xpv');
+ try{if(!window.pdfjsLib)throw new Error('visionneuse non chargée');pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise,n=Math.min(pdf.numPages,20);box.innerHTML='';
+  for(let i=1;i<=n;i++){const pg=await pdf.getPage(i),w=Math.min(box.clientWidth||700,820),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:w/v0.width*1.5}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;c.style.cssText='width:100%;border:1px solid var(--bd);margin-bottom:10px;background:#fff';box.appendChild(c);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}
+  if(pdf.numPages>n)box.insertAdjacentHTML('beforeend',`<p class='m'>Aperçu limité aux ${n} premières pages.</p>`)}
+ catch(e){box.innerHTML=`<p class='m'>Aperçu indisponible (${esc(e.message||'erreur')}). Vous pouvez tout de même enregistrer.</p>`}})}
 async function exportDocs(l,fmt){
  const k=l.length;l=l.filter(d=>!d.pdf);if(l.length<k)toast('Les PDF importés ne sont pas inclus dans l’export.');
  if(!l.length)return;
  if(!DL){toast('Le téléchargement n’est pas disponible dans cette vue. Ouvrez la page dans l’application Claude.');return}
  try{
   if(fmt==='pdf'&&!window.jspdf||fmt==='docx'&&!window.JSZip){toast('Outil d’export non chargé. Vérifiez votre connexion et rechargez la page.');return}
-  const data=fmt==='pdf'?await mkPdf(l):await mkDocx(l);
+  const pv=window.jspdf?await mkPdf(l):null;
+  if(pv&&!(await exportPreview(pv,fmt)))return;
+  const data=fmt==='pdf'?(pv||await mkPdf(l)):await mkDocx(l);
   await DL.save({filename:(l.length===1?l[0].t:'YES CRM - documents').replace(/[\\/:*?"<>|]+/g,'-').slice(0,80)+'.'+fmt,data});
  }catch(e){if(!e||e.code!=='declined')toast('Export impossible'+(e&&e.message?' : '+e.message:''))}
 }
@@ -1485,6 +1656,10 @@ document.addEventListener('click',e=>{
  if(V.arm&&a!=='delF'&&a!=='delD'&&a!=='delC')V.arm=null;
  if(a==='logo')$('#lg').click();
  else if(a==='logout')doLogout();
+ else if(a==='mfaOn')mfaOn();
+ else if(a==='mfaOff')mfaOff(id);
+ else if(a==='privacy')privDlg();
+ else if(a==='noLock')toast('Pour vous déconnecter, activez d’abord un mot de passe dans Réglages (Sécurité).');
  else if(a==='secOn')secOn();
  else if(a==='secOff')secOff();
  else if(a==='secChg')secChg();
@@ -1570,8 +1745,18 @@ document.addEventListener('click',e=>{
  else if(a==='mailDraft')mailDraft();
  else if(a==='newF'){const f={id:uid(),name:'Nouveau dossier',vids:[],aids:[],bien:'',prix:'',notes:'',d:[]};S.f.unshift(f);save();go('folder',f.id);V.det=true;render()}
  else if(a==='openF')go('folder',id);
+ else if(a==='openFD'){V.tab='all';V.tabPick=id+':all';go('folder',id)}
+ else if(a==='navBack')navBack();
+ else if(a==='ckS'){V.ck=V.ck||new Set();const k=F().id+':'+id;if(V.ck.has(k))V.ck.delete(k);else V.ck.add(k);render()}
+ else if(a==='ckMail')ckLetter(F(),id);
+ else if(a==='ckT'){const f=F();f.chk=f.chk||{};const x=(f.chkx||[]).find(y=>y.id===id);if(x)x.ok=!x.ok;else f.chk[id]=!f.chk[id];save();render()}
+ else if(a==='ckAdd'){const i=$('#ckt_'+id),t=i&&i.value.trim();if(!t){toast('Écrivez le nom de la pièce.');return}const f=F();(f.chkx=f.chkx||[]).push({id:uid(),s:id,t,ok:false});save();render()}
+ else if(a==='ckDel'){const f=F();f.chkx=(f.chkx||[]).filter(x=>x.id!==id);save();render()}
+ else if(a==='agAdd'){const d=$('#agd').value,t=$('#agt').value.trim();if(!d||!t){toast('Indiquez une date et un intitulé.');return}const f=F();(f.ag=f.ag||[]).push({id:uid(),d,t,ok:false});save();render()}
+ else if(a==='agOk'){const e=((F().ag)||[]).find(x=>x.id===id);if(e){e.ok=!e.ok;save();render()}}
+ else if(a==='agDel'){const f=F();f.ag=(f.ag||[]).filter(x=>x.id!==id);save();render()}
  else if(a==='back')go('list');
- else if(a==='tab'){V.tab=id;V.sel=new Set();render()}
+ else if(a==='tab'){V.tab=id;V.tabPick=(F()||{}).id+':'+id;V.sel=new Set();render()}
  else if(a==='detM'){const f=F();toast('Recherche du numéro de mandat…');(async()=>{let r='';for(const d of f.d.filter(x=>catTab(x.grp||'Divers')==='m')){if(d.pdf){const b=await fget(d.id);if(b)r=await mandatFrom(b,null)}else r=detectMandat(strip(d.h));if(r)break}
   if(r){f.mandat=r;save();render();toast('Mandat n° '+r+' détecté.')}else toast('Aucun numéro de mandat trouvé. Saisissez-le dans « Modifier le dossier » (un PDF scanné sans texte ne peut pas être lu).')})()}
  else if(a==='grp'){V.cl[id]=!V.cl[id];render()}
@@ -1610,6 +1795,7 @@ document.addEventListener('change',e=>{
  if(t.id==='bmv'){if(t.value){const f=F();f.d.forEach(d=>{if(V.sel.has(d.id)){d.grp=t.value;d.cat=catTab(t.value)}});V.tab=catTab(t.value);V.sel=new Set();save();render()}return}
  if(t.id==='lg'){const fl=t.files[0];t.value='';if(fl)logoFile(fl);return}
  if(t.id==='bkf'){const fl=t.files[0];t.value='';bkImp(fl);return}
+ if(t.id==='bkf'){const fl=t.files[0];t.value='';bkImp(fl);return}
  if(a==='chk'){t.checked?V.sel.add(t.dataset.id):V.sel.delete(t.dataset.id);V.arm=null;render()}
  else if(a==='all'){V.sel=t.checked?new Set(F().d.filter(inTab).map(d=>d.id)):new Set();V.arm=null;render()}
 });
@@ -1620,6 +1806,12 @@ document.addEventListener('input',e=>{
  if(t.id==='q'){as();V.q=t.value;render();return}
  if(t.dataset.pk){const f=F();if(t.value)f[t.dataset.pk][+t.dataset.pi]=t.value;save();V.det=true;render();return}
  if(t.dataset.padd){if(t.value){const f=F(),k=t.dataset.padd;f[k]=f[k]||[];if(!f[k].includes(t.value))f[k].push(t.value);save()}V.det=true;render();return}
+ if(t.dataset.xl){V.etf=t.value;render();return}
+ if(t.dataset.xf){const f=F();f[t.dataset.xf]=t.value;save();if(t.dataset.xf==='prix')calcUpd('prix');else render();return}
+ if(t.dataset.xc){const f=F(),c=f.calc=f.calc||{},k=t.dataset.xc,v=t.type==='checkbox'?t.checked:t.value;
+  if(k==='honp'){const P=num(f.prix);c.hon=P?String(Math.round(P*num(v))/100).replace('.',','):'';const e=$('#cHon');if(e)e.value=c.hon;save();calcUpd('honp');return}
+  if(k==='reg'){c.reg=v;c.taux=REG[v][1]==null?c.taux:pc(REG[v][1]);save();render();return}
+  c[k]=v;save();calcUpd(k);return}
  if(t.dataset.k){F()[t.dataset.k]=t.value;save();if(t.tagName==='SELECT'){V.det=true;render()}}
  else if(t.dataset.gk){const c=C(),K=c.type==='succ'?'heritiers':'gerants';c[K]=c[K]||[];if(c[K][+t.dataset.g]){c[K][+t.dataset.g][t.dataset.gk]=t.value;save()}}
  else if(t.dataset.c2){C()[t.dataset.c2]=t.value;save();if(t.dataset.c2==='type'){const c=C();if(c.type==='pm'&&!Array.isArray(c.gerants))c.gerants=[];if(c.type==='succ'&&!Array.isArray(c.heritiers))c.heritiers=[];render()}}
@@ -1644,28 +1836,70 @@ async function enc(key,s){const iv=crypto.getRandomValues(new Uint8Array(12));re
 async function dec(key,o){return crypto.subtle.decrypt({name:'AES-GCM',iv:unb(o.iv)},key,unb(o.ct))}
 window.CRYPT={LK,IT,b64,unb,derive,enc,dec,encB,decB,td,te};
 window.__WEB=true;
+window.PRIV_HTML=`<h3>Politique de gestion des données personnelles</h3>
+<p>YES IMMO, agence immobilière dont l’établissement de Béthune est situé 33 place du 73ème, 62400 Béthune, attache une grande importance à la protection des données à caractère personnel qu’elle collecte et traite dans le cadre de son activité, notamment au moyen de son outil de gestion « YES CRM ».</p>
+<p>La collecte et le traitement de ces données sont régis par la présente politique et respectent la loi « Informatique et libertés » du 6 janvier 1978 modifiée ainsi que le Règlement général sur la protection des données (règlement UE 2016/679, « RGPD »). YES IMMO met en œuvre des procédures internes pour sensibiliser ses collaborateurs à ces règles.</p>
+<h4>Définitions</h4>
+<p><b>Données personnelles</b> : toute information se rapportant à une personne physique identifiée ou identifiable. <b>Personne concernée</b> : cette personne physique. <b>Responsable du traitement</b> : celui qui détermine les finalités et les moyens du traitement. <b>Sous-traitant</b> : celui qui traite des données pour le compte du responsable. <b>Traitement</b> : toute opération sur des données (collecte, enregistrement, conservation, consultation, communication, effacement…).</p>
+<p>Pour les données de ses clients (vendeurs, acquéreurs, mandants) et de ses collaborateurs utilisateurs du CRM, YES IMMO est <b>responsable du traitement</b>.</p>
+<h4>1. Nos engagements</h4>
+<p>YES IMMO s’engage à garantir un niveau de protection élevé des données personnelles et à respecter les principes des articles 5 et 6 du RGPD : les données sont traitées de manière licite, loyale et transparente ; collectées pour des finalités déterminées, explicites et légitimes ; limitées à ce qui est nécessaire ; exactes et tenues à jour. YES IMMO met en œuvre des mesures techniques et organisationnelles adaptées au risque et n’a recours qu’à des sous-traitants respectant le RGPD.</p>
+<h4>2. Données collectées</h4>
+<p>Données d’identification et de situation : civilité, nom, prénom, date et lieu de naissance, nationalité, situation matrimoniale, profession, adresse postale, adresse e-mail, numéro de téléphone. Données relatives à l’opération : adresse et description du bien, prix, documents du dossier (mandat, compromis, annexes, diagnostics, courriers, pièces justificatives). Données de connexion des utilisateurs du CRM : adresse e-mail du compte, journal des connexions et des sauvegardes.</p>
+<h4>3. Moyens de collecte</h4>
+<p>Les données sont communiquées à YES IMMO par les personnes concernées lors de leurs échanges avec l’agence (rendez-vous, mandat, courriers, e-mails, téléphone), par des documents qu’elles transmettent, ou saisies et importées dans le CRM par les collaborateurs habilités.</p>
+<h4>4. Finalités et bases juridiques</h4>
+<p><b>Exécution du contrat ou de mesures précontractuelles</b> : gestion des mandats et des dossiers de vente, préparation et suivi des compromis et actes, gestion des communications avec les clients et les partenaires (notaires, diagnostiqueurs…). <b>Obligations légales et réglementaires</b> : respect de la réglementation applicable à l’activité immobilière, réponses aux demandes des autorités habilitées, gestion des demandes d’exercice de droits. <b>Intérêt légitime</b> : sécurité et prévention des atteintes aux systèmes, gestion administrative interne, établissement de preuves nécessaires à la défense des droits de YES IMMO.</p>
+<h4>5. Durées de conservation</h4>
+<p>YES IMMO conserve les données pendant une durée n’excédant pas celle nécessaire aux finalités pour lesquelles elles sont traitées, augmentée du délai de prescription légale et des durées de conservation imposées par les lois applicables.</p>
+<h4>6. Destinataires et transferts</h4>
+<p>Les données sont accessibles au personnel habilité de YES IMMO et, selon les dossiers, aux partenaires intervenant dans l’opération (notaires, diagnostiqueurs, banques…) et aux sous-traitants listés au point 9. YES IMMO leur demande des mesures strictes de confidentialité et de sécurité, et peut être tenue de communiquer des informations aux autorités publiques habilitées.</p>
+<p>Certains prestataires (notamment Google) peuvent être établis hors de l’Union européenne. YES IMMO veille alors à ce que le transfert soit encadré par des clauses contractuelles types de la Commission européenne ou tout autre mécanisme conforme au RGPD.</p>
+<h4>7. Droits des personnes concernées</h4>
+<p>Toute personne concernée peut exercer à tout moment ses droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité. Lorsque le traitement repose sur le consentement, celui-ci peut être retiré à tout moment. Ces droits s’exercent par e-mail à contact-ard@yes-immobilier.com ou par courrier à YES IMMO, 33 place du 73ème, 62400 Béthune, en joignant les éléments nécessaires à l’identification (nom, prénom, e-mail). En cas de manquement, une réclamation peut être adressée à la CNIL (3 place de Fontenoy, TSA 80715, 75334 Paris cedex 07 ; cnil.fr), sans préjudice de tout autre recours.</p>
+<h4>8. Sécurité</h4>
+<p>YES IMMO met en œuvre les mesures utiles pour préserver la sécurité des données et empêcher toute destruction, perte, altération, divulgation ou accès non autorisé. Les données sont hébergées en Europe (Irlande) chez Supabase, qui s’appuie sur Amazon Web Services : elles sont chiffrées pendant leur transfert et sur le serveur, et chaque utilisateur ne peut consulter que ses propres dossiers. L’accès au CRM est protégé par un compte individuel (e-mail et mot de passe), une double authentification disponible, une déconnexion automatique après 20 minutes d’inactivité et un journal des connexions et des sauvegardes. En cas de violation de données, YES IMMO la notifie à la CNIL dans les 72 heures lorsque la réglementation l’exige et informe les personnes concernées si le risque pour elles est élevé.</p>
+<p><b>Engagements des utilisateurs du CRM :</b> n’accéder qu’aux dossiers utiles à son travail ; garder son mot de passe secret et ne jamais partager son compte ; fermer sa session en quittant son poste, surtout sur un ordinateur partagé ; ne pas copier de données hors du CRM sans nécessité ; exporter régulièrement une sauvegarde et la conserver en lieu sûr ; signaler immédiatement toute perte, tout vol de matériel ou tout accès suspect.</p>
+<h4>9. Sous-traitants de YES IMMO</h4>
+<p>YES IMMO fait appel aux prestataires suivants et s’assure qu’ils présentent des garanties suffisantes au sens de l’article 28 du RGPD :</p>
+<ul style="margin:0 0 8px;padding-left:20px"><li><b>Supabase</b> : hébergement des données et des fichiers, en Europe (Irlande), sur l’infrastructure d’Amazon Web Services ;</li><li><b>GitHub Pages</b> : hébergement de l’application, sans accès aux données des clients ;</li><li><b>IONOS</b> : nom de domaine de l’application ;</li><li><b>Google (Gmail)</b> : messagerie, par l’ouverture d’un brouillon dans le compte Gmail de l’utilisateur.</li></ul>
+<h4>10. Liens vers d’autres sites</h4>
+<p>Le CRM peut contenir des liens vers d’autres sites (par exemple Modelo). YES IMMO recommande de consulter leur politique de protection des données et n’est pas responsable des traitements qu’ils effectuent.</p>
+<h4>11. Modifications</h4>
+<p>YES IMMO se réserve le droit d’adapter la présente politique.</p>`;
 function run(){const s=document.createElement('script');s.textContent=document.getElementById('mainjs').textContent;document.body.appendChild(s)}
 const lm=/const LOGO0='(data:image[^']+)'/.exec(document.getElementById('mainjs').textContent);
 const st=document.createElement('style');
-st.textContent='#lkx{position:fixed;inset:0;z-index:99999;background:#faf6f3;color:#2b1d18;display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif;overflow:auto}#lkx .b{max-width:380px;width:100%;display:flex;flex-direction:column;gap:10px;text-align:center}#lkx input{padding:12px;font-size:16px;border:1px solid #bbb;border-radius:8px;width:100%;box-sizing:border-box}#lkx button{padding:12px;font-size:16px;border-radius:8px;border:1px solid #9a5a45;background:#9a5a45;color:#fff;cursor:pointer}#lkx button.s{background:#fff;color:#9a5a45}#lkx button:disabled{opacity:.6}#lkx .e{color:#b3261e;min-height:1.3em;font-size:14px}#lkx .i{color:#2e7d32;font-size:14px}#lkx a{font-size:13px;color:#777;cursor:pointer;text-decoration:underline}#lkx .m{color:#777;font-size:14px}';
+st.textContent='#lkx{position:fixed;inset:0;z-index:99999;background:#faf6f3;color:#2b1d18;color-scheme:light;display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif;overflow:auto}#lkx .b{max-width:380px;width:100%;display:flex;flex-direction:column;gap:10px;text-align:center;margin:auto}#lkx .b.w{max-width:640px;text-align:left}#lkx input[type=email],#lkx input[type=password],#lkx input[type=text]{padding:12px;font-size:16px;border:1px solid #bbb;border-radius:8px;width:100%;box-sizing:border-box;background:#fff;color:#2b1d18}#lkx input::placeholder{color:#8a7f7a}#lkx button{padding:12px;font-size:16px;border-radius:8px;border:1px solid #9a5a45;background:#9a5a45;color:#fff;cursor:pointer}#lkx button.s{background:#fff;color:#9a5a45}#lkx button:disabled{opacity:.6}#lkx .e{color:#b3261e;min-height:1.3em;font-size:14px}#lkx .i{color:#2e7d32;font-size:14px}#lkx a{font-size:13px;color:#777;cursor:pointer;text-decoration:underline}#lkx .m{color:#777;font-size:14px}#lkx .pv{font-size:14px;line-height:1.5;max-height:46vh;overflow:auto;border:1px solid #ddd;border-radius:8px;padding:12px;background:#fff}#lkx .pv h3{margin:0 0 6px}#lkx .pv p{margin:0 0 8px}';
 document.head.appendChild(st);
 const o=document.createElement('div');o.id='lkx';document.body.appendChild(o);
-const head='<div class="b">'+(lm?'<img id="lkl" alt="YES Immobilier" style="max-width:220px;max-height:110px;object-fit:contain;margin:0 auto">':'')+'<h2 style="margin:0">YES CRM</h2>';
-function put(h){o.innerHTML=head+h+'</div>';if(lm){const im=o.querySelector('#lkl');if(im)im.src=lm[1]}}
+const head=w=>'<div class="b'+(w?' w':'')+'">'+(lm?'<img id="lkl" alt="YES Immobilier" style="max-width:220px;max-height:110px;object-fit:contain;margin:0 auto">':'')+'<h2 style="margin:0;text-align:center">YES CRM</h2>';
+function put(h,w){o.innerHTML=head(w)+h+'</div>';if(lm){const im=o.querySelector('#lkl');if(im)im.src=lm[1]}}
 if(!SB_URL||/^__/.test(SB_URL)||!window.supabase){put('<div class="e">Application non configurée : adresse du service en ligne manquante.</div>');return}
-const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});window.SB=sb;
+const REMK='yescrm-remember',EMK='yescrm-email';
+try{window.__REM=!!localStorage.getItem(REMK)}catch(e){window.__REM=false}
+const authStore={getItem:k=>{try{return(window.__REM?localStorage:sessionStorage).getItem(k)}catch(e){return null}},setItem:(k,v)=>{try{(window.__REM?localStorage:sessionStorage).setItem(k,v)}catch(e){}},removeItem:k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k)}catch(e){}}};
+window.__authStore=authStore;
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:authStore}});window.SB=sb;
 const MSG=m=>/Invalid login/i.test(m)?'E-mail ou mot de passe incorrect.':/not confirmed/i.test(m)?'Confirmez d’abord votre adresse e-mail grâce au lien reçu par e-mail.':/already registered/i.test(m)?'Un compte existe déjà avec cette adresse : connectez-vous.':/rate limit/i.test(m)?'Trop de tentatives : patientez quelques minutes.':/Signups not allowed/i.test(m)?'La création de compte est désactivée : demandez une invitation.':/network|fetch/i.test(m)?'Connexion impossible : vérifiez votre accès internet.':m;
 let booted=false,recovering=false;
+const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkc">Créer un compte</button><a id="lkf">Mot de passe oublié ?</a>');
- const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm');em.focus();
+ const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');em.focus();
+ try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
  const chk=()=>{if(!em.value.trim()||!pw.value){er.textContent='Saisissez votre e-mail et votre mot de passe.';return false}return true};
- const sign=async()=>{if(!chk())return;busy(true);er.textContent='';const r=await sb.auth.signInWithPassword({email:em.value.trim(),password:pw.value});if(r.error){er.textContent=MSG(r.error.message);busy(false)}else boot(r.data.user)};
+ const sign=async()=>{if(!chk())return;busy(true);er.textContent='';window.__REM=rk.checked;
+  const r=await sb.auth.signInWithPassword({email:em.value.trim(),password:pw.value});
+  if(r.error){window.__REM=false;er.textContent=MSG(r.error.message);busy(false);return}
+  try{if(rk.checked){localStorage.setItem(REMK,JSON.stringify({n:1}));localStorage.setItem(EMK,em.value.trim())}else{localStorage.removeItem(REMK);localStorage.removeItem(EMK)}}catch(e){}
+  proceed(r.data.user)};
  o.querySelector('#lkb').onclick=sign;pw.addEventListener('keydown',e=>{if(e.key==='Enter')sign()});
  o.querySelector('#lkc').onclick=async()=>{if(!chk())return;if(pw.value.length<8){er.textContent='Mot de passe trop court (8 caractères minimum).';return}busy(true);er.textContent='';
   const r=await sb.auth.signUp({email:em.value.trim(),password:pw.value,options:{emailRedirectTo:location.origin+location.pathname}});
-  if(r.error){er.textContent=MSG(r.error.message);busy(false)}else if(r.data.session)boot(r.data.user);else login('','Compte créé. Un e-mail de confirmation vous a été envoyé : cliquez sur le lien, puis connectez-vous.')};
+  if(r.error){er.textContent=MSG(r.error.message);busy(false)}else if(r.data.session)proceed(r.data.user);else login('','Compte créé. Un e-mail de confirmation vous a été envoyé : cliquez sur le lien, puis connectez-vous.')};
  o.querySelector('#lkf').onclick=async()=>{if(!em.value.trim()){er.textContent='Saisissez d’abord votre adresse e-mail.';return}busy(true);
   const r=await sb.auth.resetPasswordForEmail(em.value.trim(),{redirectTo:location.origin+location.pathname});busy(false);
   if(r.error)er.textContent=MSG(r.error.message);else{er.textContent='';login('','Si un compte existe, un e-mail de réinitialisation vient d’être envoyé.')}}}
@@ -1673,24 +1907,46 @@ function recover(){recovering=true;
  put('<div class="m">Choisissez un nouveau mot de passe.</div><input type="password" id="lkp" placeholder="Nouveau mot de passe (8 caractères minimum)" autocomplete="new-password"><div class="e" id="lkm"></div><button id="lkb">Enregistrer</button>');
  const pw=o.querySelector('#lkp'),er=o.querySelector('#lkm');pw.focus();
  const go=async()=>{if(pw.value.length<8){er.textContent='Mot de passe trop court (8 caractères minimum).';return}const r=await sb.auth.updateUser({password:pw.value});if(r.error){er.textContent=MSG(r.error.message);return}
-  recovering=false;try{history.replaceState(null,'',location.pathname)}catch(e){}const s=await sb.auth.getSession();if(s.data.session)boot(s.data.session.user);else login()};
+  recovering=false;try{history.replaceState(null,'',location.pathname)}catch(e){}const s=await sb.auth.getSession();if(s.data.session)proceed(s.data.session.user);else login()};
  o.querySelector('#lkb').onclick=go;pw.addEventListener('keydown',e=>{if(e.key==='Enter')go()})}
-async function boot(user){
+async function mfaPrompt(user){
+ let fid=null;try{const f=await sb.auth.mfa.listFactors();fid=((f.data&&f.data.totp)||[]).find(x=>x.status==='verified').id}catch(e){}
+ put('<div class="m">Saisissez le code à 6 chiffres de votre application d’authentification.</div><input type="text" id="lkp" inputmode="numeric" autocomplete="one-time-code" placeholder="Code à 6 chiffres"><div class="e" id="lkm"></div><button id="lkb">Valider</button><a id="lkf" style="text-align:center">Se déconnecter</a>');
+ const pw=o.querySelector('#lkp'),er=o.querySelector('#lkm');pw.focus();
+ const go=async()=>{if(!fid){er.textContent='Facteur introuvable : déconnectez-vous et réessayez.';return}er.textContent='';const r=await sb.auth.mfa.challengeAndVerify({factorId:fid,code:pw.value.replace(/\s/g,'')});if(r.error){er.textContent='Code incorrect ou expiré.';pw.select()}else proceed(user)};
+ o.querySelector('#lkb').onclick=go;pw.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+ o.querySelector('#lkf').onclick=async()=>{await sb.auth.signOut();location.reload()}}
+function cgu(user){
+ put('<div class="m">Avant de commencer, lisez et acceptez les conditions d’utilisation.</div><div class="pv">'+window.PRIV_HTML+'</div><label style="display:flex;gap:8px;align-items:flex-start;font-size:14px"><input type="checkbox" id="lkk" style="margin-top:3px"> J’ai lu ces conditions et je m’engage à les respecter.</label><div class="e" id="lkm"></div><button id="lkb" disabled>Accepter et continuer</button><a id="lkf" style="text-align:center">Se déconnecter</a>',true);
+ const ck=o.querySelector('#lkk'),bt=o.querySelector('#lkb'),er=o.querySelector('#lkm');ck.onchange=()=>{bt.disabled=!ck.checked};
+ bt.onclick=async()=>{bt.disabled=true;const r=await sb.auth.updateUser({data:{cgu_v1:new Date().toISOString()}});if(r.error){er.textContent=MSG(r.error.message);bt.disabled=false;return}
+  window.__CGU=true;boot(r.data.user||user,'cgu_acceptee')};
+ o.querySelector('#lkf').onclick=async()=>{await sb.auth.signOut();location.reload()}}
+async function proceed(user){
+ try{const a=await sb.auth.mfa.getAuthenticatorAssuranceLevel(),L=a.data;if(L&&L.nextLevel==='aal2'&&L.currentLevel!=='aal2')return mfaPrompt(user)}catch(e){}
+ if(!((user.user_metadata||{}).cgu_v1))return cgu(user);
+ boot(user)}
+async function boot(user,first){
  if(booted)return;booted=true;window.__UID=user.id;window.__EMAIL=user.email;
+ window.AUDIT=(a,d)=>{try{Promise.resolve(sb.from('audit_log').insert({user_id:user.id,action:a,detail:d||null})).then(()=>{},()=>{})}catch(e){}};
  put('<div class="m">Chargement de vos dossiers…</div>');
- const K='dossiers-vente-v1:'+user.id,dirty=localStorage.getItem(K+':dirty'),cache=localStorage.getItem(K);
+ const K='dossiers-vente-v1:'+user.id,dirty=SSg(K+':dirty'),cache=SSg(K);
  let row=null,err=null;
- try{const r=await sb.from('crm_data').select('data').eq('user_id',user.id).maybeSingle();if(r.error)throw r.error;row=r.data}catch(e){err=e}
- if(err&&!cache){booted=false;put('<div class="e">Impossible de charger vos données ('+(err.message||'erreur')+').</div><button id="lkb">Réessayer</button>');o.querySelector('#lkb').onclick=()=>boot(user);return}
- if(dirty&&cache){window.__PLAIN=null;window.__PUSH=true}
- else if(row&&row.data)window.__PLAIN=JSON.stringify(row.data);
- else if(!cache)window.__PLAIN=null;
- o.remove();st.remove();run()}
+ try{const r=await sb.from('crm_data').select('data,updated_at').eq('user_id',user.id).maybeSingle();if(r.error)throw r.error;row=r.data}catch(e){err=e}
+ if(err&&!cache){booted=false;put('<div class="e">Impossible de charger vos données ('+(err.message||'erreur')+').</div><button id="lkb">Réessayer</button>');o.querySelector('#lkb').onclick=()=>boot(user,first);return}
+ if(dirty&&cache){window.__PLAIN=null;window.__PUSH=true;window.__V=SSg(K+':v')||null}
+ else{window.__PLAIN=row&&row.data?JSON.stringify(row.data):null;window.__V=row?row.updated_at:null;try{indexedDB.deleteDatabase('yescrm-'+user.id)}catch(e){}}
+ o.remove();st.remove();run();window.AUDIT(first||'connexion')}
 sb.auth.onAuthStateChange((ev)=>{if(ev==='PASSWORD_RECOVERY')recover()});
 (async()=>{
  const r=await sb.auth.getSession();
  if(recovering||/type=recovery/.test(location.hash+location.search))return;
- if(r.data.session)boot(r.data.session.user);else login()})();
+ if(r.data.session){
+  if(window.__REM){let m={};try{m=JSON.parse(localStorage.getItem(REMK))||{}}catch(e){}
+   const n=(m.n||0)+1;
+   if(n>6){try{await sb.auth.signOut()}catch(e){}try{localStorage.removeItem(REMK)}catch(e){}window.__REM=false;login('','Pour votre sécurité, saisissez de nouveau votre mot de passe.');return}
+   try{localStorage.setItem(REMK,JSON.stringify({n}))}catch(e){}}
+  proceed(r.data.session.user)}else login()})();
 })();
 </script>
 </body>
