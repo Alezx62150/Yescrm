@@ -167,6 +167,7 @@ body.rdwide .rdt{max-height:calc(100vh - 12px)}
 <div id="pa"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -817,7 +818,7 @@ function panelBien(f){const op=V['pn_bi']?' open':'',t=f.btype||'',x=(k,l,ph)=>`
 function panelMatch(f){if(!preCmp(f))return '';const op=V['pn_mt']?' open':'',L=S.c.map(c=>[c,critOk(c,f)]).filter(x=>x[1]);
  return `<details class='pnl'${op} data-pn='mt'><summary>🎯 Acquéreurs intéressés · ${L.length}</summary>${L.length?L.map(([c,w])=>`<div class='rw' style='align-items:center;gap:8px'><span style='flex:1'><b>${esc(nom(c))}</b> <span class='m'>· ${esc(w)}${c.tel?' · '+esc(c.tel):''}</span></span>${c.tel?`<a href='tel:${esc(String(c.tel).replace(/[^\d+]/g,''))}' style='text-decoration:none'><button type='button' style='padding:2px 8px'>📞</button></a>`:''}<button type='button' data-a='ficheC' data-id='${c.id}' style='padding:2px 8px'>Fiche</button></div>`).join(''):`<p class='m'>Aucun acquéreur ne correspond. Renseignez les critères (budget, secteurs) dans la fiche des acquéreurs.</p>`}<p class='m' style='font-size:12px'>Correspondance sur le budget (à 5 % près) et les secteurs recherchés.</p></details>`}
 function panelHist(f){const op=V['pn_hi']?' open':'',L=f.hist||[];return `<details class='pnl'${op} data-pn='hi'><summary>🕘 Historique du dossier · ${L.length}</summary>${L.length?L.slice(0,60).map(h=>`<div class='rw' style='gap:8px'><span class='m' style='min-width:130px'>${esc(fdate(h.t))}</span><span style='flex:1'>${esc(h.x)}</span>${h.u?`<span class='m'>${esc(h.u)}</span>`:''}</div>`).join(''):`<p class='m'>L’historique se remplit au fil des modifications (étape, prix, documents, visites, échéances).</p>`}</details>`}
-function extraPanels(f){return panelPieces(f)+panelBien(f)+panelMandat(f)+panelVis(f)+panelMatch(f)+panelWorks(f)+panelHist(f)}
+function extraPanels(f){return panelPieces(f)+panelBien(f)+panelMandat(f)+panelVis(f)+panelMatch(f)+panelWorks(f)+panelHist(f)+panelArc(f)}
 function critHtml(c){const r=roleOf(c);if(r!=='acquereur'&&r!=='')return '';const fs=S.f.filter(f=>!f.arch&&preCmp(f)&&critOk(c,f));
  const i=(k,l,ph,t)=>`<div><label>${l}</label><input data-c2='${k}' ${t?`type='${t}'`:''} placeholder='${ph||''}' value="${esc(c[k])}"></div>`;
  const sl=(k,l,a)=>`<div><label>${l}</label><select data-c2='${k}'><option value=''>—</option>${a.map(v=>`<option ${c[k]===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
@@ -1056,6 +1057,29 @@ function vPar(){const L=parList();
 <p class='m'>Les modifications sont enregistrées automatiquement.</p><div class='bar'><button class='d' data-a='parDel' data-id='${p.id}'>Supprimer ce partenaire</button></div>`}
 document.addEventListener('input',e=>{const t=e.target;if(!t)return;if(t.id==='pqi'){PAR.q=t.value;const x=document.getElementById('pl');if(x)x.innerHTML=parHtml();return}
  if(t.dataset&&t.dataset.pa&&V.v==='par'){const p=parList().find(x=>x.id===PAR.id);if(p){p[t.dataset.pa]=t.value;save()}}});
+
+/* --- archive du dossier : ZIP et PDF unique --- */
+const ARC={busy:false};
+function arcName(s){return String(s||'document').replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim().slice(0,70)}
+function arcDocs(f){const o=[];TABS.forEach(([t,l])=>{(f.d||[]).filter(d=>catTab(d.grp||'Divers')===t).forEach(d=>o.push({d,cat:l}))});(f.d||[]).filter(d=>!TABS.some(([t])=>catTab(d.grp||'Divers')===t)).forEach(d=>o.push({d,cat:'Autres'}));return o}
+async function arcBlob(d){if(d.pdf){const b=await fget(d.id);if(!b)throw new Error('fichier introuvable');return b instanceof Blob?b:new Blob([b],{type:'application/pdf'})}return await mkPdf([{t:d.t||'Document',h:d.h||''}])}
+async function arcZip(f){if(ARC.busy)return;if(!window.JSZip||!window.jspdf){toast('Outils d’export non chargés. Rechargez la page.');return}
+ const L=arcDocs(f);if(!L.length){toast('Aucun document dans ce dossier.');return}ARC.busy=true;const bad=[];
+ try{const z=new JSZip();let n=0;for(const {d,cat} of L){n++;toast('Préparation… '+n+'/'+L.length);try{z.file(String(n).padStart(2,'0')+' - '+arcName(cat)+' - '+arcName(d.t)+'.pdf',await arcBlob(d))}catch(e){bad.push(d.t||'document')}}
+  const b=await z.generateAsync({type:'blob'});await xdl('Dossier - '+arcName(f.name)+'.zip',b);toast(bad.length?'ZIP prêt. Non inclus : '+bad.join(', '):'ZIP prêt : '+(L.length-bad.length)+' documents.')}
+ catch(e){toast('Export impossible.')}ARC.busy=false}
+async function arcMerge(f){if(ARC.busy)return;if(!window.PDFLib||!window.jspdf){toast('Outils d’export non chargés (pdf-lib). Rechargez la page.');return}
+ const L=arcDocs(f);if(!L.length){toast('Aucun document dans ce dossier.');return}ARC.busy=true;const bad=[],parts=[];
+ try{const {PDFDocument}=PDFLib;let n=0;for(const {d,cat} of L){n++;toast('Assemblage… '+n+'/'+L.length);try{const b=await arcBlob(d),pd=await PDFDocument.load(await b.arrayBuffer(),{ignoreEncryption:true});parts.push({d,cat,pd,np:pd.getPageCount()})}catch(e){bad.push(d.t||'document')}}
+  if(!parts.length){toast('Aucun document lisible.');ARC.busy=false;return}
+  const mkSom=off=>{let p=off+1;const rows=parts.map((x,i)=>{const r=[String(i+1),x.cat,x.d.t||'Document',String(p)];p+=x.np;return r});return `<h1>Dossier : ${esc(f.name)}</h1><p>Sommaire des documents · ${esc(fDate(isoT()))}</p><table style="border-collapse:collapse;width:100%"><tbody><tr>${['N°','Rubrique','Document','Page'].map(h=>`<td><b>${h}</b></td>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`};
+  let sb=await mkPdf([{t:'Sommaire',h:mkSom(1)}]),sp=await PDFDocument.load(await sb.arrayBuffer());const off=sp.getPageCount();sb=await mkPdf([{t:'Sommaire',h:mkSom(off)}]);sp=await PDFDocument.load(await sb.arrayBuffer());
+  const out=await PDFDocument.create();(await out.copyPages(sp,sp.getPageIndices())).forEach(p=>out.addPage(p));
+  for(const x of parts){(await out.copyPages(x.pd,x.pd.getPageIndices())).forEach(p=>out.addPage(p))}
+  const bytes=await out.save();await xdl('Dossier complet - '+arcName(f.name)+'.pdf',new Blob([bytes],{type:'application/pdf'}));toast(bad.length?'PDF prêt. Non inclus : '+bad.join(', '):'PDF unique prêt : '+out.getPageCount()+' pages.')}
+ catch(e){toast('Assemblage impossible.')}ARC.busy=false}
+
+function panelArc(f){const n=(f.d||[]).length,op=V['pn_ar']?' open':'';return `<details class='pnl'${op} data-pn='ar'><summary>📑 Archive du dossier · ${n} document${n>1?'s':''}</summary><p class='m' style='margin:4px 0 8px'>Réunit tous les documents du dossier pour l’impression ou la sauvegarde.</p><div style='display:flex;gap:8px;flex-wrap:wrap'><button type='button' class='p' data-a='arcPdf'>📑 Dossier complet en un PDF</button><button type='button' data-a='arcZip'>📦 Tout télécharger (ZIP)</button></div></details>`}
 const estList=()=>{if(!Array.isArray(S.est))S.est=[];return S.est};
 const estNew=()=>{const d=(S.set||{}).neg||{};return {id:uid(),name:'',adr:'',fid:'',date:isoT(),ville:d.v||'Béthune',neg:d.n!==undefined?d.n:((S.set||{}).me||''),negf:d.f||'Négociateur',negt:d.t||'',nege:d.e||'',meth:'base',annee:'',dpe:'',lots:[{id:uid(),n:'Lot 1',t:'Appartement',s:'',l:'',dpe:'',occ:'Loué'}],tf:'',pno:'',gest:'6',ent:'5',copro:'',autres:'',vac:'5',trav:'',tc:'7',ask:'',comp:[{id:uid(),a:'',p:'',s:''}],note:''}};
 function estCalc(e){const lots=e.lots||[],S0=lots.reduce((s,l)=>s+num(l.s),0),loy=lots.reduce((s,l)=>s+num(l.l)*12,0),vac=loy*num(e.vac)/100,eff=loy-vac,gest=eff*num(e.gest)/100,ent=eff*num(e.ent)/100,fixes=num(e.tf)+num(e.pno)+num(e.copro)+num(e.autres),ch=gest+ent+fixes,noi=eff-ch,tc=num(e.tc)/100,cap=tc>0&&noi>0?noi/tc:0,trav=num(e.trav);
@@ -2394,6 +2418,8 @@ document.addEventListener('click',e=>{
  else if(a==='parCat'){PAR.cat=id;render()}
  else if(a==='parNew'){const p={id:uid(),soc:'',nom:'',cat:PAR.cat||'',tel:'',email:'',adr:'',cp:'',ville:'',site:'',notes:''};parList().push(p);PAR.id=p.id;save();render();setTimeout(()=>{const e=document.querySelector('[data-pa=soc]');if(e)e.focus()},60)}
  else if(a==='parDel'){const p=parList().find(x=>x.id===id);if(p)confirmDlg({title:'Supprimer ce partenaire ?',text:'« '+parLabel(p)+' » sera retiré de l’annuaire.',ok:'Supprimer',danger:true}).then(ok=>{if(!ok)return;S.par=S.par.filter(x=>x.id!==id);PAR.id=null;save();render()})}
+ else if(a==='arcPdf'){arcMerge(F())}
+ else if(a==='arcZip'){arcZip(F())}
  else if(a==='estim'){as();ES.id=null;go('estim')}
  else if(a==='team'){as();go('team');if(!TM.rows&&!TM.busy)teamLoad()}
  else if(a==='teamLoad')teamLoad();
