@@ -56,14 +56,43 @@ label{display:block;font-size:13px;color:var(--mu);margin:8px 0 2px}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
 summary{cursor:pointer;color:var(--ac);font-size:14px;margin-top:14px}
 .tabs2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
-.tabs2 button{background:var(--ac2);border-color:transparent;font-size:13px;padding:10px 6px}
-.tabs2 button.on{background:var(--ac);color:var(--on)}
-.rdp{background:#fff;color:#161616;border:1px solid var(--bd);border-radius:8px;padding:28px 34px;max-width:860px;margin:0 auto 12px;overflow-wrap:anywhere;font-family:Georgia,'Times New Roman',serif;line-height:1.7;user-select:text}.rdp table{border-collapse:collapse;max-width:100%}.rdp td,.rdp th{border:1px solid #bbb;padding:4px 6px}.rdp img{max-width:100%}@media(max-width:560px){.rdp{padding:16px}}
+
+
+.rdp{background:#fff;color:#161616;border:1px solid var(--bd);border-radius:8px;padding:28px 34px;max-width:860px;margin:0 auto 12px;overflow-wrap:anywhere;font-family:Georgia,'Times New Roman',serif;line-height:1.7;user-select:text}.rdp table{border-collapse:collapse;max-width:100%}
+.rdc{padding:6px 11px;font-size:13px;font-weight:600;border:2px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx)}
+.rdc.lu{background:#2e7d32;border-color:#2e7d32;color:#fff}
+.rdc.cur{box-shadow:0 0 0 3px rgba(184,122,101,.55)}
+.rdc.cur.lu{box-shadow:0 0 0 3px rgba(46,125,50,.4)}
+.rdl{display:grid;grid-template-columns:190px 1fr;gap:12px;align-items:start}
+.rdt{position:sticky;top:8px;max-height:calc(100vh - 24px);overflow:auto;background:#3a3a3d;border-radius:8px;padding:10px 8px}
+.rdt .m{color:#ddd}
+.rdm{min-width:0;overflow-x:auto}
+body.rdwide #hd,body.rdwide .sb,body.rdwide .tabs,body.rdwide .ftr{display:none}
+body.rdwide #app{padding:6px 10px}
+body.rdwide .rdt{max-height:calc(100vh - 12px)}
+.rdi{cursor:pointer;border-radius:6px;padding:6px;font-size:12px;color:#eee;margin-bottom:6px;border:3px solid transparent}
+.rdi.on{border-color:#8ab4f8;background:rgba(138,180,248,.18)}
+.rth{padding:4px;background:transparent}
+.rtc{background:#fff;width:100%;min-height:40px}
+.rtc canvas{width:100%;display:block}
+@media(max-width:800px){.rdl{grid-template-columns:1fr}.rdt{position:static;max-height:150px;display:flex;gap:6px;overflow-x:auto;overflow-y:hidden}.rth{min-width:70px;flex:none}.rdi{white-space:nowrap}}.rdp td,.rdp th{border:1px solid #bbb;padding:4px 6px}.rdp img{max-width:100%}@media(max-width:560px){.rdp{padding:16px}}
 .hg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}@media(max-width:560px){.hg{grid-template-columns:1fr 1fr}}.hm{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 14px;text-align:left;border-radius:12px;background:var(--sf);border:1px solid var(--bd);cursor:pointer}.hm:hover{border-color:var(--ac,#e5b4a2);box-shadow:0 2px 10px rgba(0,0,0,.08)}.hm .hi{font-size:26px;line-height:1}.hm .ht{font-size:15px;font-weight:600}.hm .hs{font-size:13px;color:var(--mu)}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.kc{padding:9px;border-radius:6px;cursor:pointer;font-size:13px;text-align:center}
-.k1{background:rgba(184,122,101,.2)}.k2{background:rgba(120,80,60,.16)}.k3{background:rgba(222,170,120,.28)}
-.gh{background:var(--ac2);padding:6px 10px;font-weight:600;cursor:pointer;font-size:14px;margin-top:10px;border-radius:6px 6px 0 0}
+.kc{padding:12px 9px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:700;text-align:center;border:2px solid transparent;border-bottom-width:4px}
+.k1{background:rgba(184,122,101,.2);border-color:#b87a65;color:#7a3f2c}
+.k2{background:rgba(47,111,168,.14);border-color:#2f6fa8;color:#1f4f7e}
+.k3{background:rgba(214,160,40,.2);border-color:#d6a028;color:#7a5a05}
+.kc:hover{filter:brightness(.96)}
+.tabs2 button{font-size:14px;font-weight:700;padding:12px 6px;border:2px solid transparent;border-bottom-width:4px;border-radius:8px;color:var(--tc);background:var(--tb);border-color:var(--tc)}
+.tabs2 button.on{background:var(--tc);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.tabs2 button:hover{filter:brightness(.96)}
+.tabs2 button[data-id=m]{--tc:#2f6fa8;--tb:rgba(47,111,168,.12)}
+.tabs2 button[data-id=p]{--tc:#c26a1d;--tb:rgba(194,106,29,.13)}
+.tabs2 button[data-id=a]{--tc:#2e7d4f;--tb:rgba(46,125,79,.13)}
+.tabs2 button[data-id=s]{--tc:#7a4fa3;--tb:rgba(122,79,163,.13)}
+.tabs2 button[data-id=all]{--tc:#6b5a52;--tb:rgba(107,90,82,.12)}
+
+.gh{background:var(--ac2);padding:9px 12px;font-weight:700;cursor:pointer;font-size:15px;margin-top:10px;border-radius:8px 8px 0 0;letter-spacing:.2px}
 .dr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid var(--bd);cursor:pointer;background:var(--sf)}
 .dr.sel{background:var(--ac2)}
 .dt{flex:1;min-width:0;overflow-wrap:anywhere}
@@ -425,14 +454,43 @@ function vRead(){
  const R=V.rd,f=F();if(!R||!f)return `<p class='m'>Rien à lire.</p>`;
  const ds=R.ids.map(id=>f.d.find(d=>d.id===id)).filter(Boolean);if(!ds.length)return `<p class='m'>Aucun document à lire.</p>`;
  R.i=Math.max(0,Math.min(R.i,ds.length-1));const d=ds[R.i];V.did=d.id;
- const chips=ds.map((x,i)=>`<button data-a='readGo' data-id='${i}' class='${i===R.i?'p':''}' style='padding:4px 9px;font-size:12px'>${x.lu?'✓ ':''}${esc(x.t.length>26?x.t.slice(0,25)+'…':x.t)}</button>`).join('');
- return `<div class='bar'><button data-a='readQuit'>← Dossier</button><span class='badge' style='background:#2e7d32'>🔒 Lecture seule</span><span class='sp'></span><button data-a='readFs' data-id='-1' aria-label='Réduire le texte'>A−</button><button data-a='readFs' data-id='1' aria-label='Agrandir le texte'>A+</button><button data-a='readLu'>${d.lu?'✓ Relu le '+esc(d.lu):'☐ Marquer comme relu'}</button><button data-a='readChk' title='Vérifie les prix, noms, adresse, n° de mandat, champs restant à compléter…'>🔍 Vérifier la cohérence</button><button class='d' data-a='readUnlock' title='Ouvre ce document dans l’éditeur pour corriger une erreur'>🔓 Déverrouiller pour modifier</button></div>
- <div class='bar' style='flex-wrap:wrap;gap:4px'>${chips}</div>
- <div class='bar'><button data-a='readNav' data-id='-1' ${R.i?'':'disabled'}>◀ Précédent</button><b style='flex:none'>${esc(d.t)}</b><span class='m'>Document ${R.i+1} / ${ds.length}</span><span class='sp'></span><button class='p' data-a='readNav' data-id='1' ${R.i<ds.length-1?'':'disabled'}>Suivant ▶</button></div>
+ const chips=ds.map((x,i)=>`<button data-a='readGo' data-id='${i}' class='rdc${x.lu?' lu':''}${i===R.i?' cur':''}' title='${i===R.i?(x.lu?'Cliquez pour retirer la mention « lu »':'Cliquez pour marquer ce document comme lu'):'Ouvrir ce document'}'>${x.lu?'✓ ':''}${esc(x.t.length>30?x.t.slice(0,29)+'…':x.t)}</button>`).join('');
+ const nlu=ds.filter(x=>x.lu).length;
+ return `<div class='bar'><button data-a='readQuit'>← Dossier</button><span class='badge' style='background:#2e7d32;color:#fff'>🔒 Lecture seule</span><span class='sp'></span><button data-a='readZ' data-id='-1' title='Zoom arrière' aria-label='Zoom arrière'>🔍−</button><button data-a='readZ' data-id='0' title='Revenir à 100 %'>${R.zoom||100} %</button><button data-a='readZ' data-id='1' title='Zoom avant' aria-label='Zoom avant'>🔍+</button><button data-a='readWide' title='Agrandir à l’écran : masque les menus pour lire en grand (Échap pour revenir)'>${V.wide?'⤡ Réduire':'⤢ Agrandir à l’écran'}</button><button data-a='readLu'>${d.lu?'✓ Relu le '+esc(d.lu):'☐ Marquer comme relu'}</button><button data-a='readChk' title='Vérifie les prix, noms, adresse, n° de mandat, champs restant à compléter…'>🔍 Vérifier la cohérence</button><button class='d' data-a='readUnlock' title='Ouvre ce document dans l’éditeur pour corriger une erreur'>🔓 Déverrouiller pour modifier</button></div>
+ <div class='bar' style='flex-wrap:wrap;gap:6px;align-items:center'>${chips}<span class='m' style='flex:none'>${nlu} / ${ds.length} lu${nlu>1?'s':''}</span></div>
+ <div class='bar'><button data-a='readNav' data-id='-1' ${R.i?'':'disabled'}>◀ Précédent</button><b style='flex:none'>${esc(d.t)}</b><span class='m'>Document ${R.i+1} / ${ds.length}</span><span class='m' id='rdpg'></span><span class='sp'></span><button class='p' data-a='readNav' data-id='1' ${R.i<ds.length-1?'':'disabled'}>Suivant ▶</button></div>
  ${R.chk==='run'?`<p class='m'>Vérification en cours…</p>`:readFindings()}
- ${d.pdf?`<div id='rpv'><p class='m'>Chargement du PDF…</p></div><p class='m'>PDF : non modifiable tel quel. « Déverrouiller » en extrait le texte dans un nouveau document modifiable.</p>`:`<div class='rdp' style='font-size:${R.fs||17}px'>${Array.isArray(R.chk)?hlDoc(d.h,f):d.h}</div>`}
+ <div class='rdl'><aside class='rdt' id='rdt' aria-label='${d.pdf?'Pages du document':'Sommaire du document'}'></aside><div class='rdm'>
+ ${d.pdf?`<div id='rpv'><p class='m'>Chargement du PDF…</p></div><p class='m'>PDF : non modifiable tel quel. « Déverrouiller » en extrait le texte dans un nouveau document modifiable.</p>`:`<div class='rdp' id='rdh' style='font-size:${(R.fs||17)*(R.zoom||100)/100}px;max-width:${(V.wide?1300:860)*(R.zoom||100)/100}px'>${Array.isArray(R.chk)?hlDoc(d.h,f):d.h}</div>`}
+ </div></div>
  <div class='bar'><button data-a='readNav' data-id='-1' ${R.i?'':'disabled'}>◀ Précédent</button><span class='sp'></span><button class='p' data-a='readNav' data-id='1' ${R.i<ds.length-1?'':'disabled'}>Suivant ▶</button></div>`}
-async function readPdf(){const d=D(),box=$('#rpv');if(!box||!d||!d.pdf)return;try{const pdf=await pdfDoc(d);box.innerHTML='';for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i),w=Math.min(box.clientWidth||600,900),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:w/v0.width*1.5}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;c.style.cssText='width:100%;border:1px solid var(--bd);margin-bottom:10px;background:#fff';box.appendChild(c);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;if(V.v!=='read'||V.did!==d.id)return}}catch(e){box.innerHTML=`<p class='m'>Aperçu indisponible (${esc(e.message||'erreur')}).</p>`}}
+function rdTrack(items,mk){if(V._rs)removeEventListener('scroll',V._rs);let raf=0,last=-1;
+ const upd=()=>{raf=0;let cur=0;items.forEach((el,i)=>{if(el.getBoundingClientRect().top<=170)cur=i});
+  if(cur===last)return;last=cur;mk(cur)};
+ V._rs=()=>{if(!raf)raf=requestAnimationFrame(upd)};addEventListener('scroll',V._rs,{passive:true});upd()}
+function rdOn(th,sel,cur){th.querySelectorAll(sel).forEach((x,i)=>x.classList.toggle('on',i===cur));const el=th.querySelectorAll(sel)[cur];if(el){const r=el.getBoundingClientRect(),t=th.getBoundingClientRect();if(r.top<t.top||r.bottom>t.bottom)th.scrollTop+=r.top-t.top-20}}
+function rdToc(){const th=$('#rdt'),h=$('#rdh');if(!th||!h)return;
+ const kids=[...h.children];let heads=[...h.querySelectorAll('h1,h2,h3')],marks=[];
+ if(heads.length>=3)marks=heads.map(x=>({el:x,l:x.textContent.trim().slice(0,48)||'Section'}));
+ else{let acc=0,n=0;kids.forEach((k,i)=>{if(i===0||acc>2500){n++;marks.push({el:k,l:(k.textContent.trim().slice(0,40)||'…'),n});acc=0}acc+=(k.textContent||'').length})}
+ if(!marks.length){th.style.display='none';return}
+ th.innerHTML=`<div class='m' style='padding:2px 4px 6px'><b>${heads.length>=3?'Sommaire':'Pages'}</b></div>`+marks.map((m,i)=>`<div class='rdi' data-i='${i}'><b>${heads.length>=3?'':(m.n+'. ')}</b>${esc(m.l)}</div>`).join('');
+ th.onclick=e=>{const it=e.target.closest('.rdi');if(!it)return;const el=marks[+it.dataset.i].el;scrollTo({top:el.getBoundingClientRect().top+scrollY-130,behavior:'smooth'})};
+ rdTrack(marks.map(m=>m.el),c=>{rdOn(th,'.rdi',c);const g=$('#rdpg');if(g)g.textContent=(heads.length>=3?'Section ':'Page ')+(c+1)+' / '+marks.length})}
+async function readPdf(){const d=D(),box=$('#rpv');if(!box||!d||!d.pdf)return;
+ try{const pdf=await pdfDoc(d);box.innerHTML='';const th=$('#rdt');th.innerHTML='';const p1=await pdf.getPage(1),v1=p1.getViewport({scale:1}),ratio=v1.height/v1.width,N=pdf.numPages;
+  const wp=[],tp=[];
+  for(let i=1;i<=N;i++){const w=document.createElement('div');w.className='rpg';w.dataset.p=i;const Z=(V.rd.zoom||100)/100,MW=(V.wide?1400:900)*Z;w.style.cssText='position:relative;margin:0 auto 10px;'+(Z<=1?'width:100%;max-width:'+MW+'px':'width:'+MW+'px;max-width:none')+';background:#fff;border:1px solid var(--bd);aspect-ratio:'+(1/ratio);box.appendChild(w);wp.push(w);
+   const t=document.createElement('div');t.className='rdi rth';t.dataset.p=i;t.innerHTML=`<div class='rtc' style='aspect-ratio:${1/ratio}'></div><div class='m' style='text-align:center'>${i}</div>`;th.appendChild(t);tp.push(t)}
+  const done={},rd=async(w,sc,host,key)=>{const i=+w.dataset.p,k=key+i;if(done[k])return;done[k]=1;try{const pg=await pdf.getPage(i),Zm=(V.rd.zoom||100)/100,W=sc>1?Math.min(host.clientWidth||600,3000):Math.min(host.clientWidth||600,900),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:W/v0.width*(sc>1&&Zm>1.5?1:sc)}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;c.style.cssText='width:100%;display:block';host.insertBefore(c,host.firstChild);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}catch(e){}};
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;if(V.v!=='read'||V.did!==d.id){io.disconnect();return}rd(e.target,1.5,e.target,'m')}),{rootMargin:'900px 0px'});wp.forEach(w=>io.observe(w));
+  const io2=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;if(V.v!=='read'||V.did!==d.id){io2.disconnect();return}const t=e.target;rd(t,0.4,t.querySelector('.rtc'),'t')}),{root:th,rootMargin:'400px 0px'});tp.forEach(t=>io2.observe(t));
+  th.onclick=e=>{const it=e.target.closest('.rth');if(!it)return;scrollTo({top:wp[+it.dataset.p-1].getBoundingClientRect().top+scrollY-130,behavior:'smooth'})};
+  const R0=V.rd;if(R0.pgd===d.id&&R0.pg>0&&wp[R0.pg])setTimeout(()=>scrollTo(0,wp[R0.pg].getBoundingClientRect().top+scrollY-130),30);
+  rdTrack(wp,c=>{rdOn(th,'.rth',c);R0.pg=c;R0.pgd=d.id;const g=$('#rdpg');if(g)g.textContent='Page '+(c+1)+' / '+N})}
+ catch(e){box.innerHTML=`<p class='m'>Aperçu indisponible (${esc(e.message||'erreur')}).</p>`}}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&V.wide&&V._fs){V.wide=false;V._fs=false;render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&V.wide&&V.v==='read'&&!document.getElementById('cfm')){V.wide=false;V._fs=false;try{if(document.fullscreenElement)document.exitFullscreen()}catch(x){}render()}});
 document.addEventListener('keydown',e=>{if(V.v!=='read'||!V.rd||e.target.closest('input,textarea,select,[contenteditable]')||document.getElementById('cfm'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const b=document.querySelector(`[data-a=readNav][data-id="${e.key==='ArrowRight'?1:-1}"]:not([disabled])`);if(b){e.preventDefault();b.click()}}});
 const ntLabel=n=>n.etude||n.nom||'Sans nom';
 const NF=[['etude','Étude / office','Étude Martin & Associés'],['nom','Notaire (nom)','Maître Jean Martin'],['clerc','Clerc / négociateur','Contact au dossier'],['adr','Adresse','12 rue de la Paix'],['cp','Code postal',''],['ville','Ville',''],['tel','Téléphone',''],['email','E-mail','']];
@@ -655,6 +713,9 @@ function partyEd(f,k,l){const ids=Array.isArray(f[k])?f[k]:[];
  const opt=sel=>S.c.map(c=>`<option value='${c.id}' ${sel===c.id?'selected':''}>${esc(nom(c)||'Sans nom')}</option>`).join('');
  return `<div><label>${l}</label>${ids.map((id,i)=>`<div style='display:flex;gap:6px;margin-bottom:6px'><select data-pk='${k}' data-pi='${i}'>${opt(id)}</select><button data-a='ficheC' data-id='${esc(id)}'>Fiche</button><button data-a='partyDel' data-k='${k}' data-i='${i}' aria-label='Retirer ce contact'>✕</button></div>`).join('')}<div style='display:flex;gap:6px'><select data-padd='${k}'><option value=''>+ Ajouter un contact existant…</option>${opt('')}</select><button data-a='newCF' data-k='${k}'>+ Nouveau</button></div></div>`}
 function selC(f,k,l){return `<div><label>${l}</label><div style='display:flex;gap:6px'><select data-k='${k}'><option value=''>— Choisir —</option>${S.c.map(c=>`<option value='${c.id}' ${f[k]===c.id?'selected':''}>${esc(nom(c)||'Sans nom')}</option>`).join('')}</select><button data-a='ficheC' data-id='${f[k]||''}' ${f[k]?'':'disabled'}>Fiche</button><button data-a='newCF' data-k='${k}' aria-label='Nouveau contact'>+</button></div></div>`}
+const GHP=[[/etat civil|identite|civil/,'👤','#2f6fa8'],[/diagnos|dpe|amiante|plomb|erp/,'🩺','#c26a1d'],[/urbanisme|cadastre|plu/,'🏛️','#7a4fa3'],[/courrier|lettre|mail/,'✉️','#1f8a8a'],[/convocation/,'📣','#b5483a'],[/attestation/,'📜','#2e7d4f'],[/coproprie|syndic|charges/,'🏢','#8a6d1d'],[/financ|pret|banque|prix/,'💶','#2e7d4f'],[/titre|propriete|acte/,'🔑','#7a3f2c'],[/divers/,'📎','#6b5a52']];
+const GHC=['#2f6fa8','#c26a1d','#2e7d4f','#7a4fa3','#1f8a8a','#b5483a','#8a6d1d'];
+function ghSt(g){const n=norm(g);let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))>>>0;const m=GHP.find(p=>p[0].test(n))||[0,'📁',GHC[h%GHC.length]];return {ic:m[1],c:m[2],s:`background:${m[2]}22;border-left:6px solid ${m[2]};color:${m[2]}`}}
 function vFolder(){
  const f0=F();if(f0.d.length&&!f0.d.some(inTab)&&V.tabPick!==f0.id+':'+V.tab){const k=TABS.find(([k])=>f0.d.some(d=>catTab(d.grp||'Divers')===k));if(k)V.tab=k[0]}
  const f=F(),n=V.sel.size,ds=f.d.filter(inTab),all=ds.length>0&&ds.every(d=>V.sel.has(d.id));
@@ -671,8 +732,8 @@ function vFolder(){
 ${agHtml(f)}
 <details ${V.det?'open':''}><summary>Modifier le dossier</summary>${fld('name','Nom du dossier')}${fld('mandat','N° de mandat')}${fld('prix','Prix')}${partyEd(f,'vids','Vendeurs')}${partyEd(f,'aids','Acquéreurs')}${fld('bien','Bien vendu (adresse)')}<div><label>Notaire</label><select data-k='notaire'><option value=''>— Choisir —</option>${(S.not||[]).slice().sort((a,b)=>ntLabel(a).localeCompare(ntLabel(b),'fr')).map(n=>`<option value='${n.id}' ${f.notaire===n.id?'selected':''}>${esc(ntLabel(n))}${n.ville?' · '+esc(n.ville):''}</option>`).join('')}</select></div><button class='d' data-a='delF' style='margin-top:12px'>${V.arm==='F'?'Confirmer la suppression':'Supprimer le dossier'}</button></details></aside>
 <section><div class='bar' style='margin:0 0 8px'><h1>${esc(f.name)}</h1><span class='sp'></span><button data-a='callF' data-id='${f.id}' title='${cTitle(f)}'>📞 Appeler${cCall(f)}</button><button data-a='mailQ' data-id='${f.id}' title='${mTitle(f)}'>✉ Écrire${cMail(f)}</button><button data-a='fMenu' data-id='${f.id}' title='Plus d’actions' aria-label='Plus d’actions'>⋯</button></div>
-${suiviHtml(f)}<div class='tabs2'>${[...TABS,['all','Tous']].map(([k,l])=>`<button class='${V.tab===k?'on':''}' data-a='tab' data-id='${k}'>${l} (${k==='all'?f.d.length:f.d.filter(d=>catTab(d.grp||'Divers')===k).length})</button>`).join('')}</div>
-<div class='cards'><div class='kc k1'>Documents (${f.d.length})</div><div class='kc k2' data-a='contacts'>Contacts (${S.c.length})</div><div class='kc k3' data-a='notes'>Notes${f.notes?' ●':''}</div></div>
+${suiviHtml(f)}<div class='tabs2'>${[...TABS,['all','Tous']].map(([k,l])=>`<button class='${V.tab===k?'on':''}' data-a='tab' data-id='${k}'>${({m:'📝',p:'📋',a:'✍️',s:'📁',all:'🗂️'})[k]||''} ${l} (${k==='all'?f.d.length:f.d.filter(d=>catTab(d.grp||'Divers')===k).length})</button>`).join('')}</div>
+<div class='cards'><div class='kc k1'>📄 Documents (${f.d.length})</div><div class='kc k2' data-a='contacts'>👥 Contacts (${S.c.length})</div><div class='kc k3' data-a='notes'>📝 Notes${f.notes?' ●':''}</div></div>
 <div class='bar'><button data-a='readStart' title='Relire le compromis et ses annexes en mode lecture (verrouillé). Si vous cochez des documents, seuls ceux-là sont lus.'>📖 Lecture compromis &amp; annexes</button><button data-a='mailF'>✉ Courriels de ce dossier (Gmail)</button><button data-a='impBtn' title='Importez un acte rédigé dans Modelo (PDF ou Word) : il est classé automatiquement selon son nom. Vous pouvez aussi glisser les fichiers sur la page.'>📥 Importer un acte (Modelo…)</button>${V.tab==='m'?`<button data-a='detM'>🔍 Détecter le n° de mandat</button>`:''}</div>
 ${V.notes?`<textarea data-k='notes' rows='4' placeholder='Notes du dossier' style='margin-bottom:12px'>${esc(f.notes)}</textarea>`:''}
 <div class='bar'><label style='display:flex;gap:8px;align-items:center;margin:0;font-size:14px'><input type='checkbox' data-a='all' ${all?'checked':''}> Tout</label><span class='sp'></span><button class='p' data-a='toggleNd'>+ Ajouter</button>${n?`<select id='bmv' style='width:auto'><option value=''>Déplacer vers…</option>${catOpts('')}</select>`:''}<button data-a='syncSel' ${n?'':'disabled'} title='Remplace les vendeurs et acquéreurs des documents cochés par ceux du dossier'>👥 Parties</button><button data-a='pdfSel' ${n?'':'disabled'}>PDF (${n})</button><button data-a='docxSel' ${n?'':'disabled'}>Word (${n})</button><button class='d' data-a='delD' ${n?'':'disabled'}>${V.arm==='D'?'Confirmer':'Supprimer'}</button></div>
@@ -682,7 +743,7 @@ ${V.nd?`<div class='card' style='flex-direction:column;gap:10px'>
 <div class='bar' style='margin:0'><select id='tpl' style='flex:1'>${TPL.map((t,i)=>`<option value='${i}'>${esc(t.n)}</option>`).join('')}</select><button class='p' data-a='createD'>Créer un document</button></div>
 <div class='bar' style='margin:0'><button data-a='impBtn'>Importer des fichiers (PDF, Word, texte)</button></div>
 <div class='bar' style='margin:0'><input id='nc' placeholder='Nouvelle catégorie' style='flex:1;min-width:140px'><select id='nct' style='width:auto'>${TABS.map(([k,l])=>`<option value='${k}' ${k===V.tab?'selected':''}>${l}</option>`).join('')}</select><button data-a='newCat'>Ajouter</button></div></div>`:''}
-${[...S.cats.filter(c=>V.tab==='all'||c.t===V.tab),...[...new Set(ds.map(d=>d.grp||'Divers'))].filter(g=>!S.cats.some(c=>c.n===g)).map(g=>({n:g,t:V.tab,orph:1}))].map(c=>{const g=c.n,rs=ds.filter(d=>(d.grp||'Divers')===g),cl=V.cl[g];return `<div><div class='gh' data-a='grp' data-id="${esc(g)}">${cl?'▸':'▾'} ${esc(g)} (${rs.length})${rs.length||c.orph?'':` <span data-a='delCat' data-id="${esc(g)}" title='Supprimer cette catégorie vide'>✕</span>`}</div>${cl?'':rs.map(row).join('')}</div>`}).join('')}
+${[...S.cats.filter(c=>V.tab==='all'||c.t===V.tab),...[...new Set(ds.map(d=>d.grp||'Divers'))].filter(g=>!S.cats.some(c=>c.n===g)).map(g=>({n:g,t:V.tab,orph:1}))].map(c=>{const g=c.n,rs=ds.filter(d=>(d.grp||'Divers')===g),cl=V.cl[g];return `<div><div class='gh' data-a='grp' data-id="${esc(g)}" style="${ghSt(g).s}">${cl?'▸':'▾'} ${ghSt(g).ic} ${esc(g)} (${rs.length})${rs.length||c.orph?'':` <span data-a='delCat' data-id="${esc(g)}" title='Supprimer cette catégorie vide'>✕</span>`}</div>${cl?'':rs.map(row).join('')}</div>`}).join('')}
 </section></div>`;
 }
 function vEdit(){
@@ -704,6 +765,23 @@ function vContacts(){const g={vendeur:[],acquereur:[],bailleur:[],locataire:[],'
  const card=c=>`<div class='card click' data-a='ficheC' data-id='${c.id}'><div><div class='t'>${esc(nom(c)||'Sans nom')}</div><div class='m'>${esc([c.type==='pm'?'Société':c.type==='succ'?'Succession':c.matri,c.type==='pm'?'':c.prof,c.qual,c.tel].filter(Boolean).join(' · '))}</div></div><span class='sp'></span><div class='qa'>${callBtns(c.tel)}</div></div>`;
  const sec=(l,L,full)=>`<div${full?" style='grid-column:1/-1'":''}><h2 style='font-size:16px;margin:10px 0 6px'>${l} (${L.length})</h2>${L.length?L.map(card).join(''):`<p class='m'>Aucun contact.</p>`}</div>`;
  return `${tabsBar()}<div class='bar'><h1>Contacts</h1><span class='sp'></span><button class='p' data-a='newC'>+ Nouveau contact</button></div>`+(S.c.length?`<div class='ctg'>${ROLES.map(([k,l])=>sec(l,g[k])).join('')}${g[''].length?sec('Non classés',g[''],true):''}</div><p class='m'>Un contact est classé automatiquement selon son rôle dans les dossiers. Vous pouvez le changer dans sa fiche (Catégorie du contact).</p>`:`<p class='m'>Aucun contact. Créez la fiche d’un vendeur ou d’un acquéreur.</p>`)}
+const cqN=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const cqD=s=>{let d=String(s||'').replace(/\D/g,'');if(d.startsWith('0033'))d='0'+d.slice(4);else if(d.startsWith('33')&&d.length>9)d='0'+d.slice(2);return d};
+function cqMatch(c,q){q=String(q||'').trim();if(!q)return true;
+ const txt=cqN([nom(c),c.prenom,c.nom,c.denom,c.email,c.qual,c.prof,c.tel,c.adr,c.ville].filter(Boolean).join(' ')),ph=cqD(c.tel);
+ const qd=cqD(q),isPh=/^[\d\s.+()-]+$/.test(q)&&qd.length>=3;
+ if(isPh)return ph.includes(qd);
+ return cqN(q).split(/\s+/).filter(Boolean).every(w=>txt.includes(w))}
+function cqList(){const q=V.cq||'',g={vendeur:[],acquereur:[],bailleur:[],locataire:[],'':[]};
+ S.c.filter(c=>cqMatch(c,q)).forEach(c=>(g[roleOf(c)]||g['']).push(c));Object.keys(g).forEach(k=>g[k].sort((a,b)=>ctKey(a).localeCompare(ctKey(b),'fr',{sensitivity:'base'})));
+ const card=c=>`<div class='card click' data-a='ficheC' data-id='${c.id}'><div><div class='t'>${esc(nom(c)||'Sans nom')}</div><div class='m'>${esc([c.type==='pm'?'Société':c.type==='succ'?'Succession':c.matri,c.type==='pm'?'':c.prof,c.qual,c.tel,c.email].filter(Boolean).join(' · '))}</div></div><span class='sp'></span><div class='qa'>${callBtns(c.tel)}</div></div>`;
+ const sec=(l,L,full)=>q.trim()&&!L.length?'':`<div${full?" style='grid-column:1/-1'":''}><h2 style='font-size:16px;margin:10px 0 6px'>${l} (${L.length})</h2>${L.length?L.map(card).join(''):`<p class='m'>Aucun contact.</p>`}</div>`;
+ const n=Object.values(g).reduce((s,a)=>s+a.length,0);
+ if(q.trim()&&!n)return `<p class='m'>Aucun contact ne correspond à « ${esc(q.trim())} ». Essayez une partie du nom, du numéro ou de l’e-mail.</p>`;
+ return (q.trim()?`<p class='m' style='margin:4px 0'>${n} résultat${n>1?'s':''}</p>`:'')+`<div class='ctg'>${ROLES.map(([k,l])=>sec(l,g[k])).join('')}${g[''].length?sec('Non classés',g[''],true):''}</div>`+(q.trim()?'':`<p class='m'>Un contact est classé automatiquement selon son rôle dans les dossiers. Vous pouvez le changer dans sa fiche (Catégorie du contact).</p>`)}
+function vContacts(){
+ return `${tabsBar()}<div class='bar'><h1>Contacts</h1><span class='sp'></span><button class='p' data-a='newC'>+ Nouveau contact</button></div>`+(S.c.length?`<div class='bar' style='gap:6px'><input id='cq' type='search' placeholder='🔍 Rechercher par nom, téléphone ou e-mail' value="${esc(V.cq||'')}" style='flex:1' aria-label='Rechercher un contact' autocomplete='off'></div><div id='ctl'>${cqList()}</div>`:`<p class='m'>Aucun contact. Créez la fiche d’un vendeur ou d’un acquéreur.</p>`)}
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='cq'){V.cq=e.target.value;const l=$('#ctl');if(l)l.innerHTML=cqList()}});
 function vContact(){const c=C(),ty=c.type||'pp';
  const i=(k,l,t)=>`<div><label>${l}</label><input data-c2='${k}' ${t?`type='${t}'`:''} value="${esc(c[k])}"></div>`;
  const o=(k,l,a)=>`<div><label>${l}</label><select data-c2='${k}'><option value=''>—</option>${a.map(x=>`<option ${c[k]===x?'selected':''}>${x}</option>`).join('')}</select></div>`;
@@ -729,7 +807,7 @@ function vSearch(){
  const r=sec('Dossiers',fs.map(f=>card('openF',`data-id='${f.id}'`,f.name,f.bien||'')))+sec('Contacts',cs.map(c=>card('ficheC',`data-id='${c.id}'`,nom(c)||'Sans nom',[c.tel,c.email].filter(Boolean).join(' · '))))+sec('Documents',ds.map(([f,d])=>card('openDD',`data-id='${d.id}' data-fid='${f.id}'`,d.t,f.name)));
  return `<div class='tabs'><div class='tab on'>Résultats pour « ${esc(V.q.trim())} »</div></div>`+(r||`<p class='m'>Aucun résultat. Essayez un nom, une adresse ou un mot du document.</p>`);
 }
-function render(){$('#app').innerHTML=V.q.trim()?vSearch():V.v==='home'?tabsBar()+vHome():V.v==='read'?tabsBar()+vRead():V.v==='not'?tabsBar()+vNot():V.v==='notf'?tabsBar()+vNotF():V.v==='docs'?tabsBar()+vDocs():V.v==='list'?tabsBar()+vList():V.v==='folder'?vFolder():V.v==='contacts'?vContacts():V.v==='contact'?vContact():V.v==='pdf'?vPdf():V.v==='settings'?vSet():V.v==='sim'?vSim():V.v==='mail'?vMail():vEdit();if(V.v==='pdf'&&!V.q.trim())pdfPreview();if(V.v==='read'&&!V.q.trim())readPdf();if(V.v==='mail'&&!V.q.trim())mailPost();ftrAdd()}
+function render(){$('#app').innerHTML=V.q.trim()?vSearch():V.v==='home'?tabsBar()+vHome():V.v==='read'?tabsBar()+vRead():V.v==='not'?tabsBar()+vNot():V.v==='notf'?tabsBar()+vNotF():V.v==='docs'?tabsBar()+vDocs():V.v==='list'?tabsBar()+vList():V.v==='folder'?vFolder():V.v==='contacts'?vContacts():V.v==='contact'?vContact():V.v==='pdf'?vPdf():V.v==='settings'?vSet():V.v==='sim'?vSim():V.v==='mail'?vMail():vEdit();if(V.v==='pdf'&&!V.q.trim())pdfPreview();document.body.classList.toggle('rdwide',V.v==='read'&&!!V.wide);if(V.v==='read'&&!V.q.trim()){readPdf();rdToc()}if(V.v==='mail'&&!V.q.trim())mailPost();ftrAdd()}
 function openContact(id,back){V.cid=id;V.back=back;go('contact')}
 function refreshDocs(cid){const c=cOf(cid);if(!c)return;S.f.forEach(f=>f.d.forEach(d=>{if(d.h.indexOf('data-ct="'+cid+'"')<0)return;const t=document.createElement('template');t.innerHTML=d.h;let ch=0;t.content.querySelectorAll('.ct').forEach(n=>{if(n.dataset.ct!==cid)return;const x=ctText(c,n.dataset.m);if(n.textContent!==x){n.textContent=x;ch=1}});if(ch){d.h=t.innerHTML;d.u=today()}}));save()}
 function clean(h){const t=document.createElement('template');t.innerHTML=h;t.content.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(n=>n.remove());t.content.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^\s*javascript:/i.test(a.value))n.removeAttribute(a.name)}));return t.innerHTML}
@@ -1795,7 +1873,9 @@ document.addEventListener('click',e=>{
  else if(a==='notImp'){const old=document.getElementById('cfm');if(old)old.remove();const d=document.createElement('div');d.id='cfm';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.innerHTML=`<div class="cfb" style="max-width:560px;width:92vw"><h3>Importer une liste de notaires</h3><p class="m" style="margin:0">Collez un tableau (copié depuis Excel) ou un CSV. Première ligne conseillée : Étude ; Notaire ; Adresse ; CP ; Ville ; Téléphone ; E-mail. Sans en-tête, cet ordre est utilisé.</p><textarea id="nimp" rows="10" placeholder="Étude Martin;Jean Martin;12 rue de la Paix;75002;Paris;01 23 45 67 89;contact@exemple.fr"></textarea><div id="nimsg" class="m"></div><div class="bar" style="margin:0"><button class="p" id="nok">Importer</button><button id="nno">Fermer</button></div></div>`;const end=()=>{document.removeEventListener('keydown',kd,true);d.remove()};const kd=e=>{if(e.key==='Escape'){e.stopPropagation();end()}};document.addEventListener('keydown',kd,true);document.body.appendChild(d);d.querySelector('#nno').onclick=end;d.querySelector('#nok').onclick=()=>{const L=notParse(d.querySelector('#nimp').value);if(!L.length){d.querySelector('#nimsg').textContent='Aucune ligne reconnue.';return}S.not=S.not||[];let add=0,skip=0;L.forEach(o=>{const dup=S.not.some(x=>norm(ntLabel(x))===norm(o.etude||o.nom)&&norm(x.ville||'')===norm(o.ville||''));if(dup){skip++;return}S.not.push(Object.assign({id:uid(),etude:'',nom:'',clerc:'',adr:'',cp:'',ville:'',tel:'',email:'',notes:''},o));add++});save();end();render();toast(add+' notaire'+(add>1?'s':'')+' importé'+(add>1?'s':'')+(skip?' · '+skip+' déjà présent'+(skip>1?'s':''):'')+'.')}}
  else if(a==='readStart'){const f=F();if(!f)return;const ds=readDocs(f);if(!ds.length){toast('Aucun document à lire dans ce dossier.');return}V.rd={fid:f.id,ids:ds.map(d=>d.id),i:0,fs:17};go('read')}
  else if(a==='readQuit'){V.rd=null;go('folder')}
- else if(a==='readGo'){V.rd.i=+id;render();scrollTo(0,0)}
+ else if(a==='readZ'){const R=V.rd;R.zoom=+id?Math.max(50,Math.min(300,(R.zoom||100)+(+id)*25)):100;render()}
+ else if(a==='readWide'){V.wide=!V.wide;V._fs=false;if(V.wide){try{const r=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(r&&r.then)r.then(()=>{V._fs=true}).catch(()=>{})}catch(e){}}else{try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}}render()}
+ else if(a==='readGo'){if(+id===V.rd.i){const d=D();if(d){d.lu=d.lu?'':today();save();render()}}else{V.rd.i=+id;render();scrollTo(0,0)}}
  else if(a==='readNav'){V.rd.i+=+id;render();scrollTo(0,0)}
  else if(a==='readFs'){V.rd.fs=Math.max(13,Math.min(28,(V.rd.fs||17)+(+id)*2));render()}
  else if(a==='readLu'){const d=D();if(d){d.lu=d.lu?'':today();save();render()}}
