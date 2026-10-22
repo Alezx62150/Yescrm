@@ -2082,7 +2082,8 @@ async function gmBuild(inp){
  const wrap=s=>s.replace(/.{1,76}/g,'$&\r\n').trim();
  const sg=(inp.includeSignature&&typeof SIG==='string'&&SIG)?SIG:'';
  let body;
- if(sg){const html='<div dir="ltr"><div style="white-space:pre-wrap">'+esc(inp.body||'')+'</div><br><div class="gmail_signature">'+sg+'</div></div>';
+ if(inp.html){const bd2='=_alt_'+Math.random().toString(36).slice(2),html='<div dir="ltr">'+inp.html+(sg?'<br><div class="gmail_signature">'+sg+'</div>':'')+'</div>';body='Content-Type: multipart/alternative; boundary="'+bd2+'"\r\n\r\n--'+bd2+'\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+wrap(gmB(inp.body||''))+'\r\n--'+bd2+'\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+wrap(gmB(html))+'\r\n--'+bd2+'--'}
+ else if(sg){const html='<div dir="ltr"><div style="white-space:pre-wrap">'+esc(inp.body||'')+'</div><br><div class="gmail_signature">'+sg+'</div></div>';
   body='Content-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+wrap(gmB(html))}
  else body='Content-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+wrap(gmB(inp.body||''));
  let msg;const at=inp.attachments||[];
@@ -2237,7 +2238,39 @@ async function mailDraftEd(id){const c=M.cur,m=c&&c.msgs.find(x=>x.id===id);if(!
 async function mailAttDl(id){try{const L=await mailAttList(id);if(!L.length){toast('Aucune pièce jointe.');return}
  for(const a of L){if(DL)await DL.save({filename:a.name,data:new Blob([a.bytes],{type:a.mime||'application/octet-stream'})})}toast(L.length+' fichier'+(L.length>1?'s':'')+' téléchargé'+(L.length>1?'s':'')+'.')}
  catch(e){toast(e&&e.code?mailErr(e):'Téléchargement impossible.')}}
-function compForm(){const p=M.comp;return `<div class="card" style="flex-direction:column;gap:8px;margin:0 12px 10px"><div><label>À</label><input id="mcto" value="${esc(p.to)}" inputmode="email"></div>${GMW()?ccBlock(p):''}<div><label>Objet</label><input id="mcsub" value="${esc(p.subject)}"></div><div><label>Message</label><textarea id="mcbody" rows="7">${esc(p.body)}</textarea></div>${MC?compAtt():''}${MC?sigView():''}<div class="bar" style="margin:0"><button class="p" data-a="mailSend" ${p.busy?'disabled':''}>${MC?'Envoyer':'Ouvrir dans Gmail'}</button>${MC?`<button data-a="mailSave" ${p.busy?'disabled':''}>Enregistrer en brouillon</button>`:''}<button data-a="mailCancel">Annuler</button></div><p class="m" style="margin:0">${MC?'« Envoyer » expédie le message tout de suite depuis votre compte Gmail (confirmation demandée). « Brouillon » ne l’envoie pas.':'« Ouvrir dans Gmail » prépare le message dans Gmail : relisez-le puis cliquez sur Envoyer dans Gmail.'}</p>${p.msg?`<div class="m">${esc(p.msg)}${p.url?` <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Ouvrir dans Gmail</a>`:''}</div>`:''}</div>`}
+
+const RTB=[['bold','<b>G</b>','Gras'],['italic','<i>I</i>','Italique'],['underline','<u>S</u>','Souligné'],['insertUnorderedList','• Liste','Liste à puces'],['insertOrderedList','1. Liste','Liste numérotée'],['link','🔗 Lien','Insérer un lien'],['removeFormat','✕ Effacer','Effacer la mise en forme']];
+const AIM=[['corriger','✨ Corriger l’orthographe'],['formel','✨ Plus formel'],['reformuler','✨ Reformuler'],['raccourcir','✨ Raccourcir'],['chaleureux','✨ Plus chaleureux']];
+const rtEditor=p=>{const h=(p.html!==undefined&&p.html!==null)?p.html:esc(p.body||'').replace(/\n/g,'<br>');
+ return `<div><label>Message</label><div class='rtb' style='display:flex;gap:4px;flex-wrap:wrap;margin:4px 0'>${RTB.map(b=>`<button type='button' data-a='rtc' data-rc='${b[0]}' title='${b[2]}' style='padding:3px 9px;font-size:13px'>${b[1]}</button>`).join('')}${true?`<span style='width:8px'></span>${AIM.map(b=>`<button type='button' data-a='aiDo' data-k='${b[0]}' ${p.aiBusy?'disabled':''} style='padding:3px 9px;font-size:13px'>${b[1]}</button>`).join('')}${p.aiUndo!==undefined&&p.aiUndo!==null?`<button type='button' data-a='aiUndo' style='padding:3px 9px;font-size:13px'>↶ Revenir au texte d’origine</button>`:''}`:''}</div>
+<div id='mcrt' contenteditable='true' role='textbox' aria-multiline='true' style='min-height:160px;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;background:var(--sf);outline:none;line-height:1.5'>${h}</div>${p.aiMsg?`<div class='m' style='margin-top:4px'>${esc(p.aiMsg)}</div>`:''}</div>`};
+document.addEventListener('mousedown',e=>{const b=e.target&&e.target.closest&&e.target.closest('.rtb button');if(b)e.preventDefault()});
+document.addEventListener('paste',e=>{if(e.target&&e.target.id==='mcrt'){e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData('text/plain');document.execCommand('insertText',false,t)}});
+function rtSync(){const ed=$('#mcrt');if(ed&&M.comp){M.comp.html=ed.innerHTML;M.comp.body=ed.innerText.replace(/\n{3,}/g,'\n\n')}}
+function rtCmd(c){const ed=$('#mcrt');if(!ed)return;if(document.activeElement!==ed)ed.focus();
+ if(c==='link'){const u=prompt('Adresse du lien (https://…)','https://');if(u&&/^(https?:\/\/|mailto:)/i.test(u.trim()))document.execCommand('createLink',false,u.trim());}
+ else document.execCommand(c,false,null);rtSync()}
+function mailClean(h){const t=document.createElement('template');t.innerHTML=h;t.content.querySelectorAll('script,style,iframe,object,embed,form,link,meta,base').forEach(n=>n.remove());t.content.querySelectorAll('*').forEach(n=>{[...n.attributes].forEach(a=>{const k=a.name.toLowerCase();if(!(k==='href'&&/^(https?:|mailto:)/i.test(a.value)))n.removeAttribute(a.name)});if(n.tagName==='A'){n.setAttribute('target','_blank');n.setAttribute('rel','noopener noreferrer')}});return t.innerHTML}
+async function aiDo(k){const p=M.comp,ed=$('#mcrt');if(!p||!ed||p.aiBusy)return;rtSync();const txt=(p.body||'').trim();
+ if(!txt){p.aiMsg='Écrivez d’abord votre message, puis cliquez sur « Corriger ».';render();return}
+ if(txt.length>15000){p.aiMsg='Message trop long pour la correction automatique.';render();return}
+ p.aiBusy=true;p.aiMsg=k==='corriger'?'Correction en cours…':'L’assistant travaille…';render();
+ if(k!=='corriger'){
+  try{const r=await SB.functions.invoke('ai-mail',{body:{mode:k,text:txt}});
+   if(r.error)throw r.error;const out=r.data&&r.data.text;if(!out)throw new Error('vide');
+   p.aiUndo=p.html===undefined||p.html===null?esc(p.body||'').replace(/\n/g,'<br>'):p.html;
+   p.html=esc(out).replace(/\n/g,'<br>');p.body=out;p.aiMsg='Texte mis à jour : relisez-le avant d’envoyer.'}
+  catch(e){const st=e&&e.context&&e.context.status;p.aiMsg=!window.SB||st===404?'Cette fonction nécessite l’assistant IA (fonction « ai-mail » à installer dans Supabase). La correction d’orthographe, elle, marche déjà.':'L’assistant n’a pas pu répondre (limite gratuite atteinte ?). Réessayez dans une minute.'}
+  p.aiBusy=false;if(M.comp===p)render();return}
+ try{const r=await fetch('https://api.languagetool.org/v2/check',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body:new URLSearchParams({text:txt,language:'fr'})});
+  if(!r.ok)throw new Error('lt');const d=await r.json();let out=txt,n=0;
+  const ms=(d.matches||[]).filter(m=>{if(!m.replacements||!m.replacements.length)return false;const cat=(m.rule&&m.rule.category&&m.rule.category.id)||'',it=(m.rule&&m.rule.issueType)||'';if(/STYLE|REDUNDANCY|PLAIN_ENGLISH|WIKIPEDIA/i.test(cat))return false;const w=txt.substr(m.offset,m.length);if(it==='misspelling'&&(/^[A-ZÀ-Ý]/.test(w)||/\d/.test(w)||w.length<3))return false;return true}).sort((x,y)=>y.offset-x.offset);
+  for(const m of ms){out=out.slice(0,m.offset)+m.replacements[0].value+out.slice(m.offset+m.length);n++}
+  if(!n){p.aiMsg='Aucune faute détectée.'}
+  else{p.aiUndo=p.html===undefined||p.html===null?esc(p.body||'').replace(/\n/g,'<br>'):p.html;p.html=esc(out).replace(/\n/g,'<br>');p.body=out;p.aiMsg=n+' correction'+(n>1?'s':'')+' appliquée'+(n>1?'s':'')+' : relisez avant d’envoyer (les noms propres ne sont pas modifiés).'}}
+ catch(e){p.aiMsg='La correction n’a pas pu aboutir (service indisponible ou trop de demandes). Réessayez dans une minute.'}
+ p.aiBusy=false;if(M.comp===p)render()}
+function compForm(){const p=M.comp;return `<div class="card" style="flex-direction:column;gap:8px;margin:0 12px 10px"><div><label>À</label><input id="mcto" value="${esc(p.to)}" inputmode="email"></div>${GMW()?ccBlock(p):''}<div><label>Objet</label><input id="mcsub" value="${esc(p.subject)}"></div>${GMW()?rtEditor(p):`<div><label>Message</label><textarea id="mcbody" rows="7">${esc(p.body)}</textarea></div>`}${MC?compAtt():''}${MC?sigView():''}<div class="bar" style="margin:0"><button class="p" data-a="mailSend" ${p.busy?'disabled':''}>${MC?'Envoyer':'Ouvrir dans Gmail'}</button>${MC?`<button data-a="mailSave" ${p.busy?'disabled':''}>Enregistrer en brouillon</button>`:''}<button data-a="mailCancel">Annuler</button></div><p class="m" style="margin:0">${MC?'« Envoyer » expédie le message tout de suite depuis votre compte Gmail (confirmation demandée). « Brouillon » ne l’envoie pas.':'« Ouvrir dans Gmail » prépare le message dans Gmail : relisez-le puis cliquez sur Envoyer dans Gmail.'}</p>${p.msg?`<div class="m">${esc(p.msg)}${p.url?` <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Ouvrir dans Gmail</a>`:''}</div>`:''}</div>`}
 function readPane(){const c=M.cur;
  if(c.loading)return `<p class="m" style="padding:18px">Chargement de la conversation…</p>`;
  if(c.compose)return `<div class="gph"><button class="gback" data-a="mailBack">←</button><h2 class="gsub">Nouveau message</h2></div>${M.comp?compForm():''}`;
@@ -2541,7 +2574,7 @@ async function mfaOff(id){
  try{const r=await SB.auth.mfa.unenroll({factorId:id});if(r.error)throw r.error;window.AUDIT&&window.AUDIT('mfa_desactivee');toast('Double authentification désactivée.');mfaBox()}
  catch(e){toast('Désactivation impossible.')}}
 if(locked())armIdle();
-const PRESTA=()=>window.__WEB?[['Supabase','hébergement des données, Irlande (UE)'],['Google (connexion)','option « Continuer avec Google »'],['GitHub Pages','hébergement de l’application'],['IONOS','nom de domaine'],['Google Gmail','messagerie : ouverture d’un brouillon dans votre compte Gmail'],['Base Adresse Nationale (IGN)','suggestions d’adresses et localisation sur la carte'],['OpenStreetMap et IGN Géoportail','fond de carte et parcelles cadastrales'],['Google Maps','Street View, uniquement si vous cliquez sur le bouton'],['Radio France et autres radios','flux audio de la radio d’accueil, uniquement si vous la lancez'],['Hektor (La Boîte Immo)','lien externe vers le logiciel de gestion']]:[['Claude (Anthropic)','hébergement de l’application ; les données restent enregistrées dans votre navigateur'],['Google Gmail','messagerie, via la connexion Claude'],['Modelo (FNAIM)','lien externe vers le logiciel de rédaction d’actes'],['Hektor (La Boîte Immo)','lien externe vers le logiciel de gestion']];
+const PRESTA=()=>window.__WEB?[['Supabase','hébergement des données, Irlande (UE)'],['Google (connexion)','option « Continuer avec Google »'],['Google (Gmail)','lecture et envoi de vos courriels, si vous connectez votre boîte'],['LanguageTool (correcteur orthographique)','texte du courriel envoyé pour correction, uniquement quand vous cliquez sur « Corriger »'],['Google Gemini (assistant de rédaction)','texte du courriel envoyé pour reformulation, uniquement quand vous cliquez sur un bouton ✨'],['GitHub Pages','hébergement de l’application'],['IONOS','nom de domaine'],['Google Gmail','messagerie : ouverture d’un brouillon dans votre compte Gmail'],['Base Adresse Nationale (IGN)','suggestions d’adresses et localisation sur la carte'],['OpenStreetMap et IGN Géoportail','fond de carte et parcelles cadastrales'],['Google Maps','Street View, uniquement si vous cliquez sur le bouton'],['Radio France et autres radios','flux audio de la radio d’accueil, uniquement si vous la lancez'],['Hektor (La Boîte Immo)','lien externe vers le logiciel de gestion']]:[['Claude (Anthropic)','hébergement de l’application ; les données restent enregistrées dans votre navigateur'],['Google Gmail','messagerie, via la connexion Claude'],['Modelo (FNAIM)','lien externe vers le logiciel de rédaction d’actes'],['Hektor (La Boîte Immo)','lien externe vers le logiciel de gestion']];
 const PRIV0=`<h3>Politique de gestion des données personnelles</h3>
 <p>YES IMMO, agence immobilière dont l’établissement de Béthune est situé 33 place du 73ème, 62400 Béthune, attache une grande importance à la protection des données à caractère personnel qu’elle collecte et traite dans le cadre de son activité, notamment au moyen de son outil de gestion « YES CRM ».</p>
 <p>La collecte et le traitement de ces données sont régis par la présente politique et respectent la loi « Informatique et libertés » du 6 janvier 1978 modifiée ainsi que le Règlement général sur la protection des données (règlement UE 2016/679, « RGPD »). YES IMMO met en œuvre des procédures internes pour sensibiliser ses collaborateurs à ces règles.</p>
@@ -2653,7 +2686,7 @@ async function mailSend(){
  const ok=await askSend({to:p.to.trim(),subject:(p.subject||'').trim()||'(sans objet)',att:(p.files||[]).map(f=>f.name).join(', ')||undefined,reply:!!p.reply});
  if(M.comp!==p||!ok)return;
  p.busy=true;p.msg='Envoi en cours…';p.url='';render();
- try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
+ try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.html&&GMW())inp.html=mailClean(p.html);if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
   await MC.callTool('Gmail','send_message',inp,{cache:false});
   const tid=M.cur&&M.cur.tid,comp=M.cur&&M.cur.compose;M.comp=null;if(comp)M.cur=null;
   toast('Message envoyé.');
@@ -2665,7 +2698,7 @@ async function mailSave(){
  if(!okMail((p.to||'').trim())){p.msg='Saisissez une adresse e-mail valide.';p.url='';render();return}
  if(!MC){webMail(p.to.trim(),p.subject||'',p.body||'');return}
  p.busy=true;p.msg='Création du brouillon…';p.url='';render();
- try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
+ try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.html&&GMW())inp.html=mailClean(p.html);if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
   const pl=parse(await MC.callTool('Gmail','create_draft',inp,{cache:false}));
   p.msg='Brouillon créé dans Gmail.';p.url=gmailUrl(pl&&pl.viewUrl)}
  catch(e){p.msg=e&&e.code?mailErr(e):'Impossible de créer le brouillon.'}
@@ -2876,6 +2909,9 @@ document.addEventListener('click',e=>{
  else if(a==='bkImp')$('#bkf').click();
  else if(a==='secLock'){if(V.dirty)confirmDlg({title:'Verrouiller ?',text:'Des modifications du document ouvert ne sont pas enregistrées et seraient perdues.',ok:'Verrouiller',danger:true}).then(y=>{if(y)lockNow()});else lockNow()}
  else if(a==='mcFileDel'){if(M.comp&&M.comp.files){M.comp.files.splice(+id,1);render()}}
+ else if(a==='rtc')rtCmd(el.dataset.rc);
+ else if(a==='aiDo')aiDo(el.dataset.k);
+ else if(a==='aiUndo'){const p=M.comp;if(p&&p.aiUndo!==undefined&&p.aiUndo!==null){p.html=p.aiUndo;p.aiUndo=null;p.aiMsg='';const t=document.createElement('div');t.innerHTML=p.html.replace(/<br\s*\/?>/gi,'\n');p.body=t.textContent;render()}}
  else if(a==='mailAct')mailAct(el.dataset.k);
  else if(a==='mailLab'){M.labOpen=!M.labOpen;render()}
  else if(a==='mailLabT')mailLabT(id);
@@ -3154,6 +3190,7 @@ document.addEventListener('change',e=>{
 document.addEventListener('input',e=>{
  const t=e.target;
  if(t.id==='mq'){M.q=t.value;return}
+ if(t.id==='mcrt'){rtSync();return}
  if(t.id==='mccc'||t.id==='mcbcc'||t.id==='mcfrom'){if(M.comp)M.comp[t.id==='mccc'?'cc':t.id==='mcfrom'?'from':'bcc']=t.value;return}
  if(t.id==='mcto'||t.id==='mcsub'||t.id==='mcbody'){if(M.comp)M.comp[t.id==='mcto'?'to':t.id==='mcsub'?'subject':'body']=t.value;return}
  if(t.id==='q'){as();V.q=t.value;render();return}
