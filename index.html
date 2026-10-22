@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v69</title>
+<title>YES CRM · v72</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -262,6 +262,7 @@ S.f.forEach(f=>{if(!Array.isArray(f.vids))f.vids=f.vid?[f.vid]:[];if(!Array.isAr
 const DC=[['État civil','p'],['Diagnostics','p'],['Urbanisme','p'],['Courrier vendeurs','p'],['Courrier acquéreurs','p'],['Convocation','p'],['Attestation','p'],['Compromis','a'],['Acte de vente','a'],['Annexes','a'],['Courriers postérieurs','s'],['Divers','p']];
 if(!Array.isArray(S.cats))S.cats=DC.map(([n,t])=>({n,t}));
 if(!S.cats.some(c=>c.t==='m'))S.cats.unshift({n:'Mandat',t:'m'});
+S.f.forEach(f=>(f.d||[]).forEach(d=>{if(d.code==='PDF'&&d.grp==='Mandats'){d.grp='Mandat';d.cat='m'}else if(d.code==='PDF'&&d.grp==='Compromis / Promesses'){d.grp='Compromis';d.cat='a'}}));
 if(!S.set)S.set={hdr:'',ftr:'',logo:true,num:true};
 S.f.forEach(f=>f.d.forEach(d=>{const g=d.grp||'Divers';if(!S.cats.some(c=>c.n===g))S.cats.push({n:g,t:d.cat||'p'})}));
 const CR=window.CRYPT;
@@ -508,8 +509,14 @@ async function readPdf(){const d=D(),box=$('#rpv');if(!box||!d||!d.pdf)return;
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&V.wide&&V._fs){V.wide=false;V._fs=false;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&V.wide&&V.v==='read'&&!document.getElementById('cfm')){V.wide=false;V._fs=false;try{if(document.fullscreenElement)document.exitFullscreen()}catch(x){}render()}});
 document.addEventListener('keydown',e=>{if(V.v!=='read'||!V.rd||e.target.closest('input,textarea,select,[contenteditable]')||document.getElementById('cfm'))return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const b=document.querySelector(`[data-a=readNav][data-id="${e.key==='ArrowRight'?1:-1}"]:not([disabled])`);if(b){e.preventDefault();b.click()}}});
+function clercOf(f){const n=(S.not||[]).find(x=>x.id===f.notaire)||{};return {nom:f.clerc||n.clerc||'',tel:f.clerct||n.clerct||'',mail:f.clerce||n.clerce||''}}
+function ctLine(tel,mail){const t=telN(tel),a=[];
+ if(String(tel||'').trim())a.push(`<span>${esc(tel)}</span>`+(t.length>=6?`<a data-a="noop" href="tel:${esc(t)}" target="_blank" rel="noopener noreferrer" title="Appeler"><button type="button" aria-label="Appeler">📞</button></a>`:''));
+ if(String(mail||'').trim())a.push(`<span style="overflow-wrap:anywhere">${esc(mail)}</span>`+(okMail(String(mail).trim())?`<button type="button" data-a="ctMail" data-addr="${esc(String(mail).trim())}" title="Écrire un e-mail" aria-label="Écrire">✉</button>`:''));
+ return a.length?`<div class="ctl">${a.join('')}</div>`:''}
 const ntLabel=n=>n.etude||n.nom||'Sans nom';
-const NF=[['etude','Étude / office','Étude Martin & Associés'],['nom','Notaire (nom)','Maître Jean Martin'],['clerc','Clerc / négociateur','Contact au dossier'],['adr','Adresse','12 rue de la Paix'],['cp','Code postal',''],['ville','Ville',''],['tel','Téléphone',''],['email','E-mail','']];
+(()=>{const s=document.createElement('style');s.textContent='.ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:0 2px 8px;font-size:13px}.ctl button{padding:2px 9px;font-size:14px;min-height:0;line-height:1.4}.ctl a{text-decoration:none}';document.head.appendChild(s)})();
+const NF=[['etude','Étude / office','Étude Martin & Associés'],['nom','Notaire (nom)','Maître Jean Martin'],['clerc','Clerc / négociateur','Contact au dossier'],['adr','Adresse','12 rue de la Paix'],['cp','Code postal',''],['ville','Ville',''],['tel','Téléphone',''],['email','E-mail',''],['clerct','Téléphone du clerc',''],['clerce','E-mail du clerc','']];
 function vNot(){
  const q=norm(V.nq||''),L=(S.not||[]).slice().sort((a,b)=>ntLabel(a).localeCompare(ntLabel(b),'fr'));
  return `<div class='bar'><h1>Notaires</h1><span class='sp'></span><input id='nqi' placeholder='Rechercher (nom, ville…)' value="${esc(V.nq||'')}" style='max-width:240px'></div>
@@ -1102,7 +1109,7 @@ function mdLines(f){const c=f.calc||{},L=[],P=num(f.prix),H=num(c.hon),nt=(S.not
  add('Prix et honoraires','Honoraires à la charge de',H?(c.pay==='acq'?'Acquéreur':'Vendeur'):'');
  if(P&&H)add('Prix et honoraires','Prix net vendeur',eur(P-(c.pay==='acq'?0:H)));
  if(nt){add('Notaire','Étude',ntLabel(nt));add('Notaire','Notaire',nt.nom);add('Notaire','Adresse',[nt.adr,[nt.cp,nt.ville].filter(Boolean).join(' ')].filter(Boolean).join(', '));add('Notaire','Téléphone',nt.tel);add('Notaire','E-mail',nt.email)}
- add('Clerc de notaire','Clerc',f.clerc);add('Clerc de notaire','Téléphone',f.clerct);add('Clerc de notaire','E-mail',f.clerce);
+ {const cl=clercOf(f);add('Clerc de notaire','Clerc',cl.nom);add('Clerc de notaire','Téléphone',cl.tel);add('Clerc de notaire','E-mail',cl.mail)}
  return L}
 let MD_L=[];
 function mdText(L){let g='',o=[];L.forEach(x=>{if(x.g!==g){g=x.g;o.push('',g.toUpperCase())}o.push(x.l+' : '+x.v)});return o.join('\n').trim()}
@@ -1609,8 +1616,8 @@ function vFolder(){
 <h3>Mandat</h3><div class='rw' data-a='tab' data-id='m' title='Ouvrir l’onglet Mandat'><span>${f.mandat?'Mandat n° '+esc(f.mandat):'N° de mandat non renseigné'}</span><span class='m'>${f.d.filter(d=>catTab(d.grp||'Divers')==='m').length} doc.</span></div>
 <h3>Vendeurs</h3>${side('vids','Vendeur')}<h3>Acquéreurs</h3>${side('aids','Acquéreur')}
 <h3>Immeuble</h3><div class='rw' ${f.bid?`data-a='bOpen' data-id='${f.bid}' style='cursor:pointer' title='Ouvrir la fiche du bien'`:''}><span>${esc(f.bien||'Non renseigné')}</span><span class='m'>${esc(f.prix)}</span></div>
-<h3>Notaire</h3>${(()=>{const n=(S.not||[]).find(x=>x.id===f.notaire);return n?`<div class='rw' data-a='notEdit' data-id='${n.id}'><span>${esc(ntLabel(n))}</span><span class='m'>${esc(n.tel||'')}</span></div>`:`<div class='rw'><span class='m'>Notaire : non renseigné</span></div>`})()}
-<h3>Clerc de notaire</h3>${f.clerc?`<div class='rw'><span>${esc(f.clerc)}</span><span class='m'>${esc([f.clerct,f.clerce].filter(Boolean).join(' · '))}</span></div>`:`<div class='rw'><span class='m'>Clerc : non renseigné</span></div>`}
+<h3>Notaire</h3>${(()=>{const n=(S.not||[]).find(x=>x.id===f.notaire);return n?`<div class='rw' data-a='notEdit' data-id='${n.id}'><span>${esc(ntLabel(n))}</span><span class='m'>${esc(n.ville||'')}</span></div>${ctLine(n.tel,n.email)}`:`<div class='rw'><span class='m'>Notaire : non renseigné</span></div>`})()}
+<h3>Clerc de notaire</h3>${(()=>{const c=clercOf(f);return (c.nom||c.tel||c.mail)?`<div class='rw'><span>${esc(c.nom||'Clerc')}</span></div>${ctLine(c.tel,c.mail)}`:`<div class='rw'><span class='m'>Clerc : non renseigné</span></div>`})()}
 ${agHtml(f)}
 <details ${V.det?'open':''}><summary>Modifier le dossier</summary>${fld('name','Nom du dossier')}${bEd(f,fld,partyEd)}<div><label>Notaire</label><select data-k='notaire'><option value=''>— Choisir —</option>${(S.not||[]).slice().sort((a,b)=>ntLabel(a).localeCompare(ntLabel(b),'fr')).map(n=>`<option value='${n.id}' ${f.notaire===n.id?'selected':''}>${esc(ntLabel(n))}${n.ville?' · '+esc(n.ville):''}</option>`).join('')}</select></div>${fld('clerc','Clerc de notaire qui suit le dossier')}${fld('clerct','Téléphone du clerc')}${fld('clerce','E-mail du clerc')}<button class='d' data-a='delF' style='margin-top:12px'>${V.arm==='F'?'Confirmer la suppression':'Supprimer le dossier'}</button></details></aside>
 <section><div class='bar' style='margin:0 0 8px'><h1>${esc(f.name)}</h1><span class='sp'></span><button data-a='callF' data-id='${f.id}' title='${cTitle(f)}'>📞 Appeler${cCall(f)}</button><button data-a='mailQ' data-id='${f.id}' title='${mTitle(f)}'>✉ Écrire${cMail(f)}</button><button data-a='fMenu' data-id='${f.id}' title='Plus d’actions' aria-label='Plus d’actions'>⋯</button></div>
@@ -1821,20 +1828,21 @@ function impMandat(T){
 function impPersons(blk){
  const out=[];if(!blk)return out;
  const S=impSp(blk);
- const re=/(?:^|[.;:]\s+|\s+et\s+)(Monsieur|Madame|Mademoiselle)\s+(?=[A-ZÀ-Ý])/g;let m,idx=[];
+ const re=/(?:^|[.;:]\s+(?:[Ee]t\s+)?|\s+[Ee]t\s+)(Monsieur|Madame|Mademoiselle)\s+(?=[A-ZÀ-Ý])/g;let m,idx=[];
  while((m=re.exec(S)))idx.push({i:m.index+m[0].indexOf(m[1]),civ:m[1],e:re.lastIndex});
  idx.forEach((x,k)=>{
   const seg=S.slice(x.e,k+1<idx.length?idx[k+1].i:S.length),c=seg.indexOf(',');
   const head=c>0?seg.slice(0,c):seg.slice(0,60),n=impSplitName(head);
   const rest=c>0?seg.slice(c+1):'';
   const mD=rest.match(/^\s*([^,]*?)\s*,\s*demeurant/i),prof=mD&&!/^demeurant/i.test(mD[1])?impSp(mD[1]):'';
-  const mA=seg.match(/demeurant\s+(?:[àa]\s+)?([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,?\s*([^.]*?)\./i)||seg.match(/demeurant\s+(?:[àa]\s+)?(.+?)\./i);
+  const mA=seg.match(/demeurant\s+(?:[àaA4]\s+)?([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,?\s*([^.]*?)\s*(?:\.|(?=\bN[ée]e?\s+[àa4]\s))/)||seg.match(/demeurant\s+(?:[àaA4]\s+)?(.+?)\./i);
   const mN=seg.match(/N[ée]e?\s+[àa]\s+(.+?)\s*(?:\((\d{5})\))?\s*,?\s*le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
   const pacs=!/N['’]étant pas engag[ée]/i.test(seg)&&/pacte civil de solidarit[ée]/i.test(seg);
   const matri=pacs?'Pacsé(e)':/divorc[ée]/i.test(seg)?'Divorcé(e)':/veuf|veuve/i.test(seg)?'Veuf(ve)':/mari[ée]/i.test(seg)?'Marié(e)':/c[ée]libataire/i.test(seg)?'Célibataire':'';
   const mNat=seg.match(/De nationalit[ée]\s+([^\s.,]+)/i);
   let adr='';if(mA)adr=mA[2]?impAddr(mA[3],mA[2],mA[1]):impSp(mA[1]);
   out.push({civ:x.civ==='Monsieur'?'Monsieur':'Madame',prenom:n.prenom,nom:n.nom,naiss:mN?impIso(mN[3]):'',lieu:mN?impTitle(mN[1]):'',nat:mNat?mNat[1].toLowerCase():'',prof,adr,matri,tel:'',email:''})});
+ if(out.length>1){if(/conclu\s+entre\s+eux\s+un\s+pacte\s+civil/i.test(S))out.forEach(p=>p.matri='Pacsé(e)');else if(/mari[ée]s?\s+entre\s+eux/i.test(S))out.forEach(p=>p.matri='Marié(e)')}
  return out}
 function impParties(blk){return impIsOrg(blk)?[impOrg(blk)]:impPersons(blk)}
 function impCompromis(T){
@@ -1842,34 +1850,41 @@ function impCompromis(T){
  /* date de l'acte */
  let m=T.match(/L['’]AN\s+(.+?)\s*\n\s*LE\s+(.+?)\s*\n/i);
  if(m){const y=impWords(m[1]),t=impSp(m[2]).toLowerCase().split(' '),mo=IMPMOIS[t[t.length-1]],d=impWords(t.slice(0,-1).join(' '));if(y&&mo&&d)r.dateActe=y+'-'+impP2(mo)+'-'+impP2(d)}
+ if(!r.dateActe){const fa=[...S.matchAll(/FAIT\s+[àa4]\s+[A-ZÀ-Ý][A-ZÀ-Ý\- ]{1,30}?\s+Le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/gi)];if(fa.length)r.dateActe=impIso(fa[fa.length-1][1])}
  if(!r.dateActe){m=S.match(/(?:fait|sign[ée]|conclu)\s+(?:[àa]\s+\S+\s+)?le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);if(m)r.dateActe=impIso(m[1])}
- m=S.match(/Ma[iî]tre\s+(.+?)\s+notaire/i);if(m)r.notaire='Maître '+impSp(m[1]);
+ m=S.match(/minist[èe]re\s+de\s+Ma[iî]tre\s+([^,.]{3,60}?)\s*,?\s+notaire/i)||S.match(/Ma[iî]tre\s+([^,.]{3,60}?)\s*,?\s+notaire/i);if(m)r.notaire='Maître '+impSp(m[1]);
  /* parties */
  const reV=/(?:\b1\)|\bI\.)?\s*(?:Le\s+|Les\s+)?(?:Promettants?|Vendeurs?)\s+(?=(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
  const reA=/(?:\b2\)|\bII\.)?\s*(?:Le\s+|Les\s+)?(?:B[ée]n[ée]ficiaires?|Acqu[ée]reurs?)\s+(?=(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
  const eV=/Ci-apr[èe]s\s+d[ée]nomm[ée]s?\s+[«"“]?\s*(?:LE|LES)\s*(?:PROMETTANTS?|VENDEURS?)/i,eA=/Ci-apr[èe]s\s+d[ée]nomm[ée]s?\s+[«"“]?\s*(?:LE|LES)\s*(?:B[ÉE]N[ÉE]FICIAIRES?|ACQU[ÉE]REURS?)/i;
  const sV=S.search(reV),sA=S.search(reA);
- if(sV>=0){const t=S.slice(sV);const e=t.search(eV);r.vendeurs=impParties(t.slice(t.match(reV)[0].length,e>0?e:1500))}
- if(sA>=0){const t=S.slice(sA);const e=t.search(eA);r.acquereurs=impParties(t.slice(t.match(reA)[0].length,e>0?e:1500))}
+ if(sV>=0){const t=S.slice(sV),L=t.match(reV)[0].length;let e=t.search(eV);if(e<0){const a=t.slice(L).search(reA);e=a>=0?a+L:-1}r.vendeurs=impParties(t.slice(L,e>0?e:2500))}
+ if(sA>=0){const t=S.slice(sA),L=t.match(reA)[0].length;let e=t.search(eA);if(e<0){const a=t.slice(L).search(/QUOTIT[ÉE]S|IDENTIFICATION\s+DU\s+BIEN|DESIGNATION|SOLIDARIT[ÉE]\s+En\s+cas/);e=a>=0?a+L:-1}r.acquereurs=impParties(t.slice(L,e>0?e:2500))}
  if(!r.vendeurs.length)r.warn.push('Vendeurs non reconnus : à saisir à la main.');
  if(!r.acquereurs.length)r.warn.push('Acquéreurs non reconnus : à saisir à la main.');
  /* bien */
  m=S.match(/\b(?:Un|Une|Deux|Les)\s+(.{3,90}?)\s+situ[ée]e?s?\s+[àa]\s+([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,\s*([^.]+?)\./);
  if(m){r.bien=impAddr(m[4],m[3],m[2]);r.nature=impSp(m[1])}
- m=S.match(/prix\s+principal\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i)||S.match(/moyennant\s+le\s+prix\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.prix=impNum(m[1]);
+ m=S.match(/DESIGNATION\s+[ÀAa4]\s+([A-ZÀ-Ý'’\- ]+?)\s*\([^)]*\)\s*(\d{5})\s+(.+?)\s*,\s*(?:Un|Une|Deux|Les)\s+(.{3,90}?)\s+Figurant/);
+ if(m){r.bien=impAddr(m[3],m[2],m[1]);r.nature=impSp(m[4])}
+ m=S.match(/prix\s+principal\s+de[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)/i)||S.match(/moyennant\s+le\s+prix\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.prix=impNum(m[1]);
  /* agence, mandat, honoraires */
  m=S.match(/n[ée]goci[ée]es?\s+par\s+l['’]agence\s+["“«]?([^"”»,]+?)["”»]?\s*,\s*en\s+vertu\s+du\s+mandat\s+qu['’]il\s+lui\s+a\s+donn[ée]\s+le\s+(.+?)\s*,\s*sous\s+le\s+num[ée]ro\s+(\w+)/i);
  if(m){r.agence=impSp(m[1]);r.mandatDate=impIso(m[2]);r.mandat=m[3]}
+ if(!r.mandat){m=S.match(/n[ée]goci[ée]\s+par\s+l['’]agence\s+(.{2,60}?)\s+titulaire\s+d['’]un\s+mandat[^.]{0,60}?sous\s+le\s+num[ée]ro\s+(\w+)\s+en\s+date\s+du\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);if(m){r.agence=impSp(m[1]);r.mandat=m[2];r.mandatDate=impIso(m[3])}}
+ m=S.match(/(ACQU[ÉE]REURS?|VENDEURS?|B[ÉE]N[ÉE]FICIAIRES?|PROMETTANTS?)\s+qui\s+en\s+a\s+seule?\s+la\s+charge/i);if(m)r.honPay=/PROMETT|VENDEUR/i.test(m[1])?'ven':'acq';
  m=S.match(/REMUN[ÉE]RATION DU MANDATAIRE\s+[ÀA] LA CHARGE (?:DU|DES|DE L['’]?)\s*(PROMETTANTS?|B[ÉE]N[ÉE]FICIAIRES?|VENDEURS?|ACQU[ÉE]REURS?)/i);
  if(m)r.honPay=/PROMETT|VENDEUR/i.test(m[1])?'ven':'acq';
- m=S.match(/TVA\s+incluse,?\s*de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.honTTC=impNum(m[1]);
+ m=S.match(/TVA\s+incluse,?\s*de[^()]*\(\s*([\d\s.,]+)\s*€/i)||S.match(/r[ée]mun[ée]ration\s+de[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)[^)]*\)\s*,?\s*taxe\s+sur\s+la\s+valeur\s+ajout[ée]e\s+incluse/i);if(m)r.honTTC=impNum(m[1]);
  /* conditions et dates */
  m=S.match(/\(\s*([\d\s.,]+)\s*€\s*\)\s*,?\s*[àa]\s+titre\s+d['’]indemnit[ée]\s+d['’]immobilisation/i);if(m)r.indemnite=impNum(m[1]);
  m=S.match(/(?:d[ée]p[ôo]t\s+de\s+garantie|s[ée]questre)[^()]{0,120}\(\s*([\d\s.,]+)\s*€/i);if(m&&!r.indemnite)r.depot=impNum(m[1]);
- m=S.match(/Montant\s+du\s+pr[êe]t\s*:\s*([\d\s.,]+)\s*€/i);if(m)r.pret=impNum(m[1]);
+ m=S.match(/Montant\s+du\s+pr[êe]t\s*:\s*([\d\s.,]+)\s*€/i)||S.match(/Montant\s+maximal\s+de\s+la\s+somme\s+emprunt[ée]e\s*:[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)/i);if(m)r.pret=impNum(m[1]);
  m=S.match(/obtention\s+de\s+ces\s+pr[êe]ts[^.]{0,160}?au\s+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4})/i)||S.match(/obtention\s+(?:du|d['’]un|des)\s+pr[êe]ts?[^.]{0,200}?(?:jusqu['’]au|au\s+plus\s+tard\s+le|avant\s+le)\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
+ if(!m)m=S.match(/r[ée]ception\s+de\s+cette\s+offre\s+devra\s+intervenir\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(m)r.datePret=impIso(m[1]);
  m=S.match(/r[ée]alisation\s+de\s+la\s+pr[ée]sente\s+promesse\s+pourra\s+[êe]tre\s+demand[ée]e\s+par\s+le\s+B[ÉE]N[ÉE]FICIAIRE\s+au\s+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4})/i)||S.match(/(?:signature|r[ée]it[ée]ration)\s+de\s+l['’]acte\s+(?:authentique\s+)?(?:de\s+vente\s+)?(?:devra\s+(?:intervenir|avoir\s+lieu)\s+)?(?:au\s+plus\s+tard|avant)\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
+ if(!m)m=S.match(/acte\s+authentique\s+de\s+vente\s+aura\s+lieu\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(m)r.dateActeAuth=impIso(m[1]);
  m=S.match(/d[ée]lai\s+de\s+r[ée]tractation\s+de\s+(dix|10)\s+jours/i);if(m)r.retract=10;
  return r}
@@ -1889,12 +1904,44 @@ async function impPdfLines(file){
 const impPn=p=>p.pm?[p.forme&&p.forme!=='Autre'?p.forme:'',p.denom].filter(Boolean).join(' '):[p.prenom,p.nom].filter(Boolean).join(' ');
 function impFindPm(v){const dg=x=>String(x||'').replace(/\D/g,'');return (S.c||[]).find(c=>c.type==='pm'&&((dg(v.siren).length>=9&&dg(c.siren)===dg(v.siren))||(v.denom&&impNorm(c.denom)===impNorm(v.denom))))}
 function impFindC(p){if(p.pm)return impFindPm(p);const k=impNorm(p.nom)+'|'+impNorm((p.prenom||'').split(' ')[0]);return (S.c||[]).find(c=>c.type!=='pm'&&c.type!=='succ'&&impNorm(c.nom)+'|'+impNorm((c.prenom||'').split(' ')[0])===k)}
+/* --- OCR (PDF scanné) : tesseract.js chargé à la demande --- */
+function impOcrFix(t){return String(t||'').replace(/Fran[gç]ois/g,'François').replace(/fran[gç]aise/g,'française').replace(/Fran[gç]aise/g,'Française').replace(/\bI['’]ACQUEREUR/g,'L’ACQUEREUR')}
+function impLoadJs(u){return new Promise((ok,ko)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>ko(new Error('chargement impossible'));document.head.appendChild(s)})}
+function impOcrBox(){let o=document.getElementById('ocrov');if(o)return o;o=document.createElement('div');o.id='ocrov';
+ o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:10000;background:rgba(40,25,20,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+ o.innerHTML="<div style='background:var(--sf);border-radius:14px;max-width:440px;width:100%;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h3 style='margin:0 0 6px'>🔍 Lecture du scan…</h3><p class='m' id='ocr_t' style='margin:0 0 10px'>Préparation…</p><div style='height:10px;background:var(--bd);border-radius:6px;overflow:hidden'><div id='ocr_b' style='height:10px;width:0;background:var(--ac,#c0392b)'></div></div><p class='m' style='margin:10px 0'>Cela peut prendre 1 à 3 minutes. Ne fermez pas cette page.</p><div style='text-align:right'><button id='ocr_x'>Annuler</button></div></div>";
+ document.body.appendChild(o);return o}
+async function impOcrText(file,st){
+ if(window.impOcrStub)return await window.impOcrStub(file,st);
+ if(!window.pdfjsLib)throw new Error('lecteur PDF indisponible');
+ if(!window.Tesseract)await impLoadJs('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+ if(!window.Tesseract)throw new Error('moteur de lecture indisponible');
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,N=pdf.numPages;
+ let pages=[];if(N<=20)for(let i=1;i<=N;i++)pages.push(i);else{for(let i=1;i<=12;i++)pages.push(i);for(let i=N-7;i<=N;i++)pages.push(i)}
+ let cur=0;st.set('Chargement du moteur de lecture (français)…',0);
+ const w=await Tesseract.createWorker('fra',1,{logger:m=>{if(m.status==='recognizing text')st.set('Page '+(cur+1)+' sur '+pages.length+'…',(cur+m.progress)/pages.length)}});
+ st.worker=w;let out='';
+ try{for(;cur<pages.length;cur++){
+  if(st.cancel)throw new Error('annulé');
+  st.set('Page '+(cur+1)+' sur '+pages.length+'…',cur/pages.length);
+  const pg=await pdf.getPage(pages[cur]),vp=pg.getViewport({scale:2.3}),cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+  await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+  const r=await w.recognize(cv);out+=r.data.text+'\n\n';cv.width=cv.height=0}}
+ finally{try{await w.terminate()}catch(e){}}
+ return out}
 async function impStart(file,fid){
- toast('Lecture du PDF…');let T='';
+ toast('Lecture du PDF…');let T='',ocr=false;
  try{T=await impPdfLines(file)}catch(e){}
- if(!T||T.length<300){toast('Ce PDF ne contient pas de texte lisible (scan ou photo) : saisissez les informations à la main.');return}
+ if(!T||T.length<300){
+  const o=impOcrBox(),st={cancel:false,set(t,p){const a=o.querySelector('#ocr_t'),b=o.querySelector('#ocr_b');if(a)a.textContent=t;if(b)b.style.width=Math.round(Math.max(0,Math.min(1,p||0))*100)+'%'}};
+  o.querySelector('#ocr_x').onclick=()=>{st.cancel=true;try{st.worker&&st.worker.terminate()}catch(e){}o.remove()};
+  try{T=impOcrFix(await impOcrText(file,st));ocr=true}catch(e){o.remove();if(!st.cancel)toast('Ce PDF est un scan et la lecture automatique a échoué ('+(e&&e.message||e)+') : saisissez les informations à la main.');return}
+  o.remove();if(st.cancel)return;
+  if(!T||T.length<300){toast('Le scan n’est pas assez lisible : saisissez les informations à la main.');return}}
  const r=impParse(T);
  if(!r.kind){toast('Document non reconnu : ce n’est ni un mandat ni un compromis.');return}
+ if(ocr){r.warn=r.warn||[];r.warn.unshift('Document scanné lu par reconnaissance de texte (OCR) : vérifiez attentivement chaque champ (noms, dates, montants) avant d’enregistrer.')}
  impDlg(r,file,fid)}
 function impDlg(r,file,fid){
  const f=fid?FF(fid):null,b=f&&f.bid?(S.b||[]).find(x=>x.id===f.bid):null,isM=r.kind==='mandat',cur=b||f||{};
@@ -1924,7 +1971,7 @@ function impDlg(r,file,fid){
    <b style='display:block;margin:10px 0 4px'>Gérant / représentant</b><div class='cgrid'>${O(pre+'rciv','Civilité',rp.civ||'Monsieur',[['Monsieur','Monsieur'],['Madame','Madame']])}${L(pre+'rprenom','Prénom(s)',rp.prenom||'')}${L(pre+'rnom','Nom',rp.nom||'')}${L(pre+'rqual','Qualité',rp.qual||'gérant')}${L(pre+'rnaiss','Date de naissance',rp.naiss||'','date')}${L(pre+'rlieu','Lieu de naissance',rp.lieu||'')}${L(pre+'rnat','Nationalité',rp.nat||'')}${L(pre+'radr','Adresse',rp.adr||'')}</div></div>`;return}
   h+=`<div class='agf' data-ip='${i}'><div style='display:flex;gap:10px;align-items:center;font-weight:600'><input type='checkbox' id='imp_${pre}on' checked style='width:20px;height:20px;flex:none;margin:0'><span>${p.w==='v'?'Vendeur':'Acquéreur'} : ${IMPAT([p.prenom,p.nom].filter(Boolean).join(' '))} <span class='m' style='font-weight:400'>${ex?'· fiche existante, elle sera liée au dossier':'· nouvelle fiche contact'}</span></span></div>
   <div class='cgrid' style='margin-top:6px'>${O(pre+'civ','Civilité',p.civ,[['Monsieur','Monsieur'],['Madame','Madame']])}${L(pre+'prenom','Prénom(s)',p.prenom)}${L(pre+'nom','Nom',p.nom)}${L(pre+'naiss','Date de naissance',p.naiss,'date')}${L(pre+'lieu','Lieu de naissance',p.lieu)}${L(pre+'nat','Nationalité',p.nat)}${O(pre+'matri','Statut matrimonial',p.matri||'',[['','—']].concat(['Célibataire','Marié(e)','Pacsé(e)','Divorcé(e)','Veuf(ve)'].map(x=>[x,x])))}${L(pre+'prof','Profession',p.prof)}${L(pre+'adr','Adresse',p.adr)}${L(pre+'tel','Téléphone',p.tel)}${L(pre+'email','E-mail',p.email)}</div></div>`});
- h+=`<div style='display:flex;gap:10px;align-items:center;margin:8px 0'><input type='checkbox' id='imp_att' checked style='width:20px;height:20px;flex:none;margin:0'><span>Joindre le PDF au dossier (dans « ${isM?'Mandats':'Compromis / Promesses'} »)</span></div>
+ h+=`<div style='display:flex;gap:10px;align-items:center;margin:8px 0'><input type='checkbox' id='imp_att' checked style='width:20px;height:20px;flex:none;margin:0'><span>Joindre le PDF au dossier (dans « ${isM?'Mandat':'Compromis'} »)</span></div>
  <div style='display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap'><button id='imp_no'>Annuler</button><button class='p' id='imp_ok'>Enregistrer</button></div></div>`;
  ov.innerHTML=h;document.body.appendChild(ov);
  const q=id=>ov.querySelector('#imp_'+id);
@@ -1969,11 +2016,12 @@ async function impApply(r,file,fid,ov,people){
   const nt=['Compromis du '+(g('vdate')?fDate(g('vdate')):'…')+' (importé du PDF)',r.notaire?'Notaire : '+r.notaire:'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',r.pret?'Prêt : '+impEur(r.pret):'',g('dpret')?'Prêt à obtenir avant le '+fDate(g('dpret')):'',g('dacte')?'Acte authentique avant le '+fDate(g('dacte')):''].filter(Boolean).join(' · ');
   if(!(f.notes||'').includes('(importé du PDF)'))f.notes=((f.notes||'')+((f.notes||'').trim()?'\n':'')+nt).trim()}
  if(b)bSync(b);
- if(q('att')&&q('att').checked){const gr=isM?'Mandats':'Compromis / Promesses',id=uid();await fput(id,file);f.d=f.d||[];f.d.push({id,t:file.name.replace(/\.[^.]+$/,''),pdf:1,size:file.size,h:'',u:today(),cat:catTab(gr),grp:gr,code:'PDF',st:'Brouillon'})}
+ if(q('att')&&q('att').checked){const gr=isM?'Mandat':'Compromis',id=uid();if(!S.cats.some(x=>x.n===gr))S.cats.push({n:gr,t:isM?'m':'a'});await fput(id,file);f.d=f.d||[];f.d.push({id,t:file.name.replace(/\.[^.]+$/,''),pdf:1,size:file.size,h:'',u:today(),cat:catTab(gr),grp:gr,code:'PDF',st:'Brouillon'})}
  save();
  V.msg='PDF lu : '+(isM?'mandat':'compromis')+' · '+nbNew+' fiche'+(nbNew>1?'s':'')+' créée'+(nbNew>1?'s':'')+', '+nbLink+' liée'+(nbLink>1?'s':'')+'.';
  if(isNew)go('folder',f.id);else render()}
-function panelImp(f){return `<details class='pnl' data-pn='imp'${V['pn_imp']?' open':''}><summary>📥 Importer un mandat ou un compromis (PDF)</summary><p class='m' style='margin:6px 0'>Déposez le PDF : le CRM lit les vendeurs et acquéreurs, le bien, le prix, les honoraires et les dates, puis vous les montre pour vérification avant d’enregistrer. Ça marche avec les PDF contenant du texte (pas les scans).</p><button data-imp='${f.id}'>📥 Choisir un PDF</button></details>`}
+function impFixDocs(f){(f&&f.d||[]).forEach(d=>{if(d.code==='PDF'&&d.grp==='Mandats'){d.grp='Mandat';d.cat='m'}else if(d.code==='PDF'&&d.grp==='Compromis / Promesses'){d.grp='Compromis';d.cat='a'}})}
+function panelImp(f){impFixDocs(f);return `<details class='pnl' data-pn='imp'${V['pn_imp']?' open':''}><summary>📥 Importer un mandat ou un compromis (PDF)</summary><p class='m' style='margin:6px 0'>Déposez le PDF : le CRM lit les vendeurs et acquéreurs, le bien, le prix, les honoraires et les dates, puis vous les montre pour vérification avant d’enregistrer. Ça marche avec les PDF contenant du texte (pas les scans).</p><button data-imp='${f.id}'>📥 Choisir un PDF</button></details>`}
 document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target.closest('[data-imp]'):null;if(!t)return;e.preventDefault();e.stopPropagation();
  const fid=t.getAttribute('data-imp'),i=document.createElement('input');i.type='file';i.accept='application/pdf,.pdf';i.onchange=()=>{const fl=i.files&&i.files[0];if(fl)impStart(fl,fid)};i.click()},true);
 
@@ -3216,6 +3264,7 @@ document.addEventListener('click',e=>{
  else if(a==='notNew'){const n={id:uid(),etude:'',nom:'',clerc:'',adr:'',cp:'',ville:'',tel:'',email:'',notes:''};(S.not=S.not||[]).push(n);V.nid=n.id;save();go('notf');setTimeout(()=>{const e=document.querySelector('[data-nf=etude]');if(e)e.focus()},60)}
  else if(a==='notEdit'){V.nid=id;go('notf')}
  else if(a==='notDel'){const n=(S.not||[]).find(x=>x.id===id);if(n)confirmDlg({title:'Supprimer ce notaire ?',text:'« '+ntLabel(n)+' » sera retiré de l’annuaire et des dossiers qui le référencent.',ok:'Supprimer',danger:1}).then(ok=>{if(!ok)return;S.not=S.not.filter(x=>x.id!==id);S.f.forEach(f=>{if(f.notaire===id)delete f.notaire});save();go('not')})}
+ else if(a==='ctMail'){const ad=(el.dataset.addr||'').trim();if(ad){as();M.fid=null;if(M.nav==='folder'){M.nav='inbox';M.q='in:inbox'}M.th=null;M.img=false;M.filing=false;M.err='';M.cur={compose:true,msgs:[],open:new Set(),subject:''};M.comp={to:ad,subject:'',body:'',reply:null,busy:false,msg:'',url:''};go('mail');if(!M.init)mailStart();else mailSearch();setTimeout(()=>{const e=$('#mcbody');if(e)e.focus()},80)}}
  else if(a==='notMail'){const n=(S.not||[]).find(x=>x.id===id);if(n){as();M.fid=null;if(M.nav==='folder'){M.nav='inbox';M.q='in:inbox'}M.th=null;M.img=false;M.filing=false;M.err='';M.cur={compose:true,msgs:[],open:new Set(),subject:''};M.comp={to:n.email.trim(),subject:'',body:'',reply:null,busy:false,msg:'',url:''};go('mail');if(!M.init)mailStart();else mailSearch();setTimeout(()=>{const e=$('#mcbody');if(e)e.focus()},80)}}
  else if(a==='notImp'){const old=document.getElementById('cfm');if(old)old.remove();const d=document.createElement('div');d.id='cfm';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.innerHTML=`<div class="cfb" style="max-width:560px;width:92vw"><h3>Importer une liste de notaires</h3><p class="m" style="margin:0">Collez un tableau (copié depuis Excel) ou un CSV. Première ligne conseillée : Étude ; Notaire ; Adresse ; CP ; Ville ; Téléphone ; E-mail. Sans en-tête, cet ordre est utilisé.</p><textarea id="nimp" rows="10" placeholder="Étude Martin;Jean Martin;12 rue de la Paix;75002;Paris;01 23 45 67 89;contact@exemple.fr"></textarea><div id="nimsg" class="m"></div><div class="bar" style="margin:0"><button class="p" id="nok">Importer</button><button id="nno">Fermer</button></div></div>`;const end=()=>{document.removeEventListener('keydown',kd,true);d.remove()};const kd=e=>{if(e.key==='Escape'){e.stopPropagation();end()}};document.addEventListener('keydown',kd,true);document.body.appendChild(d);d.querySelector('#nno').onclick=end;d.querySelector('#nok').onclick=()=>{const L=notParse(d.querySelector('#nimp').value);if(!L.length){d.querySelector('#nimsg').textContent='Aucune ligne reconnue.';return}S.not=S.not||[];let add=0,skip=0;L.forEach(o=>{const dup=S.not.some(x=>norm(ntLabel(x))===norm(o.etude||o.nom)&&norm(x.ville||'')===norm(o.ville||''));if(dup){skip++;return}S.not.push(Object.assign({id:uid(),etude:'',nom:'',clerc:'',adr:'',cp:'',ville:'',tel:'',email:'',notes:''},o));add++});save();end();render();toast(add+' notaire'+(add>1?'s':'')+' importé'+(add>1?'s':'')+(skip?' · '+skip+' déjà présent'+(skip>1?'s':''):'')+'.')}}
  else if(a==='readStart'){const f=F();if(!f)return;const ds=readDocs(f);if(!ds.length){toast('Aucun document à lire dans ce dossier.');return}V.rd={fid:f.id,ids:ds.map(d=>d.id),i:0,fs:17};go('read')}
