@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v65</title>
+<title>YES CRM · v66</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -2260,7 +2260,7 @@ async function aiDo(k){const p=M.comp,ed=$('#mcrt');if(!p||!ed||p.aiBusy)return;
    if(r.error)throw r.error;const out=r.data&&r.data.text;if(!out)throw new Error('vide');
    p.aiUndo=p.html===undefined||p.html===null?esc(p.body||'').replace(/\n/g,'<br>'):p.html;
    p.html=esc(out).replace(/\n/g,'<br>');p.body=out;p.aiMsg='Texte mis à jour : relisez-le avant d’envoyer.'}
-  catch(e){const st=e&&e.context&&e.context.status;p.aiMsg=!window.SB||st===404?'Cette fonction nécessite l’assistant IA (fonction « ai-mail » à installer dans Supabase). La correction d’orthographe, elle, marche déjà.':'L’assistant n’a pas pu répondre (limite gratuite atteinte ?). Réessayez dans une minute.'}
+  catch(e){const st=e&&e.context&&e.context.status;let dt='';try{const j=await e.context.json();dt=j&&(j.detail||j.error)||''}catch(x){}p.aiMsg=!window.SB||st===404?'Cette fonction nécessite l’assistant IA (fonction « ai-mail » à installer dans Supabase). La correction d’orthographe, elle, marche déjà.':'L’assistant n’a pas pu répondre'+(st?' (erreur '+st+(dt?' : '+String(dt).slice(0,300):'')+')':'')+'. Réessayez dans une minute.'}
   p.aiBusy=false;if(M.comp===p)render();return}
  try{const r=await fetch('https://api.languagetool.org/v2/check',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body:new URLSearchParams({text:txt,language:'fr'})});
   if(!r.ok)throw new Error('lt');const d=await r.json();let out=txt,n=0;
