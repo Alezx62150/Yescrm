@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v72</title>
+<title>YES CRM · v73</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -792,16 +792,30 @@ const me=((S.set||{}).me||'').trim(),now=new Date().toISOString();
 const MANDAT_AL=30;
 function mandatInfo(f){if(!f.mfin||!preCmp(f))return null;const n=agRel(f.mfin)[0];return{n,txt:n<0?'Mandat expiré depuis '+(-n)+' j':n===0?'Le mandat expire aujourd’hui':'Fin de mandat dans '+n+' j',warn:n<=MANDAT_AL}}
 function wkShift(d){const x=dFromIso(d),w=x.getDay();if(w===6)x.setDate(x.getDate()+2);else if(w===0)x.setDate(x.getDate()+1);return isoD(x)}
-function lgDates(f){if(!f.vdate)return null;const dp=+f.dpret>0?+f.dpret:45,da=+f.dacte>0?+f.dacte:90;return[['retr','Fin du délai de rétractation de l’acquéreur',wkShift(addD(f.vdate,10))],['pret','Date limite d’obtention du prêt',addD(f.vdate,dp)],['acte','Signature de l’acte authentique (date prévue)',addD(f.vdate,da)]]}
+function lgDates(f){if(!f.vdate)return null;const dp=+f.dpret>0?+f.dpret:45,da=+f.dacte>0?+f.dacte:90;return[['retr','Fin du délai de rétractation de l’acquéreur',wkShift(addD(f.vdate,10))]].concat(f.cfin==='comptant'?[]:[['pret','Date limite d’obtention du prêt',addD(f.vdate,dp)]],[['acte','Signature de l’acte authentique (date prévue)',addD(f.vdate,da)]])}
 function panelMandat(f){const op=V['pn_m']?' open':'',mi=mandatInfo(f),L=lgDates(f),ex=k=>(f.ag||[]).find(e=>e.auto===k);
  return `<details class='pnl'${op} data-pn='m'><summary>🗓️ Mandat et échéances légales${mi&&mi.warn?` · <span style='color:var(--dn)'>⚠ ${esc(mi.txt)}</span>`:''}</summary>
 <div class='cgrid'><div><label>Début du mandat${f.bid?' (fiche du bien)':''}</label><input type='date' data-xf='mdeb' value="${esc(f.mdeb||'')}" ${f.bid?'disabled':''}></div><div><label>Fin du mandat${f.bid?' (fiche du bien)':''}</label><input type='date' data-xf='mfin' value="${esc(f.mfin||'')}" ${f.bid?'disabled':''}></div></div>
 ${mi?`<p style='margin:6px 0;${mi.warn?'color:var(--dn);font-weight:600':'color:var(--mu)'}'>${mi.warn?'⚠ ':''}${esc(mi.txt)}</p>`:''}
 <h3 style='margin:12px 0 4px'>Délais après la signature du compromis</h3>
 ${f.vdate?`<p class='m' style='margin:0 0 6px'>Date du compromis (date de validation du dossier) : <b>${esc(fDate(f.vdate))}</b></p>`:`<p class='m'>Indiquez d’abord la <b>date de validation du dossier</b> (compromis) dans « Suivi du dossier ».</p>`}
-<div class='cgrid'><div><label>Délai d’obtention du prêt (jours)</label><input data-xf='dpret' inputmode='numeric' placeholder='45' value="${esc(f.dpret||'')}"></div><div><label>Délai pour signer l’acte (jours)</label><input data-xf='dacte' inputmode='numeric' placeholder='90' value="${esc(f.dacte||'')}"></div></div>
+<div class='cgrid'>${f.cfin==='comptant'?`<div><label>Financement</label><div class='m' style='padding:8px 0'>Paiement comptant : pas de condition de prêt</div></div>`:`<div><label>Délai d’obtention du prêt (jours)</label><input data-xf='dpret' inputmode='numeric' placeholder='45' value="${esc(f.dpret||'')}"></div>`}<div><label>Délai pour signer l’acte (jours)</label><input data-xf='dacte' inputmode='numeric' placeholder='90' value="${esc(f.dacte||'')}"></div></div>
 ${L?`<div style='margin-top:8px'>${L.map(([k,t,d])=>`<div class='rw'><span style='flex:1'>${esc(t)}</span><b>${esc(fDate(d))}</b><span class='m' style='min-width:70px;text-align:right'>${ex(k)?'dans l’agenda ✓':''}</span></div>`).join('')}</div><button type='button' class='p' data-a='lgCalc' style='margin-top:8px'>📅 ${L.some(([k])=>ex(k))?'Recalculer':'Ajouter'} ces échéances à l’agenda</button>`:''}
 <p class='m' style='font-size:12px;margin-top:8px'>Dates indicatives : rétractation de 10 jours (reportée au lundi si elle tombe un week-end), prêt et acte selon les délais ci-dessus. À vérifier avec le compromis et le notaire.</p></details>`}
+
+function panelCompromis(f){const op=V['pn_cp']?' open':'',L=lgDates(f),cash=f.cfin==='comptant';
+ const inp=(k,l,ph,ty)=>`<div><label>${l}</label><input data-xf='${k}' ${ty?`type='${ty}'`:''} placeholder='${ph||''}' value="${esc(f[k]||'')}"></div>`;
+ const px=f.cprix||'';const dif=f.mprix&&px&&f.mprix!==px?` · prix du mandat : ${esc(f.mprix)}`:'';
+ return `<details class='pnl'${op} data-pn='cp'><summary>📄 Compromis et conditions${px?' · '+esc(px):''}${cash?' · comptant':f.cfin==='pret'?' · avec prêt':''}</summary>
+<p class='m' style='margin:0 0 6px'>Conditions du compromis signé${f.vdate?' le <b>'+esc(fDate(f.vdate))+'</b>':''}${dif}. Ces champs sont remplis par l’import du PDF et restent modifiables.</p>
+<div class='cgrid'>${inp('cprix','Prix de vente (compromis)','ex. 159 000 €')}${inp('chon','Honoraires TTC','ex. 9000')}
+<div><label>Honoraires à la charge de</label><select data-xf='cpay'><option value=''>—</option><option value='ven'${f.cpay==='ven'?' selected':''}>Vendeur</option><option value='acq'${f.cpay==='acq'?' selected':''}>Acquéreur</option></select></div>
+<div><label>Financement de l’acquéreur</label><select data-xf='cfin'><option value=''>— Choisir —</option><option value='pret'${f.cfin==='pret'?' selected':''}>Prêt bancaire</option><option value='comptant'${cash?' selected':''}>Paiement comptant (sans prêt)</option></select></div>
+${cash?'':inp('cpret','Montant du prêt','ex. 121 320 €')}${inp('cind','Indemnité d’immobilisation / dépôt','')}
+${inp('cnot','Notaire','')}${inp('cnat','Nature du bien','')}</div>
+<label style='margin-top:8px'>Autres conditions, suspensives ou observations</label><textarea data-xf='ccond' rows='3' placeholder='Ex. : vente du bien de l’acquéreur, permis, servitudes…'>${esc(f.ccond||'')}</textarea>
+${L?`<div style='margin-top:8px'>${L.map(([k,t,d])=>`<div class='rw'><span style='flex:1'>${esc(t)}</span><b>${esc(fDate(d))}</b></div>`).join('')}</div>`:`<p class='m'>La date du compromis se règle dans « Suivi du dossier ».</p>`}
+<p class='m' style='font-size:12px;margin-top:8px'>Les délais (prêt, acte) se modifient dans « Mandat et délais ».</p></details>`}
 const AVIS=[['Très intéressé','#2e8b57'],['Intéressé','#6aa84f'],['Hésitant','#d9822b'],['Pas intéressé','#b42318'],['À qualifier','#6b7280']];
 function panelVis(f){const op=V['pn_vi']?' open':'',L=(f.vis||[]).slice().sort((a,b)=>(b.d+(b.h||'')).localeCompare(a.d+(a.h||''))),ac=S.c.filter(c=>c.role==='acquereur'),aids=partyC(f,'aids').map(c=>c.id);
  const opt=ac.concat(S.c.filter(c=>aids.includes(c.id)&&!ac.includes(c)));
@@ -832,7 +846,7 @@ function panelBienOld(f){const op=V['pn_bi']?' open':'',t=f.btype||'',x=(k,l,ph)
 function panelMatch(f){if(!preCmp(f))return '';const op=V['pn_mt']?' open':'',L=S.c.map(c=>[c,critOk(c,f)]).filter(x=>x[1]);
  return `<details class='pnl'${op} data-pn='mt'><summary>🎯 Acquéreurs intéressés · ${L.length}</summary>${L.length?L.map(([c,w])=>`<div class='rw' style='align-items:center;gap:8px'><span style='flex:1'><b>${esc(nom(c))}</b> <span class='m'>· ${esc(w)}${c.tel?' · '+esc(c.tel):''}</span></span>${c.tel?`<a href='tel:${esc(String(c.tel).replace(/[^\d+]/g,''))}' style='text-decoration:none'><button type='button' style='padding:2px 8px'>📞</button></a>`:''}<button type='button' data-a='ficheC' data-id='${c.id}' style='padding:2px 8px'>Fiche</button></div>`).join(''):`<p class='m'>Aucun acquéreur ne correspond. Renseignez les critères (budget, secteurs) dans la fiche des acquéreurs.</p>`}<p class='m' style='font-size:12px'>Correspondance sur le budget (à 5 % près) et les secteurs recherchés.</p></details>`}
 function panelHist(f){const op=V['pn_hi']?' open':'',L=f.hist||[];return `<details class='pnl'${op} data-pn='hi'><summary>🕘 Historique du dossier · ${L.length}</summary>${L.length?L.slice(0,60).map(h=>`<div class='rw' style='gap:8px'><span class='m' style='min-width:130px'>${esc(fdate(h.t))}</span><span style='flex:1'>${esc(h.x)}</span>${h.u?`<span class='m'>${esc(h.u)}</span>`:''}</div>`).join(''):`<p class='m'>L’historique se remplit au fil des modifications (étape, prix, documents, visites, échéances).</p>`}</details>`}
-function extraPanels(f){return panelImp(f)+panelPieces(f)+panelBien(f)+panelMandat(f)+(f.bid?'':panelVis(f)+panelMatch(f))+panelWorks(f)+panelHist(f)+panelArc(f)+panelMdl(f)+panelSg(f)}
+function extraPanels(f){return panelCompromis(f)+panelImp(f)+panelPieces(f)+panelBien(f)+panelMandat(f)+(f.bid?'':panelVis(f)+panelMatch(f))+panelWorks(f)+panelHist(f)+panelArc(f)+panelMdl(f)+panelSg(f)}
 function critHtml(c){const r=roleOf(c);if(r!=='acquereur'&&r!=='')return '';const fs=S.f.filter(f=>!f.arch&&preCmp(f)&&critOk(c,f));
  const i=(k,l,ph,t)=>`<div><label>${l}</label><input data-c2='${k}' ${t?`type='${t}'`:''} placeholder='${ph||''}' value="${esc(c[k])}"></div>`;
  const sl=(k,l,a)=>`<div><label>${l}</label><select data-c2='${k}'><option value=''>—</option>${a.map(v=>`<option ${c[k]===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
@@ -1386,7 +1400,7 @@ const _sv0=save;save=function(){const r=_sv0.apply(this,arguments);if(Date.now()
 
 /* --- dossier de vente : panneaux en onglets --- */
 let DTAB_CUR='docs';
-const DPL=[[/Suivi du dossier/,'📋 Suivi'],[/Prix, frais/,'💶 Prix et honoraires'],[/Relance des pièces/,'📨 Pièces manquantes'],[/Le bien|Bien ·|Caractéristiques/,'🏠 Bien'],[/Mandat et échéances/,'🗓️ Mandat et délais'],[/Pré-chiffrage/,'🛠️ Works'],[/Visites/,'👀 Visites'],[/Acquéreurs intéressés/,'🎯 Acquéreurs'],[/Historique/,'🕘 Historique'],[/Archive/,'🗄️ Archive'],[/Modelo/,'📝 Modelo'],[/Signer/,'✍️ Signature'],[/Importer un mandat/,'📥 Importer un PDF']];
+const DPL=[[/Suivi du dossier/,'📋 Suivi'],[/Prix, frais/,'💶 Prix et honoraires'],[/Relance des pièces/,'📨 Pièces manquantes'],[/Le bien|Bien ·|Caractéristiques/,'🏠 Bien'],[/Mandat et échéances/,'🗓️ Mandat et délais'],[/Pré-chiffrage/,'🛠️ Works'],[/Visites/,'👀 Visites'],[/Acquéreurs intéressés/,'🎯 Acquéreurs'],[/Historique/,'🕘 Historique'],[/Archive/,'🗄️ Archive'],[/Modelo/,'📝 Modelo'],[/Signer/,'✍️ Signature'],[/Importer un mandat/,'📥 Importer un PDF'],[/Compromis et conditions/,'📄 Compromis']];
 function dPanels(f){const t=document.createElement('template');t.innerHTML=suiviHtml(f)+extraPanels(f);
  return [...t.content.children].filter(e=>e.tagName==='DETAILS').map(e=>{const s=((e.querySelector('summary')||{}).textContent||'').replace(/\s+/g,' ').trim(),m=DPL.find(x=>x[0].test(s)),n=(s.match(/·\s*(\d+)\s*(?:·|$|visite|document)/)||[])[1];
   return {k:e.dataset.pn||s.slice(0,8),e,label:(m?m[1]:s.slice(0,20))+(n&&n!=='0'&&m&&/Pièces|Works|Visites|Acquéreurs|Historique|Archive/.test(m[1])?' · '+n:'')}})}
@@ -1887,6 +1901,7 @@ function impCompromis(T){
  if(!m)m=S.match(/acte\s+authentique\s+de\s+vente\s+aura\s+lieu\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(m)r.dateActeAuth=impIso(m[1]);
  m=S.match(/d[ée]lai\s+de\s+r[ée]tractation\s+de\s+(dix|10)\s+jours/i);if(m)r.retract=10;
+ if(r.pret)r.fin='pret';else if(/ne\s+recourr|aucun\s+pr[êe]t|sans\s+(?:recours\s+[àa]\s+(?:un\s+)?)?(?:pr[êe]t|emprunt)|fonds\s+propres|financ[ée]e?\s+(?:int[ée]gralement\s+)?comptant/i.test(S))r.fin='comptant';
  return r}
 function impParse(T){const k=impKind(T);return k==='mandat'?impMandat(T):k==='compromis'?impCompromis(T):{kind:'',vendeurs:[],acquereurs:[],warn:['Document non reconnu (ni mandat ni compromis).']}}
 
@@ -1950,19 +1965,20 @@ function impDlg(r,file,fid){
  const L=(id,l,v,t,old)=>`<div><label>${l}</label><input id='imp_${id}' type='${t||'text'}' value="${IMPAT(v)}">${old&&String(old)!==String(v)?`<span class='m' style='font-size:11px'>actuel : ${IMPAT(old)}</span>`:''}</div>`;
  const O=(id,l,v,o)=>`<div><label>${l}</label><select id='imp_${id}'>${o.map(([k,t])=>`<option value="${IMPAT(k)}"${k===v?' selected':''}>${t}</option>`).join('')}</select></div>`;
  const people=[].concat((r.vendeurs||[]).map(p=>Object.assign({w:'v'},p)),(r.acquereurs||[]).map(p=>Object.assign({w:'a'},p)));
- const MT=[['','—'],['simple','Simple'],['exclusif','Exclusif']],PY=[['ven','Vendeur'],['acq','Acquéreur']];
+ const MT=[['','—'],['simple','Simple'],['exclusif','Exclusif']],PY=[['ven','Vendeur'],['acq','Acquéreur']],FN=[['pret','Prêt bancaire'],['comptant','Paiement comptant (sans prêt)']];
  const mdeb=isM?(cur.mdeb||''):(cur.mdeb||r.mandatDate||''),dur=r.duree||'';
  let h=`<div style='background:var(--sf);border-radius:14px;max-width:860px;width:100%;padding:16px 16px 12px;box-shadow:0 10px 40px rgba(0,0,0,.35)'>
  <h2 style='margin:0 0 4px'>📥 ${isM?'Mandat de vente'+(r.mandat?' n° '+IMPAT(r.mandat):''):'Compromis / promesse de vente'} lu</h2>
  <p class='m' style='margin:0 0 8px'>Vérifiez et corrigez si besoin : rien n’est enregistré tant que vous n’avez pas cliqué sur « Enregistrer ».</p>
  ${(r.warn||[]).map(w=>`<p style='color:var(--dn);margin:4px 0'>⚠ ${IMPAT(w)}</p>`).join('')}
+ ${isM&&f&&(f.vdate||f.cprix)?`<p class='m' style='margin:4px 0'>Ce dossier a déjà un compromis : le prix du mandat sera noté à part, le prix de vente ne sera pas modifié.</p>`:''}
  ${f?'':`<div class='agf'><div class='cgrid'>${L('name','Nom du nouveau dossier','Vente '+[...new Set((r.vendeurs||[]).map(p=>p.pm?impPn(p):impTitle(p.nom)))].join(' et ')+(r.acquereurs&&r.acquereurs.length?' à '+[...new Set(r.acquereurs.map(p=>p.pm?impPn(p):impTitle(p.nom)))].join(' et '):''))}</div></div>`}
  <div class='agf'><b>${isM?'Bien et mandat':'Bien, prix et dates'}</b><div class='cgrid' style='margin-top:6px'>
  ${L('bien','Adresse du bien',r.bien||'','text',b?b.adr:(f?f.bien:''))}${L('mandat','N° de mandat',r.mandat||'','text',cur.mandat)}
  ${L('prix','Prix',r.prix?impEur(r.prix):'','text',(b?b.prix:'')||(f?f.prix:''))}
  ${O('hpay','Honoraires à la charge de',r.honPay||'ven',PY)}${L('hon','Honoraires TTC (€)',r.honTTC||'','text',f&&f.calc?f.calc.hon:'')}
  ${isM?O('mtype','Type de mandat',r.mtype||'',MT)+L('mdeb','Début du mandat (date de signature)',mdeb,'date')+L('duree','Durée (mois)',dur,'number')+L('mfin','Fin du mandat',cur.mfin||impPlusM(mdeb,dur),'date'):''}
- ${isM?'':L('vdate','Date du compromis',r.dateActe||'','date',cur.vdate)+L('mdeb2','Mandat donné le',mdeb,'date')+L('dpret','Date limite d’obtention du prêt',r.datePret||'','date')+L('dacte','Date limite de l’acte authentique',r.dateActeAuth||'','date')}
+ ${isM?'':L('vdate','Date du compromis',r.dateActe||'','date',cur.vdate)+L('mdeb2','Mandat donné le',mdeb,'date')+O('fin','Financement',r.fin||'pret',FN)+L('cpret','Montant du prêt (€)',r.pret||'','text')+L('dpret','Date limite d’obtention du prêt',r.datePret||'','date')+L('dacte','Date limite de l’acte authentique',r.dateActeAuth||'','date')}
  </div>${isM&&!mdeb?`<p class='m' style='margin:6px 0 0'>La date de signature n’est pas lisible dans le PDF : saisissez le début du mandat, la fin sera calculée.</p>`:''}
  ${isM?'':`<p class='m' style='margin:6px 0 0'>${[r.notaire?'Notaire : '+IMPAT(r.notaire):'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',r.pret?'Prêt : '+impEur(r.pret):'',r.nature?'Nature : '+IMPAT(r.nature):''].filter(Boolean).join(' · ')} (reporté dans les notes du dossier)</p>`}</div>`;
  people.forEach((p,i)=>{const ex=impFindC(p),pre='p'+i+'_';
@@ -1976,6 +1992,7 @@ function impDlg(r,file,fid){
  ov.innerHTML=h;document.body.appendChild(ov);
  const q=id=>ov.querySelector('#imp_'+id);
  if(isM){const rc=()=>{const e=q('mfin');if(e&&q('mdeb').value&&+q('duree').value)e.value=impPlusM(q('mdeb').value,q('duree').value)};q('mdeb').oninput=rc;q('duree').oninput=rc}
+ if(!isM&&q('fin')){const tg=()=>{const ca=q('fin').value==='comptant';['dpret','cpret'].forEach(k=>{if(q(k)){q(k).disabled=ca;q(k).style.opacity=ca?.4:1}})};q('fin').onchange=tg;tg()}
  q('no').onclick=()=>ov.remove();
  q('ok').onclick=async()=>{q('ok').disabled=true;try{await impApply(r,file,fid,ov,people)}catch(e){q('ok').disabled=false;toast('Enregistrement impossible : '+(e&&e.message||e));return}ov.remove()}}
 async function impApply(r,file,fid,ov,people){
@@ -2006,14 +2023,15 @@ async function impApply(r,file,fid,ov,people){
  if(isM){
   const T=b||f;if(mand)T.mandat=mand;if(g('mtype'))T.mtype=g('mtype');if(g('mdeb'))T.mdeb=g('mdeb');if(g('mfin'))T.mfin=g('mfin');
   if(bien){if(b)b.adr=bien;else f.bien=bien}
-  if(prix){const s=impEur(prix);if(b){b.prix=s;if(!f.prix)f.prix=s}else f.prix=s}
+  if(prix){const s=impEur(prix);f.mprix=s;if(!(f.vdate||f.cprix)){if(b){b.prix=s;if(!f.prix)f.prix=s}else f.prix=s}}
  }else{
-  if(prix)f.prix=impEur(prix);
-  if(g('vdate')){f.vdate=g('vdate');const dp=impDays(f.vdate,g('dpret')),da=impDays(f.vdate,g('dacte'));if(dp)f.dpret=String(dp);if(da)f.dacte=String(da)}
+  if(prix){f.prix=impEur(prix);f.cprix=impEur(prix)}
+  const cash=g('fin')==='comptant';f.cfin=g('fin')||f.cfin||'';if(hon)f.chon=String(hon);f.cpay=pay;if(!cash&&g('cpret'))f.cpret=impEur(impNum(g('cpret')));if(cash)f.cpret='';if(r.indemnite||r.depot)f.cind=impEur(r.indemnite||r.depot);if(r.notaire)f.cnot=r.notaire;if(r.nature)f.cnat=r.nature;
+  if(g('vdate')){f.vdate=g('vdate');const dp=cash?0:impDays(f.vdate,g('dpret')),da=impDays(f.vdate,g('dacte'));if(dp)f.dpret=String(dp);if(cash)f.dpret='';if(da)f.dacte=String(da)}
   if(bien&&!b&&!f.bien)f.bien=bien;
   if(mand){if(b){if(!b.mandat)b.mandat=mand}else if(!f.mandat)f.mandat=mand}
   if(g('mdeb2')){if(b){if(!b.mdeb)b.mdeb=g('mdeb2')}else if(!f.mdeb)f.mdeb=g('mdeb2')}
-  const nt=['Compromis du '+(g('vdate')?fDate(g('vdate')):'…')+' (importé du PDF)',r.notaire?'Notaire : '+r.notaire:'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',r.pret?'Prêt : '+impEur(r.pret):'',g('dpret')?'Prêt à obtenir avant le '+fDate(g('dpret')):'',g('dacte')?'Acte authentique avant le '+fDate(g('dacte')):''].filter(Boolean).join(' · ');
+  const nt=['Compromis du '+(g('vdate')?fDate(g('vdate')):'…')+' (importé du PDF)',r.notaire?'Notaire : '+r.notaire:'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',cash?'Paiement comptant (sans prêt)':r.pret?'Prêt : '+impEur(r.pret):'',!cash&&g('dpret')?'Prêt à obtenir avant le '+fDate(g('dpret')):'',g('dacte')?'Acte authentique avant le '+fDate(g('dacte')):''].filter(Boolean).join(' · ');
   if(!(f.notes||'').includes('(importé du PDF)'))f.notes=((f.notes||'')+((f.notes||'').trim()?'\n':'')+nt).trim()}
  if(b)bSync(b);
  if(q('att')&&q('att').checked){const gr=isM?'Mandat':'Compromis',id=uid();if(!S.cats.some(x=>x.n===gr))S.cats.push({n:gr,t:isM?'m':'a'});await fput(id,file);f.d=f.d||[];f.d.push({id,t:file.name.replace(/\.[^.]+$/,''),pdf:1,size:file.size,h:'',u:today(),cat:catTab(gr),grp:gr,code:'PDF',st:'Brouillon'})}
