@@ -2049,7 +2049,7 @@ function vSet(){const st=S.set||{};return `${tabsBar()}<h1 style='margin-bottom:
 let MC=null,M={q:'in:inbox',nav:'inbox',th:null,next:'',cur:null,fid:null,busy:false,err:'',labels:null,img:false,comp:null,filing:false,fmsg:'',init:false};
 try{if(window.claude&&claude.use)claude.use('mcp').then(x=>{MC=x;setTimeout(()=>mcRefresh(),300);if(V.v==='mail'&&!M.init)mailStart()}).catch(()=>{})}catch(e){}
 
-const GM_CID='286229562615-7vio3gifn4qppi4dkcv9p8miqfjfu461.apps.googleusercontent.com',GM_SC='https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose';
+const GM_CID='286229562615-7vio3gifn4qppi4dkcv9p8miqfjfu461.apps.googleusercontent.com',GM_SC='https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.modify';
 let GMT=null,GMX=0,GMU='';
 const gmFlag=()=>{try{return localStorage.getItem('yes-gm')==='1'}catch(e){return false}};
 function gmLoad(){return new Promise((ok,ko)=>{if(window.google&&google.accounts&&google.accounts.oauth2)return ok();const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=()=>ok();s.onerror=()=>ko(new Error('gsi'));document.head.appendChild(s)})}
@@ -2059,14 +2059,14 @@ async function gm(path,o){if(!GMT||Date.now()>GMX){GMT=null;throw {code:'needs_r
  const r=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/'+path,Object.assign({},o||{},{headers:h}));
  if(r.status===401){GMT=null;throw {code:'needs_reauth'}}
  if(r.status===429)throw {code:'rate_limited'};if(r.status===403)throw {code:'tool_error'};if(!r.ok)throw {code:'upstream_error'};
- return r.json()}
+ if(r.status===204)return {};return r.json()}
 async function gmPool(a,n,f){const o=new Array(a.length);let i=0;await Promise.all(Array.from({length:Math.min(n,a.length)},async()=>{while(i<a.length){const k=i++;o[k]=await f(a[k])}}));return o}
 const gmD=s=>{s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new TextDecoder().decode(u)};
 const gmB=t=>{const u=new TextEncoder().encode(String(t));let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 const gmW=v=>String(v||'').replace(/(=\?[\w-]+\?[BbQq]\?[^?]*\?=)\s+(?==\?[\w-]+\?[BbQq]\?)/g,'$1').replace(/=\?([\w-]+)\?([BbQq])\?([^?]*)\?=/g,(m,cs,e,t)=>{try{let b;if(e.toUpperCase()==='B'){const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);b=u}else{const s=t.replace(/_/g,' ').replace(/=([0-9A-Fa-f]{2})/g,(x,h)=>String.fromCharCode(parseInt(h,16)));const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);b=u}return new TextDecoder(cs).decode(b)}catch(x){return m}});
 const gmSplit=v=>String(v||'').split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(x=>gmW(x).trim()).filter(Boolean);
 function gmWalk(p,o){if(!p)return;const mt=(p.mimeType||'').toLowerCase();
- if(p.filename&&p.body&&(p.body.attachmentId||p.body.size))o.att.push({filename:p.filename,mimeType:mt});
+ if(p.filename&&p.body&&(p.body.attachmentId||p.body.size))o.att.push({filename:p.filename,mimeType:mt,attachmentId:p.body.attachmentId,size:p.body.size});
  else if(mt==='text/plain'&&p.body&&p.body.data&&!o.text)o.text=gmD(p.body.data);
  else if(mt==='text/html'&&p.body&&p.body.data&&!o.html)o.html=gmD(p.body.data);
  (p.parts||[]).forEach(x=>gmWalk(x,o))}
@@ -2077,7 +2077,7 @@ function gmMsg(m,full){const hs=(m.payload&&m.payload.headers)||[],h=n=>{const x
  return o}
 const GMH='&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Date';
 async function gmBuild(inp){
- const lines=['MIME-Version: 1.0','To: '+(inp.to||[]).join(', '),'Subject: =?UTF-8?B?'+gmB(inp.subject||'')+'?='];let threadId;
+ const lines=['MIME-Version: 1.0',...(inp.from?['From: '+(()=>{const a=(typeof GMA!=='undefined'&&GMA||[]).find(x=>x.sendAsEmail===inp.from);return a&&a.displayName?'=?UTF-8?B?'+gmB(a.displayName)+'?= <'+inp.from+'>':inp.from})()]:[]),'To: '+(inp.to||[]).join(', '),...(inp.cc&&inp.cc.length?['Cc: '+inp.cc.join(', ')]:[]),...(inp.bcc&&inp.bcc.length?['Bcc: '+inp.bcc.join(', ')]:[]),'Subject: =?UTF-8?B?'+gmB(inp.subject||'')+'?='];let threadId;
  if(inp.replyToMessageId){try{const r=await gm('messages/'+encodeURIComponent(inp.replyToMessageId)+'?format=metadata&metadataHeaders=Message-ID&metadataHeaders=References');threadId=r.threadId;const hs=(r.payload&&r.payload.headers)||[],g=n=>{const x=hs.find(y=>String(y.name).toLowerCase()===n);return x?x.value:''};const mid=g('message-id'),rf=g('references');if(mid){lines.push('In-Reply-To: '+mid);lines.push('References: '+(rf?rf+' ':'')+mid)}}catch(e){if(e&&e.code==='needs_reauth')throw e}}
  const wrap=s=>s.replace(/.{1,76}/g,'$&\r\n').trim();
  const sg=(inp.includeSignature&&typeof SIG==='string'&&SIG)?SIG:'';
@@ -2101,11 +2101,20 @@ const GMSHIM={async callTool(srv,tool,inp){inp=inp||{};let pl;
    pl={threads:ts.map(t=>({id:t.id,messageCount:(t.messages||[]).length,messages:(t.messages||[]).map(m=>gmMsg(m))})),nextPageToken:L.nextPageToken||''}}}
  else if(tool==='get_thread'){const t=await gm('threads/'+encodeURIComponent(inp.threadId)+'?format=full');pl={messages:(t.messages||[]).map(m=>gmMsg(m,true)),viewUrl:gmUrl(inp.threadId)}}
  else if(tool==='get_message'){if(inp.messageFormat==='RAW'){const m=await gm('messages/'+encodeURIComponent(inp.messageId)+'?format=raw');pl={raw:m.raw||''}}else{const m=await gm('messages/'+encodeURIComponent(inp.messageId)+'?format=full');pl=gmMsg(m,true)}}
- else if(tool==='send_message'){const b=await gmBuild(inp);const r=await gm('messages/send',{method:'POST',body:JSON.stringify(b.threadId?{raw:b.raw,threadId:b.threadId}:{raw:b.raw})});pl={id:r.id,threadId:r.threadId}}
- else if(tool==='create_draft'){const b=await gmBuild(inp);const r=await gm('drafts',{method:'POST',body:JSON.stringify({message:b.threadId?{raw:b.raw,threadId:b.threadId}:{raw:b.raw}})});pl={id:r.id,viewUrl:gmUrl('','drafts')}}
+ else if(tool==='send_message'){const b=await gmBuild(inp);let r;if(inp.draftId){await gm('drafts/'+encodeURIComponent(inp.draftId),{method:'PUT',body:JSON.stringify({message:b.threadId?{raw:b.raw,threadId:b.threadId}:{raw:b.raw}})});r=await gm('drafts/send',{method:'POST',body:JSON.stringify({id:inp.draftId})})}else r=await gm('messages/send',{method:'POST',body:JSON.stringify(b.threadId?{raw:b.raw,threadId:b.threadId}:{raw:b.raw})});pl={id:r.id,threadId:r.threadId}}
+ else if(tool==='create_draft'){const b=await gmBuild(inp);const bd=JSON.stringify({message:b.threadId?{raw:b.raw,threadId:b.threadId}:{raw:b.raw}});const r=inp.draftId?await gm('drafts/'+encodeURIComponent(inp.draftId),{method:'PUT',body:bd}):await gm('drafts',{method:'POST',body:bd});pl={id:r.id,viewUrl:gmUrl('','drafts')}}
+ else if(tool==='modify_thread'){await gm('threads/'+encodeURIComponent(inp.threadId)+'/modify',{method:'POST',body:JSON.stringify({addLabelIds:inp.add||[],removeLabelIds:inp.remove||[]})});pl={ok:true}}
+ else if(tool==='trash_thread'){await gm('threads/'+encodeURIComponent(inp.threadId)+'/trash',{method:'POST'});pl={ok:true}}
+ else if(tool==='untrash_thread'){await gm('threads/'+encodeURIComponent(inp.threadId)+'/untrash',{method:'POST'});pl={ok:true}}
+ else if(tool==='get_attachment'){const r=await gm('messages/'+encodeURIComponent(inp.messageId)+'/attachments/'+encodeURIComponent(inp.attachmentId));let s=String(r.data||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';pl={data:s}}
+ else if(tool==='label_create'){const r=await gm('labels',{method:'POST',body:JSON.stringify({name:inp.name,labelListVisibility:'labelShow',messageListVisibility:'show'})});pl={id:r.id}}
+ else if(tool==='label_rename'){await gm('labels/'+encodeURIComponent(inp.id),{method:'PATCH',body:JSON.stringify({name:inp.name})});pl={ok:true}}
+ else if(tool==='label_delete'){await gm('labels/'+encodeURIComponent(inp.id),{method:'DELETE'});pl={ok:true}}
+ else if(tool==='find_draft'){const L=await gm('drafts?maxResults=100');const d=(L.drafts||[]).find(x=>x.message&&x.message.id===inp.messageId);pl={id:d?d.id:''}}
  else throw {code:'tool_error'};
  return {payload:pl}}};
 async function gmDo(){try{await gmConnect();try{const p=await gm('profile');GMU=p.emailAddress||''}catch(e){}
+ try{const s=await gm('settings/sendAs');GMA=(s.sendAs||[]).filter(x=>x.isPrimary||x.verificationStatus==='accepted')}catch(e){}
  MC=GMSHIM;M.init=false;M.err='';toast('Gmail connecté.');setTimeout(()=>mcRefresh(true),400);if(V.v==='mail')mailStart();else render()}
  catch(e){toast('Connexion à Gmail impossible ou annulée.')}}
 const gmBar=()=>`<div class='card' style='flex-direction:column;gap:8px;margin:0 0 12px'><div><b>📬 Gmail</b><p class='m' style='margin:4px 0 0'>Connectez votre boîte Gmail professionnelle pour lire, répondre et envoyer vos courriels depuis le CRM. Chaque collaborateur ne voit que sa propre boîte.</p></div><div class='bar' style='margin:0'><button class='p' data-a='gmConnect'>${gmFlag()?'Reconnecter Gmail':'Connecter Gmail'}</button></div></div>`;
@@ -2125,7 +2134,7 @@ const gmailUrl=u=>/^https:\/\/mail\.google\.com\//.test(u||'')?u:'';
 function sp(s){s=String(s||'');const m=s.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);const addr=(m?m[2]:s).trim();let name=m?m[1].trim():'';if(!name)name=addr.split('@')[0];return {name:dec(name),addr}}
 const AVC=['#a4573f','#5a7d9a','#6b8e5a','#8e6bb0','#c08a2e','#b04f6e','#3f8f8a','#7a6259'];
 const avatar=n=>{n=String(n||'?');const c=AVC[[...n].reduce((a,ch)=>a+ch.charCodeAt(0),0)%AVC.length];return `<span class="av" style="background:${c}">${esc((n.trim()[0]||'?').toUpperCase())}</span>`};
-const NAV=[['inbox','Boîte de réception','in:inbox'],['unread','Non lus','is:unread in:inbox'],['starred','Suivis','is:starred'],['sent','Envoyés','in:sent'],['draft','Brouillons','in:draft']];
+const NAV=[['inbox','Boîte de réception','in:inbox'],['unread','Non lus','is:unread in:inbox'],['starred','Suivis','is:starred'],['sent','Envoyés','in:sent'],['draft','Brouillons','in:draft'],['trash','Corbeille','in:trash'],['spam','Spam','in:spam'],['all','Tous les messages','in:anywhere']];
 const labelCount=id=>{const l=(M.labels||[]).find(x=>x.labelId===id);return l&&l.threadsUnread||0};
 const userLabels=()=>(M.labels||[]).filter(l=>l.labelType==='USER');
 function folderQuery(){const f=F();if(!f)return'';const em=[...new Set([...partyC(f,'vids'),...partyC(f,'aids')].flatMap(c=>c?emailsOf(c).map(e=>String(e).trim()):[]).filter(okMail))];if(!em.length)return'';const o=em.length>1?'('+em.join(' OR ')+')':em[0];return 'from:'+o+' OR to:'+o}
@@ -2145,10 +2154,10 @@ async function mailOpen(tid){
  if(!MC)return;M.cur={tid,loading:true,msgs:[],open:new Set()};M.err='';M.filing=false;M.fmsg='';M.comp=null;M.img=false;render();
  try{const pl=parse(await MC.callTool('Gmail','get_thread',{threadId:tid,messageFormat:'FULL_CONTENT'},{cache:false}));
   const ms=(pl&&pl.messages)||[];if(!ms.length)throw {code:'upstream_error'};
-  const msgs=ms.map(m=>({id:m.id,subject:dec(m.subject)||'(sans objet)',sender:m.sender||'',to:(m.toRecipients||[]).join(', '),cc:(m.ccRecipients||[]).join(', '),date:m.date||'',html:m.htmlBody||'',text:String(m.plaintextBody||dec(m.snippet)||''),att:(m.attachments||[]).map(a=>({name:a.filename||'pièce jointe',type:a.mimeType||''})),url:gmailUrl(m.viewUrl),sent:(m.labelIds||[]).includes('SENT')}));
+  const msgs=ms.map(m=>({id:m.id,subject:dec(m.subject)||'(sans objet)',sender:m.sender||'',to:(m.toRecipients||[]).join(', '),cc:(m.ccRecipients||[]).join(', '),date:m.date||'',html:m.htmlBody||'',text:String(m.plaintextBody||dec(m.snippet)||''),att:(m.attachments||[]).map(a=>({name:a.filename||'pièce jointe',type:a.mimeType||'',aid:a.attachmentId,size:a.size})),lab:m.labelIds||[],url:gmailUrl(m.viewUrl),sent:(m.labelIds||[]).includes('SENT')}));
   const last=msgs[msgs.length-1];
   M.cur={tid,msgs,open:new Set([last.id]),url:gmailUrl(pl.viewUrl)||last.url,subject:last.subject};
-  const row=(M.th||[]).find(x=>x.id===tid);if(row)row.unread=false}
+  const row=(M.th||[]).find(x=>x.id===tid);if(row){if(row.unread&&GMW())gmAct(tid,[],['UNREAD']).then(()=>mailLabels()).catch(()=>{});row.unread=false}}
  catch(e){M.err=mailErr(e);M.cur=null}
  if(V.v==='mail')render()}
 function mailDoc(h,img){
@@ -2164,19 +2173,78 @@ function msgCard(m,open){
  const d=m.html?mailDoc(m.html,M.img):null;
  return `<div class="gmo"><div class="gmh" data-a="mailTog" data-id="${esc(m.id)}">${avatar(s.name)}<div class="gmt"><b>${esc(s.name)}</b> <span class="m">&lt;${esc(s.addr)}&gt;</span><div class="m">À : ${esc(m.to||'—')}${m.cc?' · Cc : '+esc(m.cc):''}</div></div><span class="m">${esc(fdate(m.date))}</span></div>
 ${d&&d.remote&&!M.img?`<div class="gmb">Les images distantes sont bloquées pour protéger votre vie privée. <button data-a="mailImg">Afficher les images</button></div>`:''}
-${m.att.length?`<div class="gma">${m.att.map(a=>`<span class="chip">📎 ${esc(a.name)}</span>`).join('')}<button data-a="mailAttPv" data-id="${esc(m.id)}">👁 Aperçu</button><button data-a="mailAtt" data-id="${esc(m.id)}">💾 Enregistrer dans un dossier…</button></div>`:''}
+${m.att.length?`<div class="gma">${m.att.map(a=>`<span class="chip">📎 ${esc(a.name)}</span>`).join('')}<button data-a="mailAttDl" data-id="${esc(m.id)}">⬇ Télécharger</button><button data-a="mailAttPv" data-id="${esc(m.id)}">👁 Aperçu</button><button data-a="mailAtt" data-id="${esc(m.id)}">💾 Enregistrer dans un dossier…</button></div>`:''}
 ${d?`<iframe class="mf" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(d.html)}" title="Contenu du message"></iframe>`:`<div class="gmp">${esc(m.text)}</div>`}
-<div class="bar" style="margin:8px 0 0"><button data-a="mailRep" data-id="${esc(m.id)}">↩ Répondre</button></div></div>`}
+<div class="bar" style="margin:8px 0 0">${GMW()&&(m.lab||[]).includes('DRAFT')?`<button class="p" data-a="mailDraftEd" data-id="${esc(m.id)}">✎ Modifier le brouillon</button>`:`<button data-a="mailRep" data-id="${esc(m.id)}">↩ Répondre</button>${GMW()?`<button data-a="mailRepAll" data-id="${esc(m.id)}">↩↩ Répondre à tous</button><button data-a="mailFwd" data-id="${esc(m.id)}">➡ Transférer</button>`:''}`}</div></div>`}
 function filingForm(){const fo=S.f.map(f=>`<option value="${f.id}" ${f.id===(M.fid||V.fid)?'selected':''}>${esc(f.name)}</option>`).join('');
  return `<div class="card" style="flex-direction:column;gap:8px;margin:0 12px 10px"><div class="grid"><div><label>Dossier</label><select id="mfo">${fo}</select></div><div><label>Catégorie</label><select id="mfc">${catOpts('Courrier vendeurs')}</select></div></div><div class="bar" style="margin:0"><button class="p" data-a="mailFile" ${S.f.length?'':'disabled'}>Classer la conversation</button></div>${M.fmsg?`<div class="m">${esc(M.fmsg)}</div>`:''}<div class="m">Le texte des messages est copié dans le dossier ; les pièces jointes ne le sont pas.</div></div>`}
-function compForm(){const p=M.comp;return `<div class="card" style="flex-direction:column;gap:8px;margin:0 12px 10px"><div><label>À</label><input id="mcto" value="${esc(p.to)}" inputmode="email"></div><div><label>Objet</label><input id="mcsub" value="${esc(p.subject)}"></div><div><label>Message</label><textarea id="mcbody" rows="7">${esc(p.body)}</textarea></div>${MC?sigView():''}<div class="bar" style="margin:0"><button class="p" data-a="mailSend" ${p.busy?'disabled':''}>${MC?'Envoyer':'Ouvrir dans Gmail'}</button>${MC?`<button data-a="mailSave" ${p.busy?'disabled':''}>Enregistrer en brouillon</button>`:''}<button data-a="mailCancel">Annuler</button></div><p class="m" style="margin:0">${MC?'« Envoyer » expédie le message tout de suite depuis votre compte Gmail (confirmation demandée). « Brouillon » ne l’envoie pas.':'« Ouvrir dans Gmail » prépare le message dans Gmail : relisez-le puis cliquez sur Envoyer dans Gmail.'}</p>${p.msg?`<div class="m">${esc(p.msg)}${p.url?` <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Ouvrir dans Gmail</a>`:''}</div>`:''}</div>`}
+
+const fsz=n=>n>1048576?(n/1048576).toFixed(1).replace('.',',')+' Mo':Math.max(1,Math.round(n/1024))+' Ko';
+const compAtt=()=>{const p=M.comp,L=(p&&p.files)||[];return `<div><label>Pièces jointes</label><div style='display:flex;gap:6px;flex-wrap:wrap;align-items:center'>${L.map((f,i)=>`<span class='badge'>📎 ${esc(f.name)} <span class='m'>(${fsz(f.size)})</span> <a data-a='mcFileDel' data-id='${i}' style='cursor:pointer' title='Retirer'>✕</a></span>`).join('')}<label style='display:inline-block;padding:3px 10px;font-size:13px;border:1px solid var(--bd);border-radius:8px;cursor:pointer;margin:0;font-weight:400'>+ Ajouter un fichier<input type='file' id='mcfiles' multiple hidden></label></div></div>`};
+document.addEventListener('change',async e=>{const t=e.target;if(!t||t.id!=='mcfiles'||!M.comp)return;const p=M.comp;p.files=p.files||[];
+ const fl=[...t.files];t.value='';let tot=p.files.reduce((a,f)=>a+f.size,0);
+ for(const f of fl){if(tot+f.size>18*1048576){p.msg='Pièces jointes limitées à 18 Mo au total : « '+f.name+' » n’a pas été ajouté.';continue}
+  try{const d=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=()=>ko();r.readAsDataURL(f)});p.files.push({name:f.name,type:f.type||'application/octet-stream',size:f.size,b64:d});tot+=f.size}catch(x){p.msg='Impossible de lire « '+f.name+' ».'}}
+ if(V.v==='mail'&&M.comp===p)render()});
+
+let GMA=[],GMT2=null,GMX2=0;
+const GMW=()=>!!(window.__WEB&&MC&&MC===GMSHIM);
+const gmAct=(tid,add,rm)=>MC.callTool('Gmail','modify_thread',{threadId:tid,add,remove:rm},{cache:false});
+const ccBlock=p=>`${GMA.length>1?`<div><label>De</label><select id='mcfrom'>${GMA.map(a=>`<option value="${esc(a.sendAsEmail)}" ${(p.from||(GMA.find(x=>x.isPrimary)||GMA[0]).sendAsEmail)===a.sendAsEmail?'selected':''}>${esc(a.displayName?a.displayName+' <'+a.sendAsEmail+'>':a.sendAsEmail)}</option>`).join('')}</select></div>`:''}<div class='grid'><div><label>Cc</label><input id='mccc' value="${esc(p.cc||'')}" placeholder='copie'></div><div><label>Cci</label><input id='mcbcc' value="${esc(p.bcc||'')}" placeholder='copie cachée'></div></div>`;
+const actBar=c=>{const st=c.msgs.some(m=>(m.lab||[]).includes('STARRED')),tr=M.nav==='trash';return `<button data-a='mailAct' data-k='arch'>🗄 Archiver</button><button data-a='mailAct' data-k='${tr?'untrash':'trash'}'>${tr?'♻ Restaurer':'🗑 Corbeille'}</button>${tr?`<button data-a='mailAct' data-k='del'>⛔ Supprimer définitivement</button>`:''}<button data-a='mailAct' data-k='spam'>🚫 Spam</button><button data-a='mailAct' data-k='unread'>✉ Non lu</button><button data-a='mailAct' data-k='${st?'unstar':'star'}'>${st?'★ Retirer le suivi':'☆ Suivre'}</button><button data-a='mailLab'>🏷 Libellés</button>`};
+const labPanel=c=>{const L=userLabels();return `<div class='card' style='flex-direction:column;gap:8px;margin:0 12px 10px'><b>Libellés de la conversation</b>${L.length?`<div style='display:flex;gap:6px;flex-wrap:wrap'>${L.map(l=>{const on=c.msgs.some(m=>(m.lab||[]).includes(l.labelId));return `<button data-a='mailLabT' data-id='${esc(l.labelId)}' class='${on?'p':''}'>${on?'✓ ':''}${esc(l.name)}</button>`}).join('')}</div>`:`<p class='m' style='margin:0'>Aucun libellé pour le moment.</p>`}
+<details${M.lbOpen?' open':''}><summary class='m' style='cursor:pointer'>Gérer mes libellés</summary><div style='display:flex;flex-direction:column;gap:6px;margin-top:6px'>${L.map(l=>M.lbEd===l.labelId?`<div style='display:flex;gap:6px'><input id='lbr' value="${esc(l.name)}" style='flex:1'><button class='p' data-a='lbRenOk' data-id='${esc(l.labelId)}'>OK</button><button data-a='lbEd' data-id=''>Annuler</button></div>`:`<div style='display:flex;gap:6px;align-items:center'><span style='flex:1'>${esc(l.name)}</span><button data-a='lbEd' data-id='${esc(l.labelId)}'>Renommer</button><button data-a='lbDel' data-id='${esc(l.labelId)}'>Supprimer</button></div>`).join('')}<div style='display:flex;gap:6px'><input id='lbn' placeholder='Nouveau libellé' style='flex:1'><button class='p' data-a='lbNew'>+ Créer</button></div></div></details></div>`};
+async function gmTokFull(){if(GMT2&&Date.now()<GMX2)return GMT2;await gmLoad();return new Promise((ok,ko)=>{const c=google.accounts.oauth2.initTokenClient({client_id:GM_CID,scope:'https://mail.google.com/',hd:'yes-immobilier.com',callback:r=>{if(r.error)return ko(r);GMT2=r.access_token;GMX2=Date.now()+Math.max(60,(+r.expires_in||3600)-90)*1000;ok(GMT2)},error_callback:e=>ko(e)});c.requestAccessToken({prompt:''})})}
+async function mailAct(k){const c=M.cur;if(!c||!c.tid||!GMW())return;const tid=c.tid;
+ if(k==='del'){const y=await confirmDlg({title:'Supprimer définitivement ?',text:'Cette conversation sera effacée de Gmail pour toujours. Cette action est irréversible.',ok:'Supprimer',danger:true});if(!y)return}
+ try{
+  if(k==='del'){const tok=await gmTokFull();const r=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/threads/'+encodeURIComponent(tid),{method:'DELETE',headers:{Authorization:'Bearer '+tok}});if(!r.ok&&r.status!==204){GMT2=null;throw {code:r.status===401?'needs_reauth':'tool_error'}}}
+  else
+  if(k==='arch')await gmAct(tid,[],['INBOX']);
+  else if(k==='trash')await MC.callTool('Gmail','trash_thread',{threadId:tid},{cache:false});
+  else if(k==='untrash')await MC.callTool('Gmail','untrash_thread',{threadId:tid},{cache:false});
+  else if(k==='spam')await gmAct(tid,['SPAM'],['INBOX']);
+  else if(k==='unread')await gmAct(tid,['UNREAD'],[]);
+  else if(k==='star')await gmAct(tid,['STARRED'],[]);
+  else if(k==='unstar')await gmAct(tid,[],['STARRED']);
+ }catch(e){M.err=e&&e.code?mailErr(e):'Action impossible.';render();return}
+ const T={del:'Conversation supprimée définitivement.',arch:'Conversation archivée.',trash:'Conversation placée dans la corbeille.',untrash:'Conversation restaurée.',spam:'Conversation signalée comme spam.',unread:'Marquée comme non lue.',star:'Conversation suivie.',unstar:'Suivi retiré.'};toast(T[k]||'Fait.');
+ if(k==='star'||k==='unstar'){c.msgs.forEach(m=>{m.lab=(m.lab||[]).filter(x=>x!=='STARRED');if(k==='star')m.lab.push('STARRED')})}
+ else if(k==='unread'){const r=(M.th||[]).find(x=>x.id===tid);if(r)r.unread=true;M.cur=null;M.comp=null}
+ else{M.th=(M.th||[]).filter(x=>x.id!==tid);M.cur=null;M.comp=null}
+ M.err='';mailLabels();render()}
+
+async function lbDo(fn,msg){try{await fn();toast(msg);M.lbOpen=true;M.lbEd='';await mailLabels();render()}catch(e){M.err=e&&e.code?mailErr(e):'Action impossible sur le libellé.';render()}}
+async function mailLabT(lid){const c=M.cur;if(!c||!GMW())return;const on=c.msgs.some(m=>(m.lab||[]).includes(lid));
+ try{await gmAct(c.tid,on?[]:[lid],on?[lid]:[])}catch(e){M.err=e&&e.code?mailErr(e):'Action impossible.';render();return}
+ c.msgs.forEach(m=>{m.lab=(m.lab||[]).filter(x=>x!==lid);if(!on)m.lab.push(lid)});mailLabels();render()}
+function mailReplyAll(id){const c=M.cur,m=c&&c.msgs.find(x=>x.id===id);if(!m)return;mailReply(id);if(!M.comp)return;
+ const cl=s=>String(s||'').split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(x=>x.trim()).filter(Boolean),me=(GMU||'').toLowerCase(),prim=String(M.comp.to||'').toLowerCase();
+ const R=(m.sent?cl(m.to):[m.sender].concat(cl(m.to))).concat(cl(m.cc)).map(x=>sp(x).addr).filter(a=>a&&a.toLowerCase()!==me&&a.toLowerCase()!==prim);
+ M.comp.cc=[...new Set(R)].join(', ');render()}
+async function mailFwd(id){const c=M.cur,m=c&&c.msgs.find(x=>x.id===id);if(!m)return;
+ const body='\n\n---------- Message transféré ----------\nDe : '+m.sender+'\nDate : '+fdate(m.date)+'\nObjet : '+m.subject+'\nÀ : '+m.to+(m.cc?'\nCc : '+m.cc:'')+'\n\n'+m.text;
+ const p=M.comp={to:'',subject:/^(tr|fwd?)\s*:/i.test(m.subject)?m.subject:'Fwd: '+m.subject,body,reply:null,busy:false,msg:'',url:'',files:[]};render();
+ const at=(m.att||[]).filter(a=>a.aid);
+ if(at.length){p.busy=true;p.msg='Récupération des pièces jointes…';render();
+  try{for(const a of at){const r=parse(await MC.callTool('Gmail','get_attachment',{messageId:id,attachmentId:a.aid},{cache:false}));p.files.push({name:a.name,type:a.type||'application/octet-stream',size:a.size||0,b64:r.data})}p.msg=''}catch(e){p.msg='Certaines pièces jointes n’ont pas pu être récupérées.'}
+  p.busy=false;if(M.comp===p)render()}
+ setTimeout(()=>{const e=$('#mcto');if(e)e.focus()},60)}
+async function mailDraftEd(id){const c=M.cur,m=c&&c.msgs.find(x=>x.id===id);if(!m||!GMW())return;
+ const p=M.comp={to:m.to,cc:m.cc,subject:m.subject==='(sans objet)'?'':m.subject,body:m.text,reply:null,busy:true,msg:'Ouverture du brouillon…',url:'',files:[]};render();
+ try{const r=parse(await MC.callTool('Gmail','find_draft',{messageId:id},{cache:false}));p.draftId=r&&r.id;p.msg=r&&r.id?'':'Brouillon introuvable : il sera envoyé comme nouveau message.'}catch(e){p.msg=e&&e.code?mailErr(e):'Impossible d’ouvrir le brouillon.'}
+ p.busy=false;if(M.comp===p)render()}
+async function mailAttDl(id){try{const L=await mailAttList(id);if(!L.length){toast('Aucune pièce jointe.');return}
+ for(const a of L){if(DL)await DL.save({filename:a.name,data:new Blob([a.bytes],{type:a.mime||'application/octet-stream'})})}toast(L.length+' fichier'+(L.length>1?'s':'')+' téléchargé'+(L.length>1?'s':'')+'.')}
+ catch(e){toast(e&&e.code?mailErr(e):'Téléchargement impossible.')}}
+function compForm(){const p=M.comp;return `<div class="card" style="flex-direction:column;gap:8px;margin:0 12px 10px"><div><label>À</label><input id="mcto" value="${esc(p.to)}" inputmode="email"></div>${GMW()?ccBlock(p):''}<div><label>Objet</label><input id="mcsub" value="${esc(p.subject)}"></div><div><label>Message</label><textarea id="mcbody" rows="7">${esc(p.body)}</textarea></div>${MC?compAtt():''}${MC?sigView():''}<div class="bar" style="margin:0"><button class="p" data-a="mailSend" ${p.busy?'disabled':''}>${MC?'Envoyer':'Ouvrir dans Gmail'}</button>${MC?`<button data-a="mailSave" ${p.busy?'disabled':''}>Enregistrer en brouillon</button>`:''}<button data-a="mailCancel">Annuler</button></div><p class="m" style="margin:0">${MC?'« Envoyer » expédie le message tout de suite depuis votre compte Gmail (confirmation demandée). « Brouillon » ne l’envoie pas.':'« Ouvrir dans Gmail » prépare le message dans Gmail : relisez-le puis cliquez sur Envoyer dans Gmail.'}</p>${p.msg?`<div class="m">${esc(p.msg)}${p.url?` <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Ouvrir dans Gmail</a>`:''}</div>`:''}</div>`}
 function readPane(){const c=M.cur;
  if(c.loading)return `<p class="m" style="padding:18px">Chargement de la conversation…</p>`;
  if(c.compose)return `<div class="gph"><button class="gback" data-a="mailBack">←</button><h2 class="gsub">Nouveau message</h2></div>${M.comp?compForm():''}`;
  const last=c.msgs[c.msgs.length-1];
  return `<div class="gph"><button class="gback" data-a="mailBack">←</button><h2 class="gsub">${esc(c.subject)}</h2></div>
-<div class="bar" style="padding:0 12px"><button data-a="mailRep" data-id="${esc(last.id)}">↩ Répondre</button><button data-a="mailFileT">📁 Classer dans un dossier</button>${c.url?`<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer"><button>Ouvrir dans Gmail</button></a>`:''}</div>
-${M.filing?filingForm():''}${M.comp?compForm():''}
+<div class="bar" style="padding:0 12px"><button data-a="mailRep" data-id="${esc(last.id)}">↩ Répondre</button><button data-a="mailFileT">📁 Classer dans un dossier</button>${GMW()?actBar(c):''}${c.url?`<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer"><button>Ouvrir dans Gmail</button></a>`:''}</div>
+${M.labOpen&&GMW()?labPanel(c):''}${M.filing?filingForm():''}${M.comp?compForm():''}
 <div class="gms">${c.msgs.map(m=>msgCard(m,c.open.has(m.id))).join('')}</div>`}
 function vMail(){
  if(!MC){if(!M.comp)M.comp={to:'',subject:'',body:'',reply:null,busy:false,msg:'',url:''};
@@ -2249,7 +2317,7 @@ async function mailSig(){
    el.querySelectorAll('*').forEach(n=>{[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^\s*javascript:/i.test(a.value))n.removeAttribute(a.name)})});
    const out=el.innerHTML.trim();
    if(out){SIG=out;try{localStorage.setItem('yes-sig',out)}catch(e){}break}}
- }catch(e){}
+ if(SIG===null)SIG='';}catch(e){}
  done()}
 const waN=t=>{let n=telN(t);if(n.startsWith('+'))return n.slice(1);if(n.startsWith('00'))return n.slice(2);if(n.startsWith('0'))return '33'+n.slice(1);return n};
 const telN=t=>String(t||'').replace(/[^\d+]/g,'');
@@ -2582,10 +2650,10 @@ async function mailSend(){
  if(!okMail((p.to||'').trim())){p.msg='Saisissez une adresse e-mail valide.';p.url='';render();return}
  if(!(p.subject||'').trim()&&!(p.body||'').trim()){p.msg='Le message est vide.';p.url='';render();return}
  if(!MC){webMail(p.to.trim(),p.subject||'',p.body||'');return}
- const ok=await askSend({to:p.to.trim(),subject:(p.subject||'').trim()||'(sans objet)',reply:!!p.reply});
+ const ok=await askSend({to:p.to.trim(),subject:(p.subject||'').trim()||'(sans objet)',att:(p.files||[]).map(f=>f.name).join(', ')||undefined,reply:!!p.reply});
  if(M.comp!==p||!ok)return;
  p.busy=true;p.msg='Envoi en cours…';p.url='';render();
- try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.reply)inp.replyToMessageId=p.reply;
+ try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
   await MC.callTool('Gmail','send_message',inp,{cache:false});
   const tid=M.cur&&M.cur.tid,comp=M.cur&&M.cur.compose;M.comp=null;if(comp)M.cur=null;
   toast('Message envoyé.');
@@ -2597,7 +2665,7 @@ async function mailSave(){
  if(!okMail((p.to||'').trim())){p.msg='Saisissez une adresse e-mail valide.';p.url='';render();return}
  if(!MC){webMail(p.to.trim(),p.subject||'',p.body||'');return}
  p.busy=true;p.msg='Création du brouillon…';p.url='';render();
- try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.reply)inp.replyToMessageId=p.reply;
+ try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
   const pl=parse(await MC.callTool('Gmail','create_draft',inp,{cache:false}));
   p.msg='Brouillon créé dans Gmail.';p.url=gmailUrl(pl&&pl.viewUrl)}
  catch(e){p.msg=e&&e.code?mailErr(e):'Impossible de créer le brouillon.'}
@@ -2807,6 +2875,18 @@ document.addEventListener('click',e=>{
  else if(a==='bkExp')bkExp();
  else if(a==='bkImp')$('#bkf').click();
  else if(a==='secLock'){if(V.dirty)confirmDlg({title:'Verrouiller ?',text:'Des modifications du document ouvert ne sont pas enregistrées et seraient perdues.',ok:'Verrouiller',danger:true}).then(y=>{if(y)lockNow()});else lockNow()}
+ else if(a==='mcFileDel'){if(M.comp&&M.comp.files){M.comp.files.splice(+id,1);render()}}
+ else if(a==='mailAct')mailAct(el.dataset.k);
+ else if(a==='mailLab'){M.labOpen=!M.labOpen;render()}
+ else if(a==='mailLabT')mailLabT(id);
+ else if(a==='lbNew'){const n=(($('#lbn')||{}).value||'').trim();if(n)lbDo(()=>MC.callTool('Gmail','label_create',{name:n},{cache:false}),'Libellé créé.')}
+ else if(a==='lbEd'){M.lbEd=id||'';M.lbOpen=true;render()}
+ else if(a==='lbRenOk'){const n=(($('#lbr')||{}).value||'').trim();if(n)lbDo(()=>MC.callTool('Gmail','label_rename',{id,name:n},{cache:false}),'Libellé renommé.')}
+ else if(a==='lbDel'){const l=userLabels().find(x=>x.labelId===id);confirmDlg({title:'Supprimer ce libellé ?',text:'« '+(l?l.name:'')+' » sera retiré de toutes les conversations. Les messages ne sont pas supprimés.',ok:'Supprimer',danger:true}).then(y=>{if(y)lbDo(()=>MC.callTool('Gmail','label_delete',{id},{cache:false}),'Libellé supprimé.')})}
+ else if(a==='mailRepAll')mailReplyAll(id);
+ else if(a==='mailFwd')mailFwd(id);
+ else if(a==='mailDraftEd')mailDraftEd(id);
+ else if(a==='mailAttDl')mailAttDl(id);
  else if(a==='gmConnect'){gmDo()}
  else if(a==='home'){as();go('home');if(MC&&!M.labels)mailLabels()}
  else if(a==='notaires'){as();V.nq='';go('not')}
@@ -3074,6 +3154,7 @@ document.addEventListener('change',e=>{
 document.addEventListener('input',e=>{
  const t=e.target;
  if(t.id==='mq'){M.q=t.value;return}
+ if(t.id==='mccc'||t.id==='mcbcc'||t.id==='mcfrom'){if(M.comp)M.comp[t.id==='mccc'?'cc':t.id==='mcfrom'?'from':'bcc']=t.value;return}
  if(t.id==='mcto'||t.id==='mcsub'||t.id==='mcbody'){if(M.comp)M.comp[t.id==='mcto'?'to':t.id==='mcsub'?'subject':'body']=t.value;return}
  if(t.id==='q'){as();V.q=t.value;render();return}
  if(t.dataset.bw!==undefined){const b=bCur();if(b){b.trav=b.trav||{};const k=t.dataset.bw,f=t.dataset.bwf,o=b.trav[k]=b.trav[k]||{st:'',an:'',cout:'',note:''};o[f]=t.value;save();if(f==='st')render();else{const e=document.getElementById('btsum');if(e)e.textContent=bTrSum(b)}}return}
