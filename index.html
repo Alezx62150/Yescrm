@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v68</title>
+<title>YES CRM · v69</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -2444,7 +2444,7 @@ function msgCard(m,open){
  const d=m.html?mailDoc(m.html,M.img):null;
  return `<div class="gmo"><div class="gmh" data-a="mailTog" data-id="${esc(m.id)}">${avatar(s.name)}<div class="gmt"><b>${esc(s.name)}</b> <span class="m">&lt;${esc(s.addr)}&gt;</span><div class="m">À : ${esc(m.to||'—')}${m.cc?' · Cc : '+esc(m.cc):''}</div></div><span class="m">${esc(fdate(m.date))}</span></div>
 ${d&&d.remote&&!M.img?`<div class="gmb">Les images distantes sont bloquées pour protéger votre vie privée. <button data-a="mailImg">Afficher les images</button></div>`:''}
-${m.att.length?`<div class="gma">${m.att.map(a=>`<span class="chip">📎 ${esc(a.name)}</span>`).join('')}<button data-a="mailAttDl" data-id="${esc(m.id)}">⬇ Télécharger</button><button data-a="mailAttPv" data-id="${esc(m.id)}">👁 Aperçu</button><button data-a="mailAtt" data-id="${esc(m.id)}">💾 Enregistrer dans un dossier…</button></div>`:''}
+${m.att.length?`<div class="gma">${m.att.map(a=>`<span class="chip">📎 ${esc(a.name)}</span>`).join('')}<button data-a="mailAttDl" data-id="${esc(m.id)}">⬇ Télécharger</button><button data-a="mailAttPv" data-id="${esc(m.id)}">👁 Aperçu</button><button data-a="mailAtt" data-id="${esc(m.id)}">💾 Enregistrer dans un dossier…</button>${m.att.some(a=>/\.pdf$/i.test(a.name||''))?`<button data-a="mailAttImp" data-id="${esc(m.id)}" title="Lire un mandat ou un compromis et remplir le dossier">📥 Lire mandat / compromis</button>`:''}</div>`:''}
 ${d?`<iframe class="mf" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(d.html)}" title="Contenu du message"></iframe>`:`<div class="gmp">${esc(m.text)}</div>`}
 <div class="bar" style="margin:8px 0 0">${GMW()&&(m.lab||[]).includes('DRAFT')?`<button class="p" data-a="mailDraftEd" data-id="${esc(m.id)}">✎ Modifier le brouillon</button>`:`<button data-a="mailRep" data-id="${esc(m.id)}">↩ Répondre</button>${GMW()?`<button data-a="mailRepAll" data-id="${esc(m.id)}">↩↩ Répondre à tous</button><button data-a="mailFwd" data-id="${esc(m.id)}">➡ Transférer</button>`:''}`}</div></div>`}
 function filingForm(){const fo=S.f.map(f=>`<option value="${f.id}" ${f.id===(M.fid||V.fid)?'selected':''}>${esc(f.name)}</option>`).join('');
@@ -2505,6 +2505,23 @@ async function mailDraftEd(id){const c=M.cur,m=c&&c.msgs.find(x=>x.id===id);if(!
  const p=M.comp={to:m.to,cc:m.cc,subject:m.subject==='(sans objet)'?'':m.subject,body:m.text,reply:null,busy:true,msg:'Ouverture du brouillon…',url:'',files:[]};render();
  try{const r=parse(await MC.callTool('Gmail','find_draft',{messageId:id},{cache:false}));p.draftId=r&&r.id;p.msg=r&&r.id?'':'Brouillon introuvable : il sera envoyé comme nouveau message.'}catch(e){p.msg=e&&e.code?mailErr(e):'Impossible d’ouvrir le brouillon.'}
  p.busy=false;if(M.comp===p)render()}
+async function mailAttImp(msgId){
+ const old=document.getElementById('impsel');if(old)old.remove();
+ const ov=document.createElement('div');ov.id='impsel';ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:9998;background:rgba(40,25,20,.5);display:flex;align-items:flex-start;justify-content:center;padding:40px 12px;overflow:auto';
+ ov.innerHTML='<div style="background:var(--sf);border-radius:14px;max-width:560px;width:100%;padding:16px"><h3 style="margin:0 0 6px">📥 Lire un mandat ou un compromis</h3><p class="m" id="ism">Lecture du message…</p><div id="isb"></div></div>';
+ document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
+ const msg=ov.querySelector('#ism'),box=ov.querySelector('#isb');
+ const fin=(t)=>{box.innerHTML='<div class="bar" style="margin:8px 0 0"><button id="isx">Fermer</button></div>';box.querySelector('#isx').onclick=()=>ov.remove();if(t)msg.textContent=t};
+ try{
+  if(!MC){msg.textContent=mailErr({code:'capability_disabled'});fin();return}
+  const L=(await mailAttList(msgId)).filter(a=>/\.pdf$/i.test(a.name||'')||a.mime==='application/pdf');
+  if(!L.length){fin('Aucun PDF dans ce message.');return}
+  const mm=(M.cur&&M.cur.msgs||[]).find(x=>x.id===msgId),sa=mm?sp(mm.sender).addr.toLowerCase():'',hit=sa?S.f.find(f=>[...partyC(f,'vids'),...partyC(f,'aids')].some(c=>emailsOf(c).some(e=>String(e).trim().toLowerCase()===sa))):null,def=M.fid||(hit&&hit.id)||'';
+  msg.textContent='Choisissez le PDF et le dossier. La lecture s’affiche pour vérification : rien n’est enregistré avant votre validation.';
+  box.innerHTML='<div class="grid"><div><label>PDF</label><select id="isf">'+L.map((a,i)=>'<option value="'+i+'">'+esc(a.name)+' ('+fsize(a.bytes.length)+')</option>').join('')+'</select></div><div><label>Dossier</label><select id="isd"><option value="">➕ Nouveau dossier</option>'+S.f.map(f=>'<option value="'+f.id+'"'+(f.id===def?' selected':'')+'>'+esc(f.name)+'</option>').join('')+'</select></div></div><div class="bar" style="margin:10px 0 0;justify-content:flex-end"><button id="isx">Annuler</button><button class="p" id="isok">Lire le PDF</button></div>';
+  box.querySelector('#isx').onclick=()=>ov.remove();
+  box.querySelector('#isok').onclick=()=>{const a=L[+box.querySelector('#isf').value],fid=box.querySelector('#isd').value;ov.remove();impStart(new File([a.bytes],a.name||'document.pdf',{type:'application/pdf'}),fid)}
+ }catch(e){fin((e&&e.code?mailErr(e):'Impossible de lire ce message.')+' S’il est très volumineux, ouvrez-le dans Gmail.')}}
 async function mailAttDl(id){try{const L=await mailAttList(id);if(!L.length){toast('Aucune pièce jointe.');return}
  for(const a of L){if(DL)await DL.save({filename:a.name,data:new Blob([a.bytes],{type:a.mime||'application/octet-stream'})})}toast(L.length+' fichier'+(L.length>1?'s':'')+' téléchargé'+(L.length>1?'s':'')+'.')}
  catch(e){toast(e&&e.code?mailErr(e):'Téléchargement impossible.')}}
@@ -3192,7 +3209,7 @@ document.addEventListener('click',e=>{
  else if(a==='mailRepAll')mailReplyAll(id);
  else if(a==='mailFwd')mailFwd(id);
  else if(a==='mailDraftEd')mailDraftEd(id);
- else if(a==='mailAttDl')mailAttDl(id);
+ else if(a==='mailAttDl')mailAttDl(id);else if(a==='mailAttImp')mailAttImp(id);
  else if(a==='gmConnect'){gmDo()}
  else if(a==='home'){as();go('home');if(MC&&!M.labels)mailLabels()}
  else if(a==='notaires'){as();V.nq='';go('not')}
