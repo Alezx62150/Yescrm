@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v66</title>
+<title>YES CRM · v68</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -825,7 +825,7 @@ function panelBienOld(f){const op=V['pn_bi']?' open':'',t=f.btype||'',x=(k,l,ph)
 function panelMatch(f){if(!preCmp(f))return '';const op=V['pn_mt']?' open':'',L=S.c.map(c=>[c,critOk(c,f)]).filter(x=>x[1]);
  return `<details class='pnl'${op} data-pn='mt'><summary>🎯 Acquéreurs intéressés · ${L.length}</summary>${L.length?L.map(([c,w])=>`<div class='rw' style='align-items:center;gap:8px'><span style='flex:1'><b>${esc(nom(c))}</b> <span class='m'>· ${esc(w)}${c.tel?' · '+esc(c.tel):''}</span></span>${c.tel?`<a href='tel:${esc(String(c.tel).replace(/[^\d+]/g,''))}' style='text-decoration:none'><button type='button' style='padding:2px 8px'>📞</button></a>`:''}<button type='button' data-a='ficheC' data-id='${c.id}' style='padding:2px 8px'>Fiche</button></div>`).join(''):`<p class='m'>Aucun acquéreur ne correspond. Renseignez les critères (budget, secteurs) dans la fiche des acquéreurs.</p>`}<p class='m' style='font-size:12px'>Correspondance sur le budget (à 5 % près) et les secteurs recherchés.</p></details>`}
 function panelHist(f){const op=V['pn_hi']?' open':'',L=f.hist||[];return `<details class='pnl'${op} data-pn='hi'><summary>🕘 Historique du dossier · ${L.length}</summary>${L.length?L.slice(0,60).map(h=>`<div class='rw' style='gap:8px'><span class='m' style='min-width:130px'>${esc(fdate(h.t))}</span><span style='flex:1'>${esc(h.x)}</span>${h.u?`<span class='m'>${esc(h.u)}</span>`:''}</div>`).join(''):`<p class='m'>L’historique se remplit au fil des modifications (étape, prix, documents, visites, échéances).</p>`}</details>`}
-function extraPanels(f){return panelPieces(f)+panelBien(f)+panelMandat(f)+(f.bid?'':panelVis(f)+panelMatch(f))+panelWorks(f)+panelHist(f)+panelArc(f)+panelMdl(f)+panelSg(f)}
+function extraPanels(f){return panelImp(f)+panelPieces(f)+panelBien(f)+panelMandat(f)+(f.bid?'':panelVis(f)+panelMatch(f))+panelWorks(f)+panelHist(f)+panelArc(f)+panelMdl(f)+panelSg(f)}
 function critHtml(c){const r=roleOf(c);if(r!=='acquereur'&&r!=='')return '';const fs=S.f.filter(f=>!f.arch&&preCmp(f)&&critOk(c,f));
  const i=(k,l,ph,t)=>`<div><label>${l}</label><input data-c2='${k}' ${t?`type='${t}'`:''} placeholder='${ph||''}' value="${esc(c[k])}"></div>`;
  const sl=(k,l,a)=>`<div><label>${l}</label><select data-c2='${k}'><option value=''>—</option>${a.map(v=>`<option ${c[k]===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
@@ -1379,7 +1379,7 @@ const _sv0=save;save=function(){const r=_sv0.apply(this,arguments);if(Date.now()
 
 /* --- dossier de vente : panneaux en onglets --- */
 let DTAB_CUR='docs';
-const DPL=[[/Suivi du dossier/,'📋 Suivi'],[/Prix, frais/,'💶 Prix et honoraires'],[/Relance des pièces/,'📨 Pièces manquantes'],[/Le bien|Bien ·|Caractéristiques/,'🏠 Bien'],[/Mandat et échéances/,'🗓️ Mandat et délais'],[/Pré-chiffrage/,'🛠️ Works'],[/Visites/,'👀 Visites'],[/Acquéreurs intéressés/,'🎯 Acquéreurs'],[/Historique/,'🕘 Historique'],[/Archive/,'🗄️ Archive'],[/Modelo/,'📝 Modelo'],[/Signer/,'✍️ Signature']];
+const DPL=[[/Suivi du dossier/,'📋 Suivi'],[/Prix, frais/,'💶 Prix et honoraires'],[/Relance des pièces/,'📨 Pièces manquantes'],[/Le bien|Bien ·|Caractéristiques/,'🏠 Bien'],[/Mandat et échéances/,'🗓️ Mandat et délais'],[/Pré-chiffrage/,'🛠️ Works'],[/Visites/,'👀 Visites'],[/Acquéreurs intéressés/,'🎯 Acquéreurs'],[/Historique/,'🕘 Historique'],[/Archive/,'🗄️ Archive'],[/Modelo/,'📝 Modelo'],[/Signer/,'✍️ Signature'],[/Importer un mandat/,'📥 Importer un PDF']];
 function dPanels(f){const t=document.createElement('template');t.innerHTML=suiviHtml(f)+extraPanels(f);
  return [...t.content.children].filter(e=>e.tagName==='DETAILS').map(e=>{const s=((e.querySelector('summary')||{}).textContent||'').replace(/\s+/g,' ').trim(),m=DPL.find(x=>x[0].test(s)),n=(s.match(/·\s*(\d+)\s*(?:·|$|visite|document)/)||[])[1];
   return {k:e.dataset.pn||s.slice(0,8),e,label:(m?m[1]:s.slice(0,20))+(n&&n!=='0'&&m&&/Pièces|Works|Visites|Acquéreurs|Historique|Archive/.test(m[1])?' · '+n:'')}})}
@@ -1585,7 +1585,7 @@ const isEmptyF=f=>!f.d.length&&!(f.vids||[]).length&&!(f.aids||[]).length&&!f.ma
 function vList(){
  const arch=S.f.filter(f=>f.arch).length,vis=S.f.filter(f=>(!f.arch||V.showArch)&&(!V.etf||f.etape===V.etf)),emp=S.f.filter(isEmptyF).length;
  const card=f=>{const v=partyC(f,'vids'),a=partyC(f,'aids');return `<div class='card click' ${f.arch?"style='opacity:.65'":''} data-a='openF' data-id='${f.id}'><div><div class='t'>${esc(f.name)}${f.arch?" <span class='badge'>Archivé</span>":''}${f.etape?` <span class='badge'>${esc(f.etape)}</span>`:''}</div><div class='m'><a data-a='openFD' data-id='${f.id}' style='cursor:pointer;text-decoration:underline' title='Afficher tous les documents de ce dossier'>${f.d.length} document${f.d.length>1?'s':''}</a>${f.mandat?' · Mandat n° '+esc(f.mandat):''}${v.length?' · Vendeur'+(v.length>1?'s':'')+' : '+esc(joinEt(v.map(nom))):''}${a.length?' · Acquéreur'+(a.length>1?'s':'')+' : '+esc(joinEt(a.map(nom))):''}</div></div><span class='sp'></span><div class='qa'><button data-a='callF' data-id='${f.id}' title='${cTitle(f)}' aria-label='Appeler'>📞${cCall(f)}</button><button data-a='mailQ' data-id='${f.id}' title='${mTitle(f)}' aria-label='Écrire'>✉${cMail(f)}</button><button data-a='fMenu' data-id='${f.id}' title='Modifier, dupliquer, supprimer…' aria-label='Plus d’actions'>⋯</button></div></div>`};
- return `<div class='bar'><h1>Dossiers de vente</h1><span class='sp'></span><button data-a='sgOpen' title='Signer un PDF ou une photo'>✍️ Signer un document</button>${emp>1||(emp===1&&S.f.length>1)?`<button data-a='delEmpty' title='Supprime les dossiers sans aucun contenu'>🧹 Supprimer les dossiers vides (${emp})</button>`:''}<button class='p' data-a='newF'>+ Nouveau dossier</button></div>`+
+ return `<div class='bar'><h1>Dossiers de vente</h1><span class='sp'></span><button data-imp='' title='Créer un dossier à partir d’un mandat ou d’un compromis (PDF)'>📥 Dossier depuis un PDF</button><button data-a='sgOpen' title='Signer un PDF ou une photo'>✍️ Signer un document</button>${emp>1||(emp===1&&S.f.length>1)?`<button data-a='delEmpty' title='Supprime les dossiers sans aucun contenu'>🧹 Supprimer les dossiers vides (${emp})</button>`:''}<button class='p' data-a='newF'>+ Nouveau dossier</button></div>`+
  etFilter()+(vis.length?vis.map(card).join(''):`<p class='m'>Aucun dossier${arch?' actif':''}. Créez-en un pour commencer.</p>`)+
  (arch?`<div class='bar'><button data-a='togArch'>${V.showArch?'Masquer':'Afficher'} les dossiers archivés (${arch})</button></div>`:'')+
  `<p class='m' style='margin-top:20px'>Les données restent enregistrées dans ce navigateur uniquement.</p>`;
@@ -1707,6 +1707,276 @@ async function pdfTextOf(blob,maxP){
  const pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise,n=Math.min(pdf.numPages,maxP||3);let o='';
  for(let i=1;i<=n;i++){const tc=await (await pdf.getPage(i)).getTextContent();o+=' '+tc.items.map(x=>x.str).join(' ')}
  return o}
+/* ===== Import mandat / compromis (PDF) : lecture du texte et extraction ===== */
+const IMPMOIS={janvier:1,'février':2,fevrier:2,mars:3,avril:4,mai:5,juin:6,juillet:7,'août':8,aout:8,septembre:9,octobre:10,novembre:11,'décembre':12,decembre:12};
+const impP2=n=>String(n).padStart(2,'0');
+const impSp=s=>String(s==null?'':s).replace(/[  ]/g,' ').replace(/\s+/g,' ').trim();
+const impTitle=s=>impSp(s).toLowerCase().replace(/(^|[\s\-'’])([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
+function impLinesOf(pages){
+ return pages.map(items=>{
+  const L=[];
+  items.filter(x=>x&&x.str&&x.str.trim()).forEach(x=>{const y=x.transform[5];let l=L.find(z=>Math.abs(z.y-y)<=2.6);if(!l){l={y,a:[]};L.push(l)}l.a.push(x)});
+  L.sort((a,b)=>b.y-a.y);
+  return L.map(l=>l.a.sort((a,b)=>a.transform[4]-b.transform[4]).map(x=>x.str).join(' ')).join('\n')
+ }).join('\n')}
+function impIso(s){
+ s=impSp(s).toLowerCase();let m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return m[3]+'-'+impP2(m[2])+'-'+impP2(m[1]);
+ m=s.match(/(\d{1,2})\s*(?:er)?\s+([a-zéèêûô]+)\s+(\d{4})/);if(m&&IMPMOIS[m[2]])return m[3]+'-'+impP2(IMPMOIS[m[2]])+'-'+impP2(m[1]);
+ m=s.match(/(premier|1er)\s+([a-zéèêûô]+)\s+(\d{4})/);if(m&&IMPMOIS[m[2]])return m[3]+'-'+impP2(IMPMOIS[m[2]])+'-01';
+ return ''}
+function impWords(s){
+ const U={un:1,une:1,premier:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,huit:8,neuf:9,dix:10,onze:11,douze:12,treize:13,quatorze:14,quinze:15,seize:16,trente:30,quarante:40,cinquante:50,soixante:60};
+ let tot=0,cur=0,any=false;
+ impSp(s).toLowerCase().replace(/[’']/g,' ').split(/[\s\-]+/).forEach(t=>{
+  if(!t||t==='et'||t==='zéro')return;
+  if(U[t]!=null){cur+=U[t];any=true}
+  else if(t==='vingt'||t==='vingts'){cur=cur===4?80:cur+20;any=true}
+  else if(t==='cent'||t==='cents'){cur=(cur||1)*100;any=true}
+  else if(t==='mille'){tot+=(cur||1)*1000;cur=0;any=true}});
+ return any?tot+cur:null}
+function impNum(s){
+ s=String(s==null?'':s).replace(/[\s  €]/g,'');if(!s)return null;
+ if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,'');
+ s=s.replace(',','.').replace(/[^\d.]/g,'');const n=parseFloat(s);return isNaN(n)?null:n}
+const impEur=n=>n==null?'':String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' €';
+function impAddr(rue,cp,ville){return [impSp(rue),[cp,impTitle(ville)].filter(Boolean).join(' ')].filter(Boolean).join(', ')}
+function impSplitName(txt){
+ const t=impSp(txt).replace(/,$/,'').split(' ').filter(Boolean);
+ let i=t.length;while(i>0&&/^[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ'’\-]+$/.test(t[i-1])&&t[i-1].length>1)i--;
+ if(i===t.length||i===0)return {prenom:t.slice(0,-1).join(' '),nom:t.slice(-1).join(' ')};
+ return {prenom:t.slice(0,i).join(' '),nom:t.slice(i).join(' ')}}
+function impNameAny(txt){const t=impSp(txt).replace(/,/g,' ').replace(/\s+/g,' ').split(' ').filter(Boolean),U=w=>/^[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ'’\-]+$/.test(w);let i=0;while(i<t.length&&U(t[i]))i++;
+ if(i===t.length&&t.length)return {nom:t[0],prenom:t.slice(1).join(' ')};
+ if(i>0)return {nom:t.slice(0,i).join(' '),prenom:t.slice(i).join(' ')};
+ return impSplitName(txt)}
+function impKind(txt){
+ const h=impSp(txt.slice(0,6000)).toUpperCase();
+ if(/PROMESSE\s+(UNILAT[ÉE]RALE|SYNALLAGMATIQUE)\s+DE\s+VENTE|COMPROMIS\s+DE\s+VENTE|PROMESSE\s+DE\s+VENTE/.test(h)&&!/MANDAT\s+DE\s+VENTE\s+(SANS\s+EXCLUSIVIT|EXCLUSIF)/.test(h))return 'compromis';
+ if(/MANDAT\s+(DE\s+VENTE|EXCLUSIF|SIMPLE)/.test(h))return 'mandat';
+ if(/PROMESSE|COMPROMIS/.test(h))return 'compromis';
+ return ''}
+
+/* --- Sociétés (SCI, SARL…) --- */
+const IMPFORME='SCI|SARL|SAS|SASU|EURL|SELARL|SNC|SCCV|SCP|SA';
+const impIsOrg=s=>new RegExp('^\\s*(?:La\\s+|Les\\s+|L[\'’])?(?:soci[ée]t[ée]|'+IMPFORME+')(?![A-Za-zÀ-ÿ])','i').test(s);
+function impAddr2(s){s=impSp(s);let m=s.match(/^([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,\s*(.+)$/);if(m)return impAddr(m[3],m[2],m[1]);
+ m=s.match(/^(.*?)[\s,]+(\d{2}\s?\d{3})\s+(.+?)[\s,]*$/);if(m)return impAddr(m[1],m[2].replace(/\s/g,''),m[3]);return s}
+
+function impMP(s){
+ const p=s.match(/^(Monsieur|Madame|Mademoiselle)\s+(.+?)\s+n[ée]e?\s+le\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+[àa]\s+(.+?)\s*,\s*de\s+nationalit[ée]\s+([^\s,]+)\s*,?\s*([^,]*?)\s*,/i);if(!p)return null;
+ const nn=impNameAny(p[2]),sn=nn.nom,gv=nn.prenom;
+ const d=(s.match(/demeurant\s+(.+?)\s*,?\s*(?:T[ée]l[ée]phones?|Adresses?\s+[ée]lectroniques?|$)/i)||[])[1];
+ return {civ:p[1]==='Monsieur'?'Monsieur':'Madame',prenom:gv,nom:sn,naiss:impIso(p[3]),lieu:impTitle(p[4]),nat:p[5].toLowerCase(),prof:impSp(p[6]),adr:d?impAddr2(d):'',matri:'',tel:'',email:''}}
+function impOrg(blk){
+ const S=impSp(blk),o={pm:true,forme:'',denom:'',capital:'',siren:'',rcs:'',adr:'',tel:'',email:'',rep:null};
+ let head=S.split(',')[0].replace(/^(?:La\s+|Les\s+|L['’])?(?:soci[ée]t[ée]\s+)?(?:d[ée]nomm[ée]e\s+)?(?:civile\s+immobili[èe]re\s+)?/i,'').trim();
+ const mf=head.match(new RegExp('^('+IMPFORME+')\\s+(.+)$'));
+ if(mf){o.forme=mf[1];o.denom=mf[2]}else{o.denom=head;const m2=S.match(new RegExp('\\b('+IMPFORME+')\\b'));o.forme=m2?m2[1]:'Autre'}
+ let m=S.match(/capital\s+(?:social\s+)?(?:de\s+)?([\d\s.,]+?)\s*(?:€|euros?)/i);if(m)o.capital=impEur(impNum(m[1]));
+ m=S.match(/si[èe]ge(?:\s+social)?\s+(?:est\s+)?(?:situ[ée]\s+)?(?:[àa]\s+)?(.+?)\s*,?\s*(?:identifi|immatricul|repr[ée]sent|prise?\s+en|au\s+capital|inscrit|SIREN|RCS|N°)/i);if(m)o.adr=impAddr2(m[1]);
+ m=S.match(/(?:SIREN|RCS[^0-9]{0,80}?(?:n°|num[ée]ro)|sous\s+le\s+(?:n°|num[ée]ro))\s*:?\s*((?:\d[\s.]?){9})/i);
+ if(m){const d=m[1].replace(/\D/g,'').slice(0,9);o.siren=d.replace(/(\d{3})(\d{3})(\d{3})/,'$1 $2 $3')}
+ m=S.match(/(?:RCS|Registre du Commerce et des Soci[ée]t[ée]s)\s+(?:de\s+|d['’])\s*([A-ZÀ-Ý][A-Za-zÀ-ÿ\- ]+?)(?=\s*(?:sous|,|\.|n°|$))/);if(m)o.rcs=impTitle(m[1]);
+ m=S.match(/repr[ée]sent[ée]e?\s+par\s+(?:son\s+\w+\s+|sa\s+\w+\s+)?((?:Monsieur|Madame|Mademoiselle)\s.+)/i);
+ if(m){const rest=impSp(m[1]),pp=impPersons(rest)[0];
+  const mp=impMP(rest);
+  if(mp){mp.qual=/g[ée]rant|pr[ée]sident|directeur|associ|mandataire|liquidateur/i.test(mp.prof)?mp.prof:'gérant';mp.prof='';o.rep=mp}
+  else if(pp){const mq=rest.match(/^(?:Monsieur|Madame|Mademoiselle)\s+[^,]+,\s*([^,]*?(?:g[ée]rant|pr[ée]sident|directeur|associ|mandataire|liquidateur)[^,]*?)\s*[,.]/i);pp.qual=mq?impSp(mq[1]):'gérant';if(pp.prof===pp.qual)pp.prof='';o.rep=pp}}
+ const tel=(S.match(/T[ée]l[ée]phones?\s*:\s*([\d\s.+\-]{8,})/i)||[])[1],mail=(S.match(/Adresses?\s+[ée]lectroniques?\s*:\s*(\S+@\S+)/i)||[])[1];
+ if(tel)o.tel=impSp(tel);if(mail)o.email=mail;
+ return o}
+/* --- Mandat de vente --- */
+function impMandat(T){
+ const S=impSp(T),r={kind:'mandat',vendeurs:[],warn:[]};
+ let m=S.match(/MANDAT DE VENTE[^N]{0,80}N°\s*(\d+)/i)||S.match(/Mandat n°\s*(\d+)/i);if(m)r.mandat=m[1];
+ r.mtype=/SANS\s+EXCLUSIVIT/i.test(S.slice(0,1500))?'simple':/EXCLUSIF/i.test(S.slice(0,1500))?'exclusif':'';
+ m=S.match(/Adresse des biens\s*:\s*(.+?)\s*\.\s*(?:Description|D[ée]signation|[A-Z])/);
+ if(m){const a=impSp(m[1]),z=a.match(/^(.*?)[\s,]+(\d{5})\s+(.+)$/);r.bien=z?impAddr(z[1],z[2],z[3]):a}
+ m=S.match(/propos[ée]s?\s+au\s+prix\s+de\s+[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.prix=impNum(m[1]);
+ m=S.match(/\(\s*([\d\s.,]+)\s*€\s*TTC\s*\)/i);if(m)r.honTTC=impNum(m[1]);
+ m=S.match(/\(\s*([\d\s.,]+)\s*€\s*HT\s*\)/i);if(m)r.honHT=impNum(m[1]);
+ m=S.match(/r[ée]mun[ée]ration du MANDATAIRE sera [àa] la charge (?:de l['’]?|du |des )?\s*(acqu[ée]reurs?|vendeurs?|mandants?)/i);
+ if(m)r.honPay=/acq/i.test(m[1])?'acq':'ven';
+ m=S.match(/dur[ée]e de\s+(\d+)\s*mois/i);if(m)r.duree=+m[1];
+ m=S.match(/D[ÉE]LAI IRR[ÉE]VOCABLE DE\s+(\d+)\s*mois/i);if(m)r.irrev=+m[1];
+ /* mandants */
+ const i0=S.search(/Le\s+Mandant\b/),i1=S.search(/D['’]UNE PART/);
+ let B=i0>=0?S.slice(i0+10,i1>i0?i1:i0+1800):'';
+ if(impIsOrg(B)){r.vendeurs=[impOrg(B)];if(!r.vendeurs[0].denom)r.warn.push('Société non reconnue : à saisir à la main.');return r}
+ const tel=(B.match(/T[ée]l[ée]phones?\s*:\s*([\d\s.\/+\-]+?)(?=\s*(?:Adresses?|[A-Za-z]{3,}))/i)||[])[1]||'',
+       mail=(B.match(/Adresses?\s+[ée]lectroniques?\s*:\s*(\S+(?:\s*\/\s*\S+)*)/i)||[])[1]||'';
+ const tels=tel.split('/').map(impSp).filter(Boolean),mails=mail.split('/').map(impSp).filter(Boolean);
+ const dem=(B.match(/demeurant\s+(.+?)\s*,?\s*T[ée]l[ée]phones?/i)||B.match(/demeurant\s+(.+?)\s*,?\s*Adresses?/i)||[])[1];
+ let adr='';if(dem){const z=impSp(dem).replace(/\s+,/g,',').match(/^(.*?)[\s,]+(\d{5})\s+(.+?)\s*,?$/);adr=z?impAddr(z[1],z[2],z[3]):impSp(dem)}
+ const mat=/pacs/i.test(B)?'Pacsé(e)':/mari[ée]/i.test(B)?'Marié(e)':/divorc/i.test(B)?'Divorcé(e)':/veuf|veuve/i.test(B)?'Veuf(ve)':/c[ée]libataire/i.test(B)?'Célibataire':'';
+ const segs=B.split(/(?=\b(?:Monsieur|Madame|Mademoiselle)\s+[A-ZÀ-Ý])/).filter(s=>/^(Monsieur|Madame|Mademoiselle)\s/.test(s));
+ segs.forEach((s,k)=>{
+  const p=s.match(/^(Monsieur|Madame|Mademoiselle)\s+(.+?)\s+n[ée]e?\s+le\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+[àa]\s+(.+?)\s*,\s*de\s+nationalit[ée]\s+([^\s,]+)\s*,?\s*([^,]*?)\s*,/i);
+  if(!p)return;
+  const nn=impNameAny(p[2]),surname=nn.nom,given=nn.prenom;
+  r.vendeurs.push({civ:p[1]==='Monsieur'?'Monsieur':'Madame',prenom:given,nom:surname,naiss:impIso(p[3]),lieu:impTitle(p[4]),nat:p[5].toLowerCase(),prof:impSp(p[6]).replace(/^et$/i,''),adr,tel:tels[k]||'',email:mails[k]||'',matri:mat})});
+ if(!r.vendeurs.length)r.warn.push('Vendeurs non reconnus : à saisir à la main.');
+ return r}
+/* --- Compromis / promesse --- */
+function impPersons(blk){
+ const out=[];if(!blk)return out;
+ const S=impSp(blk);
+ const re=/(?:^|[.;:]\s+|\s+et\s+)(Monsieur|Madame|Mademoiselle)\s+(?=[A-ZÀ-Ý])/g;let m,idx=[];
+ while((m=re.exec(S)))idx.push({i:m.index+m[0].indexOf(m[1]),civ:m[1],e:re.lastIndex});
+ idx.forEach((x,k)=>{
+  const seg=S.slice(x.e,k+1<idx.length?idx[k+1].i:S.length),c=seg.indexOf(',');
+  const head=c>0?seg.slice(0,c):seg.slice(0,60),n=impSplitName(head);
+  const rest=c>0?seg.slice(c+1):'';
+  const mD=rest.match(/^\s*([^,]*?)\s*,\s*demeurant/i),prof=mD&&!/^demeurant/i.test(mD[1])?impSp(mD[1]):'';
+  const mA=seg.match(/demeurant\s+(?:[àa]\s+)?([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,?\s*([^.]*?)\./i)||seg.match(/demeurant\s+(?:[àa]\s+)?(.+?)\./i);
+  const mN=seg.match(/N[ée]e?\s+[àa]\s+(.+?)\s*(?:\((\d{5})\))?\s*,?\s*le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
+  const pacs=!/N['’]étant pas engag[ée]/i.test(seg)&&/pacte civil de solidarit[ée]/i.test(seg);
+  const matri=pacs?'Pacsé(e)':/divorc[ée]/i.test(seg)?'Divorcé(e)':/veuf|veuve/i.test(seg)?'Veuf(ve)':/mari[ée]/i.test(seg)?'Marié(e)':/c[ée]libataire/i.test(seg)?'Célibataire':'';
+  const mNat=seg.match(/De nationalit[ée]\s+([^\s.,]+)/i);
+  let adr='';if(mA)adr=mA[2]?impAddr(mA[3],mA[2],mA[1]):impSp(mA[1]);
+  out.push({civ:x.civ==='Monsieur'?'Monsieur':'Madame',prenom:n.prenom,nom:n.nom,naiss:mN?impIso(mN[3]):'',lieu:mN?impTitle(mN[1]):'',nat:mNat?mNat[1].toLowerCase():'',prof,adr,matri,tel:'',email:''})});
+ return out}
+function impParties(blk){return impIsOrg(blk)?[impOrg(blk)]:impPersons(blk)}
+function impCompromis(T){
+ const S=impSp(T),r={kind:'compromis',vendeurs:[],acquereurs:[],warn:[]};
+ /* date de l'acte */
+ let m=T.match(/L['’]AN\s+(.+?)\s*\n\s*LE\s+(.+?)\s*\n/i);
+ if(m){const y=impWords(m[1]),t=impSp(m[2]).toLowerCase().split(' '),mo=IMPMOIS[t[t.length-1]],d=impWords(t.slice(0,-1).join(' '));if(y&&mo&&d)r.dateActe=y+'-'+impP2(mo)+'-'+impP2(d)}
+ if(!r.dateActe){m=S.match(/(?:fait|sign[ée]|conclu)\s+(?:[àa]\s+\S+\s+)?le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);if(m)r.dateActe=impIso(m[1])}
+ m=S.match(/Ma[iî]tre\s+(.+?)\s+notaire/i);if(m)r.notaire='Maître '+impSp(m[1]);
+ /* parties */
+ const reV=/(?:\b1\)|\bI\.)?\s*(?:Le\s+|Les\s+)?(?:Promettants?|Vendeurs?)\s+(?=(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
+ const reA=/(?:\b2\)|\bII\.)?\s*(?:Le\s+|Les\s+)?(?:B[ée]n[ée]ficiaires?|Acqu[ée]reurs?)\s+(?=(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
+ const eV=/Ci-apr[èe]s\s+d[ée]nomm[ée]s?\s+[«"“]?\s*(?:LE|LES)\s*(?:PROMETTANTS?|VENDEURS?)/i,eA=/Ci-apr[èe]s\s+d[ée]nomm[ée]s?\s+[«"“]?\s*(?:LE|LES)\s*(?:B[ÉE]N[ÉE]FICIAIRES?|ACQU[ÉE]REURS?)/i;
+ const sV=S.search(reV),sA=S.search(reA);
+ if(sV>=0){const t=S.slice(sV);const e=t.search(eV);r.vendeurs=impParties(t.slice(t.match(reV)[0].length,e>0?e:1500))}
+ if(sA>=0){const t=S.slice(sA);const e=t.search(eA);r.acquereurs=impParties(t.slice(t.match(reA)[0].length,e>0?e:1500))}
+ if(!r.vendeurs.length)r.warn.push('Vendeurs non reconnus : à saisir à la main.');
+ if(!r.acquereurs.length)r.warn.push('Acquéreurs non reconnus : à saisir à la main.');
+ /* bien */
+ m=S.match(/\b(?:Un|Une|Deux|Les)\s+(.{3,90}?)\s+situ[ée]e?s?\s+[àa]\s+([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,\s*([^.]+?)\./);
+ if(m){r.bien=impAddr(m[4],m[3],m[2]);r.nature=impSp(m[1])}
+ m=S.match(/prix\s+principal\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i)||S.match(/moyennant\s+le\s+prix\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.prix=impNum(m[1]);
+ /* agence, mandat, honoraires */
+ m=S.match(/n[ée]goci[ée]es?\s+par\s+l['’]agence\s+["“«]?([^"”»,]+?)["”»]?\s*,\s*en\s+vertu\s+du\s+mandat\s+qu['’]il\s+lui\s+a\s+donn[ée]\s+le\s+(.+?)\s*,\s*sous\s+le\s+num[ée]ro\s+(\w+)/i);
+ if(m){r.agence=impSp(m[1]);r.mandatDate=impIso(m[2]);r.mandat=m[3]}
+ m=S.match(/REMUN[ÉE]RATION DU MANDATAIRE\s+[ÀA] LA CHARGE (?:DU|DES|DE L['’]?)\s*(PROMETTANTS?|B[ÉE]N[ÉE]FICIAIRES?|VENDEURS?|ACQU[ÉE]REURS?)/i);
+ if(m)r.honPay=/PROMETT|VENDEUR/i.test(m[1])?'ven':'acq';
+ m=S.match(/TVA\s+incluse,?\s*de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.honTTC=impNum(m[1]);
+ /* conditions et dates */
+ m=S.match(/\(\s*([\d\s.,]+)\s*€\s*\)\s*,?\s*[àa]\s+titre\s+d['’]indemnit[ée]\s+d['’]immobilisation/i);if(m)r.indemnite=impNum(m[1]);
+ m=S.match(/(?:d[ée]p[ôo]t\s+de\s+garantie|s[ée]questre)[^()]{0,120}\(\s*([\d\s.,]+)\s*€/i);if(m&&!r.indemnite)r.depot=impNum(m[1]);
+ m=S.match(/Montant\s+du\s+pr[êe]t\s*:\s*([\d\s.,]+)\s*€/i);if(m)r.pret=impNum(m[1]);
+ m=S.match(/obtention\s+de\s+ces\s+pr[êe]ts[^.]{0,160}?au\s+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4})/i)||S.match(/obtention\s+(?:du|d['’]un|des)\s+pr[êe]ts?[^.]{0,200}?(?:jusqu['’]au|au\s+plus\s+tard\s+le|avant\s+le)\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
+ if(m)r.datePret=impIso(m[1]);
+ m=S.match(/r[ée]alisation\s+de\s+la\s+pr[ée]sente\s+promesse\s+pourra\s+[êe]tre\s+demand[ée]e\s+par\s+le\s+B[ÉE]N[ÉE]FICIAIRE\s+au\s+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4})/i)||S.match(/(?:signature|r[ée]it[ée]ration)\s+de\s+l['’]acte\s+(?:authentique\s+)?(?:de\s+vente\s+)?(?:devra\s+(?:intervenir|avoir\s+lieu)\s+)?(?:au\s+plus\s+tard|avant)\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
+ if(m)r.dateActeAuth=impIso(m[1]);
+ m=S.match(/d[ée]lai\s+de\s+r[ée]tractation\s+de\s+(dix|10)\s+jours/i);if(m)r.retract=10;
+ return r}
+function impParse(T){const k=impKind(T);return k==='mandat'?impMandat(T):k==='compromis'?impCompromis(T):{kind:'',vendeurs:[],acquereurs:[],warn:['Document non reconnu (ni mandat ni compromis).']}}
+
+/* ===== Import mandat / compromis : lecture PDF, écran de vérification, enregistrement ===== */
+const IMPAT=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const impDays=(a,b)=>{if(!a||!b)return 0;const d=Math.round((new Date(b+'T12:00')-new Date(a+'T12:00'))/864e5);return d>0?d:0};
+const impPlusM=(iso,n)=>{if(!iso||!n)return '';const d=new Date(iso+'T12:00');d.setMonth(d.getMonth()+(+n));return d.getFullYear()+'-'+impP2(d.getMonth()+1)+'-'+impP2(d.getDate())};
+const impNorm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
+async function impPdfLines(file){
+ if(!window.pdfjsLib)return '';
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,n=Math.min(pdf.numPages,80),pg=[];
+ for(let i=1;i<=n;i++)pg.push((await (await pdf.getPage(i)).getTextContent()).items);
+ return impLinesOf(pg)}
+const impPn=p=>p.pm?[p.forme&&p.forme!=='Autre'?p.forme:'',p.denom].filter(Boolean).join(' '):[p.prenom,p.nom].filter(Boolean).join(' ');
+function impFindPm(v){const dg=x=>String(x||'').replace(/\D/g,'');return (S.c||[]).find(c=>c.type==='pm'&&((dg(v.siren).length>=9&&dg(c.siren)===dg(v.siren))||(v.denom&&impNorm(c.denom)===impNorm(v.denom))))}
+function impFindC(p){if(p.pm)return impFindPm(p);const k=impNorm(p.nom)+'|'+impNorm((p.prenom||'').split(' ')[0]);return (S.c||[]).find(c=>c.type!=='pm'&&c.type!=='succ'&&impNorm(c.nom)+'|'+impNorm((c.prenom||'').split(' ')[0])===k)}
+async function impStart(file,fid){
+ toast('Lecture du PDF…');let T='';
+ try{T=await impPdfLines(file)}catch(e){}
+ if(!T||T.length<300){toast('Ce PDF ne contient pas de texte lisible (scan ou photo) : saisissez les informations à la main.');return}
+ const r=impParse(T);
+ if(!r.kind){toast('Document non reconnu : ce n’est ni un mandat ni un compromis.');return}
+ impDlg(r,file,fid)}
+function impDlg(r,file,fid){
+ const f=fid?FF(fid):null,b=f&&f.bid?(S.b||[]).find(x=>x.id===f.bid):null,isM=r.kind==='mandat',cur=b||f||{};
+ const ov=document.createElement('div');ov.id='impov';
+ ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:9999;background:rgba(40,25,20,.5);overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';
+ const L=(id,l,v,t,old)=>`<div><label>${l}</label><input id='imp_${id}' type='${t||'text'}' value="${IMPAT(v)}">${old&&String(old)!==String(v)?`<span class='m' style='font-size:11px'>actuel : ${IMPAT(old)}</span>`:''}</div>`;
+ const O=(id,l,v,o)=>`<div><label>${l}</label><select id='imp_${id}'>${o.map(([k,t])=>`<option value="${IMPAT(k)}"${k===v?' selected':''}>${t}</option>`).join('')}</select></div>`;
+ const people=[].concat((r.vendeurs||[]).map(p=>Object.assign({w:'v'},p)),(r.acquereurs||[]).map(p=>Object.assign({w:'a'},p)));
+ const MT=[['','—'],['simple','Simple'],['exclusif','Exclusif']],PY=[['ven','Vendeur'],['acq','Acquéreur']];
+ const mdeb=isM?(cur.mdeb||''):(cur.mdeb||r.mandatDate||''),dur=r.duree||'';
+ let h=`<div style='background:var(--sf);border-radius:14px;max-width:860px;width:100%;padding:16px 16px 12px;box-shadow:0 10px 40px rgba(0,0,0,.35)'>
+ <h2 style='margin:0 0 4px'>📥 ${isM?'Mandat de vente'+(r.mandat?' n° '+IMPAT(r.mandat):''):'Compromis / promesse de vente'} lu</h2>
+ <p class='m' style='margin:0 0 8px'>Vérifiez et corrigez si besoin : rien n’est enregistré tant que vous n’avez pas cliqué sur « Enregistrer ».</p>
+ ${(r.warn||[]).map(w=>`<p style='color:var(--dn);margin:4px 0'>⚠ ${IMPAT(w)}</p>`).join('')}
+ ${f?'':`<div class='agf'><div class='cgrid'>${L('name','Nom du nouveau dossier','Vente '+[...new Set((r.vendeurs||[]).map(p=>p.pm?impPn(p):impTitle(p.nom)))].join(' et ')+(r.acquereurs&&r.acquereurs.length?' à '+[...new Set(r.acquereurs.map(p=>p.pm?impPn(p):impTitle(p.nom)))].join(' et '):''))}</div></div>`}
+ <div class='agf'><b>${isM?'Bien et mandat':'Bien, prix et dates'}</b><div class='cgrid' style='margin-top:6px'>
+ ${L('bien','Adresse du bien',r.bien||'','text',b?b.adr:(f?f.bien:''))}${L('mandat','N° de mandat',r.mandat||'','text',cur.mandat)}
+ ${L('prix','Prix',r.prix?impEur(r.prix):'','text',(b?b.prix:'')||(f?f.prix:''))}
+ ${O('hpay','Honoraires à la charge de',r.honPay||'ven',PY)}${L('hon','Honoraires TTC (€)',r.honTTC||'','text',f&&f.calc?f.calc.hon:'')}
+ ${isM?O('mtype','Type de mandat',r.mtype||'',MT)+L('mdeb','Début du mandat (date de signature)',mdeb,'date')+L('duree','Durée (mois)',dur,'number')+L('mfin','Fin du mandat',cur.mfin||impPlusM(mdeb,dur),'date'):''}
+ ${isM?'':L('vdate','Date du compromis',r.dateActe||'','date',cur.vdate)+L('mdeb2','Mandat donné le',mdeb,'date')+L('dpret','Date limite d’obtention du prêt',r.datePret||'','date')+L('dacte','Date limite de l’acte authentique',r.dateActeAuth||'','date')}
+ </div>${isM&&!mdeb?`<p class='m' style='margin:6px 0 0'>La date de signature n’est pas lisible dans le PDF : saisissez le début du mandat, la fin sera calculée.</p>`:''}
+ ${isM?'':`<p class='m' style='margin:6px 0 0'>${[r.notaire?'Notaire : '+IMPAT(r.notaire):'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',r.pret?'Prêt : '+impEur(r.pret):'',r.nature?'Nature : '+IMPAT(r.nature):''].filter(Boolean).join(' · ')} (reporté dans les notes du dossier)</p>`}</div>`;
+ people.forEach((p,i)=>{const ex=impFindC(p),pre='p'+i+'_';
+  if(p.pm){const rp=p.rep||{};h+=`<div class='agf' data-ip='${i}'><div style='display:flex;gap:10px;align-items:center;font-weight:600'><input type='checkbox' id='imp_${pre}on' checked style='width:20px;height:20px;flex:none;margin:0'><span>${p.w==='v'?'Vendeur':'Acquéreur'} (société) : ${IMPAT(impPn(p))} <span class='m' style='font-weight:400'>${ex?'· fiche existante, elle sera liée au dossier':'· nouvelle fiche société'}</span></span></div>
+   <div class='cgrid' style='margin-top:6px'>${O(pre+'forme','Forme juridique',p.forme||'Autre',['SCI','SARL','SAS','SASU','EURL','SA','Autre'].map(x=>[x,x]))}${L(pre+'denom','Dénomination',p.denom)}${L(pre+'capital','Capital',p.capital)}${L(pre+'siren','SIREN',p.siren)}${L(pre+'rcs','Ville du RCS',p.rcs)}${L(pre+'adr','Siège social',p.adr)}${L(pre+'tel','Téléphone',p.tel)}${L(pre+'email','E-mail',p.email)}</div>
+   <b style='display:block;margin:10px 0 4px'>Gérant / représentant</b><div class='cgrid'>${O(pre+'rciv','Civilité',rp.civ||'Monsieur',[['Monsieur','Monsieur'],['Madame','Madame']])}${L(pre+'rprenom','Prénom(s)',rp.prenom||'')}${L(pre+'rnom','Nom',rp.nom||'')}${L(pre+'rqual','Qualité',rp.qual||'gérant')}${L(pre+'rnaiss','Date de naissance',rp.naiss||'','date')}${L(pre+'rlieu','Lieu de naissance',rp.lieu||'')}${L(pre+'rnat','Nationalité',rp.nat||'')}${L(pre+'radr','Adresse',rp.adr||'')}</div></div>`;return}
+  h+=`<div class='agf' data-ip='${i}'><div style='display:flex;gap:10px;align-items:center;font-weight:600'><input type='checkbox' id='imp_${pre}on' checked style='width:20px;height:20px;flex:none;margin:0'><span>${p.w==='v'?'Vendeur':'Acquéreur'} : ${IMPAT([p.prenom,p.nom].filter(Boolean).join(' '))} <span class='m' style='font-weight:400'>${ex?'· fiche existante, elle sera liée au dossier':'· nouvelle fiche contact'}</span></span></div>
+  <div class='cgrid' style='margin-top:6px'>${O(pre+'civ','Civilité',p.civ,[['Monsieur','Monsieur'],['Madame','Madame']])}${L(pre+'prenom','Prénom(s)',p.prenom)}${L(pre+'nom','Nom',p.nom)}${L(pre+'naiss','Date de naissance',p.naiss,'date')}${L(pre+'lieu','Lieu de naissance',p.lieu)}${L(pre+'nat','Nationalité',p.nat)}${O(pre+'matri','Statut matrimonial',p.matri||'',[['','—']].concat(['Célibataire','Marié(e)','Pacsé(e)','Divorcé(e)','Veuf(ve)'].map(x=>[x,x])))}${L(pre+'prof','Profession',p.prof)}${L(pre+'adr','Adresse',p.adr)}${L(pre+'tel','Téléphone',p.tel)}${L(pre+'email','E-mail',p.email)}</div></div>`});
+ h+=`<div style='display:flex;gap:10px;align-items:center;margin:8px 0'><input type='checkbox' id='imp_att' checked style='width:20px;height:20px;flex:none;margin:0'><span>Joindre le PDF au dossier (dans « ${isM?'Mandats':'Compromis / Promesses'} »)</span></div>
+ <div style='display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap'><button id='imp_no'>Annuler</button><button class='p' id='imp_ok'>Enregistrer</button></div></div>`;
+ ov.innerHTML=h;document.body.appendChild(ov);
+ const q=id=>ov.querySelector('#imp_'+id);
+ if(isM){const rc=()=>{const e=q('mfin');if(e&&q('mdeb').value&&+q('duree').value)e.value=impPlusM(q('mdeb').value,q('duree').value)};q('mdeb').oninput=rc;q('duree').oninput=rc}
+ q('no').onclick=()=>ov.remove();
+ q('ok').onclick=async()=>{q('ok').disabled=true;try{await impApply(r,file,fid,ov,people)}catch(e){q('ok').disabled=false;toast('Enregistrement impossible : '+(e&&e.message||e));return}ov.remove()}}
+async function impApply(r,file,fid,ov,people){
+ const q=id=>ov.querySelector('#imp_'+id),g=id=>{const e=q(id);return e?String(e.value||'').trim():''};
+ const isM=r.kind==='mandat';let f=fid?FF(fid):null,isNew=false;
+ if(!f){f={id:uid(),name:g('name')||'Nouveau dossier',vids:[],aids:[],bien:'',prix:'',notes:'',d:[]};S.f.unshift(f);isNew=true}
+ const b=f.bid?(S.b||[]).find(x=>x.id===f.bid):null;
+ f.vids=Array.isArray(f.vids)?f.vids:[];f.aids=Array.isArray(f.aids)?f.aids:[];
+ /* personnes */
+ let nbNew=0,nbLink=0;
+ people.forEach((p,i)=>{const pre='p'+i+'_';if(!q(pre+'on')||!q(pre+'on').checked)return;
+  if(p.pm){const v={type:'pm',forme:g(pre+'forme')||'Autre',denom:g(pre+'denom'),capital:g(pre+'capital'),siren:g(pre+'siren'),rcs:g(pre+'rcs'),adr:g(pre+'adr'),tel:g(pre+'tel'),email:g(pre+'email')},rep={civ:g(pre+'rciv')||'Monsieur',prenom:g(pre+'rprenom'),nom:g(pre+'rnom'),naiss:g(pre+'rnaiss'),lieu:g(pre+'rlieu'),nat:g(pre+'rnat'),matri:'',prof:'',email:'',tel:'',adr:g(pre+'radr'),qual:g(pre+'rqual')||'gérant'};
+   if(!v.denom)return;let c=impFindPm(v);
+   if(c){Object.keys(v).forEach(k=>{if(v[k]&&!String(c[k]||'').trim())c[k]=v[k]});c.gerants=Array.isArray(c.gerants)?c.gerants:[];if(rep.nom&&!c.gerants.length)c.gerants.push(rep);nbLink++}
+   else{c=Object.assign(blankC(),v,{gerants:rep.nom?[rep]:[]});S.c=S.c||[];S.c.push(c);nbNew++}
+   const arr=p.w==='v'?(b?(b.vids=b.vids||[]):f.vids):f.aids;if(!arr.includes(c.id))arr.push(c.id);if(p.w==='v'&&b&&!f.vids.includes(c.id))f.vids.push(c.id);return}
+  const v={civ:g(pre+'civ')||'Monsieur',prenom:g(pre+'prenom'),nom:g(pre+'nom'),naiss:g(pre+'naiss'),lieu:g(pre+'lieu'),nat:g(pre+'nat'),matri:g(pre+'matri'),prof:g(pre+'prof'),adr:g(pre+'adr'),tel:g(pre+'tel'),email:g(pre+'email')};
+  if(!v.nom&&!v.prenom)return;
+  let c=impFindC(v);
+  if(c){Object.keys(v).forEach(k=>{if(v[k]&&!String(c[k]||'').trim())c[k]=v[k]});nbLink++}
+  else{c=Object.assign(blankC(),v);S.c=S.c||[];S.c.push(c);nbNew++}
+  const arr=p.w==='v'?(b?(b.vids=b.vids||[]):f.vids):f.aids;if(!arr.includes(c.id))arr.push(c.id);
+  if(p.w==='v'&&b&&!f.vids.includes(c.id))f.vids.push(c.id)});
+ /* bien, mandat, prix, honoraires */
+ const bien=g('bien'),mand=g('mandat'),prix=impNum(g('prix')),hon=impNum(g('hon')),pay=g('hpay')||'ven';
+ f.calc=f.calc||{};
+ if(hon){f.calc.hon=String(hon).replace('.',',');f.calc.pay=pay;if(b){b.hon=String(hon);b.honc=pay==='acq'?'acquereur':'vendeur'}}
+ if(isM){
+  const T=b||f;if(mand)T.mandat=mand;if(g('mtype'))T.mtype=g('mtype');if(g('mdeb'))T.mdeb=g('mdeb');if(g('mfin'))T.mfin=g('mfin');
+  if(bien){if(b)b.adr=bien;else f.bien=bien}
+  if(prix){const s=impEur(prix);if(b){b.prix=s;if(!f.prix)f.prix=s}else f.prix=s}
+ }else{
+  if(prix)f.prix=impEur(prix);
+  if(g('vdate')){f.vdate=g('vdate');const dp=impDays(f.vdate,g('dpret')),da=impDays(f.vdate,g('dacte'));if(dp)f.dpret=String(dp);if(da)f.dacte=String(da)}
+  if(bien&&!b&&!f.bien)f.bien=bien;
+  if(mand){if(b){if(!b.mandat)b.mandat=mand}else if(!f.mandat)f.mandat=mand}
+  if(g('mdeb2')){if(b){if(!b.mdeb)b.mdeb=g('mdeb2')}else if(!f.mdeb)f.mdeb=g('mdeb2')}
+  const nt=['Compromis du '+(g('vdate')?fDate(g('vdate')):'…')+' (importé du PDF)',r.notaire?'Notaire : '+r.notaire:'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',r.pret?'Prêt : '+impEur(r.pret):'',g('dpret')?'Prêt à obtenir avant le '+fDate(g('dpret')):'',g('dacte')?'Acte authentique avant le '+fDate(g('dacte')):''].filter(Boolean).join(' · ');
+  if(!(f.notes||'').includes('(importé du PDF)'))f.notes=((f.notes||'')+((f.notes||'').trim()?'\n':'')+nt).trim()}
+ if(b)bSync(b);
+ if(q('att')&&q('att').checked){const gr=isM?'Mandats':'Compromis / Promesses',id=uid();await fput(id,file);f.d=f.d||[];f.d.push({id,t:file.name.replace(/\.[^.]+$/,''),pdf:1,size:file.size,h:'',u:today(),cat:catTab(gr),grp:gr,code:'PDF',st:'Brouillon'})}
+ save();
+ V.msg='PDF lu : '+(isM?'mandat':'compromis')+' · '+nbNew+' fiche'+(nbNew>1?'s':'')+' créée'+(nbNew>1?'s':'')+', '+nbLink+' liée'+(nbLink>1?'s':'')+'.';
+ if(isNew)go('folder',f.id);else render()}
+function panelImp(f){return `<details class='pnl' data-pn='imp'${V['pn_imp']?' open':''}><summary>📥 Importer un mandat ou un compromis (PDF)</summary><p class='m' style='margin:6px 0'>Déposez le PDF : le CRM lit les vendeurs et acquéreurs, le bien, le prix, les honoraires et les dates, puis vous les montre pour vérification avant d’enregistrer. Ça marche avec les PDF contenant du texte (pas les scans).</p><button data-imp='${f.id}'>📥 Choisir un PDF</button></details>`}
+document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target.closest('[data-imp]'):null;if(!t)return;e.preventDefault();e.stopPropagation();
+ const fid=t.getAttribute('data-imp'),i=document.createElement('input');i.type='file';i.accept='application/pdf,.pdf';i.onchange=()=>{const fl=i.files&&i.files[0];if(fl)impStart(fl,fid)};i.click()},true);
+
 async function mandatFrom(file,html){try{return detectMandat(file?await pdfTextOf(file,3):strip(html||''))}catch(e){return ''}}
 async function importFiles(files,gc,fid){const f=fid?FF(fid):F(),g=gc||'Divers';if(!f)return;let mnum='';let n=0;const bad=[];for(const file of files){try{const ext=file.name.split('.').pop().toLowerCase(),title=file.name.replace(/\.[^.]+$/,''),id=uid();let h='';
  if(ext==='pdf'){await fput(id,file);f.d.push({id,t:title,pdf:1,size:file.size,h:'',u:today(),cat:catTab(g),grp:g,code:'PDF',st:'Brouillon'});n++;if(catTab(g)==='m'&&!mnum)mnum=await mandatFrom(file,null);continue}
