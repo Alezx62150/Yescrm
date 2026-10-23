@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v97</title>
+<title>YES CRM · v98</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -2257,20 +2257,21 @@ const mpWeb=()=>!!(window.SB&&window.__UID);
 const MPX={req:undefined,adm:undefined};
 async function mpInit(){if(!mpWeb())return;
  if(MPX.adm===undefined){try{const r=await window.SB.from('crm_admins').select('user_id').eq('user_id',window.__UID).maybeSingle();MPX.adm=!!(r&&r.data)}catch(e){MPX.adm=false}if(MPX.adm)window.__ADM=true}
- if(MPX.req===undefined){try{const r=await window.SB.rpc('mode_pwd_required');MPX.req=!r.error&&r.data===true}catch(e){MPX.req=false}}}
-const mpOk=()=>{try{return sessionStorage.getItem('yesModeOk')==='1'}catch(e){return false}};
+ if(MPX.req===undefined){MPX.req={l:false,v:false};try{const a=await window.SB.rpc('mode_pwd_required',{m:'l'}),b=await window.SB.rpc('mode_pwd_required',{m:'v'});MPX.req={l:!a.error&&a.data===true,v:!b.error&&b.data===true}}catch(e){}}}
+const mpOk=m=>{try{return sessionStorage.getItem('yesModeOk_'+m)==='1'}catch(e){return false}};
 function mpSwitch(id){V.mode=id==='l'?'l':'v';go('home')}
-async function mpGo(id){const t=id==='l'?'l':'v';if(t===MD()){mpSwitch(id);return}
- await mpInit();if(!mpWeb()||MPX.adm||!MPX.req||mpOk()){mpSwitch(id);return}mpAsk(id)}
-function mpAsk(id){const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px';
- ov.innerHTML=`<div class='novoc' style='background:var(--sf);border-radius:14px;max-width:380px;width:100%;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h2 style='margin:0 0 6px'>🔐 Changer de CRM</h2><p class='m' style='margin:0 0 10px'>Ce changement est protégé. Saisissez le mot de passe donné par votre administrateur.</p><input id='mpq' type='password' placeholder='Mot de passe' autocomplete='off' style='width:100%'><p id='mpe' style='color:var(--dn);margin:6px 0 0;min-height:18px'></p><div style='display:flex;gap:8px;justify-content:flex-end;margin-top:8px'><button id='mpc'>Annuler</button><button class='p' id='mpv'>Valider</button></div></div>`;
+async function mpGo(id){const t=id==='l'?'l':'v';if(V.mode===t){mpSwitch(id);return}
+ await mpInit();if(!mpWeb()||MPX.adm||!MPX.req[t]||mpOk(t)){mpSwitch(id);return}mpAsk(t)}
+function mpAsk(t){const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px';
+ ov.innerHTML=`<div class='novoc' style='background:var(--sf);border-radius:14px;max-width:380px;width:100%;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h2 style='margin:0 0 6px'>🔐 ${t==='l'?'CRM Location':'CRM Transaction'}</h2><p class='m' style='margin:0 0 10px'>Cet accès est protégé. Saisissez le mot de passe du ${t==='l'?'CRM Location':'CRM Transaction'} donné par votre administrateur.</p><input id='mpq' type='password' placeholder='Mot de passe' autocomplete='off' style='width:100%'><p id='mpe' style='color:var(--dn);margin:6px 0 0;min-height:18px'></p><div style='display:flex;gap:8px;justify-content:flex-end;margin-top:8px'><button id='mpc'>Annuler</button><button class='p' id='mpv'>Valider</button></div></div>`;
  document.body.appendChild(ov);const q=ov.querySelector('#mpq'),e=ov.querySelector('#mpe');setTimeout(()=>q.focus(),30);
- const go1=async()=>{e.textContent='';let ok=false;try{const r=await window.SB.rpc('mode_pwd_check',{p:q.value});ok=!r.error&&r.data===true;if(r.error)e.textContent='Vérification impossible : '+r.error.message}catch(x){e.textContent='Vérification impossible.'}
-  if(ok){try{sessionStorage.setItem('yesModeOk','1')}catch(x){}ov.remove();mpSwitch(id)}else if(!e.textContent){e.textContent='Mot de passe incorrect.';q.select()}};
+ const go1=async()=>{e.textContent='';let ok=false;try{const r=await window.SB.rpc('mode_pwd_check',{m:t,p:q.value});ok=!r.error&&r.data===true;if(r.error)e.textContent='Vérification impossible : '+r.error.message}catch(x){e.textContent='Vérification impossible.'}
+  if(ok){try{sessionStorage.setItem('yesModeOk_'+t,'1')}catch(x){}ov.remove();mpSwitch(t)}else if(!e.textContent){e.textContent='Mot de passe incorrect.';q.select()}};
  ov.querySelector('#mpv').onclick=go1;ov.querySelector('#mpc').onclick=()=>ov.remove();q.onkeydown=ev=>{if(ev.key==='Enter')go1();if(ev.key==='Escape')ov.remove()}}
 function mpBox(){if(!mpWeb()||!window.__ADM)return'';
- return `<div class='card novoc' style='flex-direction:column;align-items:stretch;gap:8px;margin:12px 0'><b>🔐 Mot de passe pour changer de CRM (Transaction ⇄ Location)</b><p class='m' style='margin:0'>Réservé à l’administrateur : les comptes administrateur n’ont jamais à le saisir. Les autres collaborateurs doivent le saisir une fois par session pour passer d’un CRM à l’autre. État : <b>${MPX.req?'protégé 🔒':'aucun mot de passe (libre)'}</b>.</p><div style='display:flex;gap:8px;flex-wrap:wrap'><input id='mpw' type='text' autocomplete='off' placeholder='Nouveau mot de passe' style='flex:1;min-width:180px'><button class='p' data-a='mpSave'>${MPX.req?'Changer':'Enregistrer'}</button>${MPX.req?`<button data-a='mpClear'>Supprimer la protection</button>`:''}</div></div>`}
-async function mpSet(p){try{const r=await window.SB.rpc('mode_pwd_set',{p:p});if(r.error)throw r.error;MPX.req=!!p;toast(p?'Mot de passe enregistré.':'Protection supprimée.');render()}catch(e){alert('Échec : '+((e&&e.message)||'erreur')+'\nVérifiez que le script SQL « supabase-mdp.sql » a été exécuté.')}}
+ const one=(m,t)=>`<div style='display:flex;gap:8px;flex-wrap:wrap;align-items:center'><span style='min-width:150px'><b>${t}</b><br><span class='m'>${MPX.req&&MPX.req[m]?'protégé 🔒':'libre'}</span></span><input id='mpw${m}' type='text' autocomplete='off' placeholder='Nouveau mot de passe' style='flex:1;min-width:160px'><button class='p' data-a='mpSave' data-id='${m}'>${MPX.req&&MPX.req[m]?'Changer':'Enregistrer'}</button>${MPX.req&&MPX.req[m]?`<button data-a='mpClear' data-id='${m}'>Supprimer</button>`:''}</div>`;
+ return `<div class='card novoc' style='flex-direction:column;align-items:stretch;gap:10px;margin:12px 0'><b>🔐 Mots de passe d’accès aux CRM</b><p class='m' style='margin:0'>Réservé à l’administrateur : les comptes administrateur n’ont jamais à les saisir. Chaque collaborateur doit saisir le mot de passe du CRM auquel il accède (une fois par session). Donnez le mot de passe Transaction à l’équipe transaction et le mot de passe Location à l’équipe location : ainsi chacun reste dans son CRM.</p>${one('v','CRM Transaction')}${one('l','CRM Location')}</div>`}
+async function mpSet(m,p){try{const r=await window.SB.rpc('mode_pwd_set',{m:m,p:p});if(r.error)throw r.error;MPX.req=MPX.req||{l:false,v:false};MPX.req[m]=!!p;toast(p?'Mot de passe enregistré.':'Protection supprimée.');render()}catch(e){alert('Échec : '+((e&&e.message)||'erreur')+'\nVérifiez que le script SQL « supabase-mdp.sql » a été exécuté.')}}
 function evDlg(id){const r=(EV.rows||[]).find(x=>x.id===id);if(!r)return;const d=r.detail||{},l=d.mode==='l',ov=document.createElement('div');ov.id='evov';
  ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:9999;background:rgba(40,25,20,.5);overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';
  const row=(a,b)=>b?`<div class='rw'><span class='m' style='width:150px'>${a}</span><b>${esc(b)}</b></div>`:'';
@@ -3879,8 +3880,8 @@ document.addEventListener('click',e=>{
   S.f.unshift(g);bSync(b0);f.gest=g.id;save();go('folder',g.id);toast('Dossier de gestion créé pour le futur propriétaire.')}}
  else if(a==='blTake'){const f=F(),b=f&&f.bid&&bBy(f.bid);if(b){f.prix=b.prix||f.prix||'';f.lchg=b.lchg||'';f.lmeu=b.lmeu||'';f.ldg=b.ldg||'';f.lhl=b.lhl||'';f.lhb=b.hon||'';save();render();toast('Conditions reprises de la fiche du bien.')}}
  else if(a==='mode'){as();mpGo(id)}
- else if(a==='mpSave'){as();const v=(document.getElementById('mpw')||{}).value||'';if(v.trim().length<4)toast('Minimum 4 caractères.');else mpSet(v.trim())}
- else if(a==='mpClear'){as();if(confirm('Supprimer la protection ? Tous les collaborateurs pourront changer de CRM librement.'))mpSet('')}
+ else if(a==='mpSave'){as();const v=(document.getElementById('mpw'+id)||{}).value||'';if(v.trim().length<4)toast('Minimum 4 caractères.');else mpSet(id,v.trim())}
+ else if(a==='mpClear'){as();if(confirm('Supprimer la protection de ce CRM ?'))mpSet(id,'')}
  else if(a==='home'){as();go('home');if(MC&&!M.labels)mailLabels()}
  else if(a==='notaires'){as();V.nq='';go('not')}
  else if(a==='notNew'){const n={id:uid(),etude:'',nom:'',clerc:'',adr:'',cp:'',ville:'',tel:'',email:'',notes:''};(S.not=S.not||[]).push(n);V.nid=n.id;save();go('notf');setTimeout(()=>{const e=document.querySelector('[data-nf=etude]');if(e)e.focus()},60)}
