@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v129</title>
+<title>YES CRM · v130</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,10 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-26f',v:'v130',t:'Filtres acquéreurs et locataires',l:[
+['🎯','Dans **Contacts**, filtrez par **budget** (ou loyer max), **secteur recherché**, type de bien et recherche active.'],
+['💶','Le budget et le secteur s’affichent directement dans la liste des contacts.']
+]},
 {id:'2026-10-26e',v:'v129',t:'Filtres de recherche',l:[
 ['🏘️','**Biens** : filtrez par type, prix (ou loyer), surface, ville, DPE, fin de mandat, photos, rendement, et triez la liste.'],
 ['👥','**Contacts** : filtrez par catégorie, type, ville, e-mail ou téléphone, dossier en cours, et triez.'],
@@ -1878,13 +1882,18 @@ function cfOk(c){const f=V.cf||{};if(!Object.keys(f).length)return true;
  if(f.ville&&!cqN([c.ville,c.adr,c.cp].filter(Boolean).join(' ')).includes(cqN(f.ville)))return false;
  if(f.coord==='mail'&&!c.email)return false;if(f.coord==='nomail'&&c.email)return false;if(f.coord==='tel'&&!c.tel)return false;if(f.coord==='notel'&&c.tel)return false;
  if(f.dos){const has=S.f.some(x=>!x.arch&&((x.vids||[]).includes(c.id)||(x.aids||[]).includes(c.id)));if(f.dos==='avec'&&!has)return false;if(f.dos==='sans'&&has)return false}
+ const B=num(c.cb)||num(c.lcb);
+ if(f.bmin&&!(B&&B>=num(f.bmin)))return false;if(f.bmax&&!(B&&B<=num(f.bmax)))return false;
+ if(f.sect&&!cqN(String(c.cs||'')+' '+String(c.lcs||'')).includes(cqN(f.sect)))return false;
+ if(f.rt&&(c.ct||c.lct)!==f.rt)return false;
+ if(f.act==='oui'&&c.cact==='Non')return false;if(f.act==='non'&&c.cact!=='Non')return false;
  return true}
-function cfApply(g){const s=(V.cf||{}).sort;if(!s)return;Object.keys(g).forEach(k=>{if(s==='za')g[k].reverse();else if(s==='new')g[k].sort((a,b)=>String(b.cre||'').localeCompare(String(a.cre||'')))})}
+function cfApply(g){const s=(V.cf||{}).sort;if(!s)return;Object.keys(g).forEach(k=>{if(s==='za')g[k].reverse();else if(s==='new')g[k].sort((a,b)=>String(b.cre||'').localeCompare(String(a.cre||'')));else if(s==='bd')g[k].sort((a,b)=>(num(b.cb)||num(b.lcb))-(num(a.cb)||num(a.lcb)))})}
 function cfPanel(){const f=V.cf||{},on=cfOn();
  return `<details ${on?'open':''} style='margin:6px 0'><summary style='cursor:pointer;font-weight:600'>🎚️ Filtres<span id='cfn' class='m'>${on?' · actifs':''}</span></summary><div class='cgrid' style='margin-top:8px'>`
  +selF('cf',f,'role','Catégorie',[['','Toutes'],...ROLES.map(([k,l])=>[k,l]),['none','Non classés']])+selF('cf',f,'type','Type',[['','Tous'],['pp','Particuliers'],['pm','Sociétés'],['succ','Successions']])
  +`<div><label>Ville / adresse</label><input data-cf='ville' value="${esc(f.ville||'')}"></div>`
- +selF('cf',f,'coord','Coordonnées',[['','Toutes'],['mail','Avec e-mail'],['nomail','Sans e-mail'],['tel','Avec téléphone'],['notel','Sans téléphone']])+selF('cf',f,'dos','Dossier',[['','Tous'],['avec','Avec un dossier en cours'],['sans','Sans dossier']])+selF('cf',f,'sort','Trier par',[['','Nom A→Z'],['za','Nom Z→A'],['new','Plus récents']])
+ +selF('cf',f,'coord','Coordonnées',[['','Toutes'],['mail','Avec e-mail'],['nomail','Sans e-mail'],['tel','Avec téléphone'],['notel','Sans téléphone']])+selF('cf',f,'dos','Dossier',[['','Tous'],['avec','Avec un dossier en cours'],['sans','Sans dossier']])+`</div><h4 style='margin:12px 0 0;color:var(--hd)'>🎯 Recherche des acquéreurs et locataires</h4><div class='cgrid' style='margin-top:6px'><div><label>Budget (loyer max pour un locataire) : de (€)</label><input data-cf='bmin' inputmode='decimal' value="${esc(f.bmin||'')}"></div><div><label>… à (€)</label><input data-cf='bmax' inputmode='decimal' value="${esc(f.bmax||'')}"></div><div><label>Secteur recherché</label><input data-cf='sect' placeholder='Béthune, Bruay…' value="${esc(f.sect||'')}"></div>`+selF('cf',f,'rt','Type de bien recherché',[['','Tous'],...[...new Set([...TYPES,...TYPESL])].map(x=>[x,x])])+selF('cf',f,'act','Recherche active',[['','Peu importe'],['oui','Oui'],['non','Non']])+selF('cf',f,'sort','Trier par',[['','Nom A→Z'],['za','Nom Z→A'],['new','Plus récents'],['bd','Budget décroissant']])
  +`</div><div style='margin-top:6px'><button type='button' data-a='cfReset'>Réinitialiser les filtres</button></div></details>`}
 function onFilt(e){const t=e.target;if(!t||!t.dataset)return;
  if(t.dataset.bfl!==undefined){V.bf=V.bf||{};V.bf[t.dataset.bfl]=t.value;const l=document.getElementById('bl');if(l){l.innerHTML=bList();bPhLoad()}const n=document.getElementById('bfn');if(n)n.textContent=bfOn()?' · actifs':''}
@@ -2266,7 +2275,7 @@ function cqMatch(c,q){q=String(q||'').trim();if(!q)return true;
  return cqN(q).split(/\s+/).filter(Boolean).every(w=>txt.includes(w))}
 function cqList(){const q=V.cq||'',g={vendeur:[],acquereur:[],bailleur:[],locataire:[],'':[]};
  S.c.filter(c=>cqMatch(c,q)&&cfOk(c)).forEach(c=>(g[roleOf(c)]||g['']).push(c));Object.keys(g).forEach(k=>g[k].sort((a,b)=>ctKey(a).localeCompare(ctKey(b),'fr',{sensitivity:'base'})));
- const card=c=>`<div class='card click' data-a='ficheC' data-id='${c.id}'><div><div class='t'>${esc(nom(c)||'Sans nom')}</div><div class='m'>${esc([c.type==='pm'?'Société':c.type==='succ'?'Succession':c.matri,c.type==='pm'?'':c.prof,c.qual,c.tel,c.email,c.cre?'Depuis le '+fDate(c.cre):''].filter(Boolean).join(' · '))}</div></div><span class='sp'></span><div class='qa'>${callBtns(c.tel)}</div></div>`;
+ const card=c=>`<div class='card click' data-a='ficheC' data-id='${c.id}'><div><div class='t'>${esc(nom(c)||'Sans nom')}</div><div class='m'>${esc([c.type==='pm'?'Société':c.type==='succ'?'Succession':c.matri,c.type==='pm'?'':c.prof,c.qual,c.tel,c.email,c.cb?'Budget '+eur(num(c.cb)):'',c.lcb?'Loyer max '+eur(num(c.lcb)):'',(c.cs||c.lcs)?'📍 '+(c.cs||c.lcs):'',c.cre?'Depuis le '+fDate(c.cre):''].filter(Boolean).join(' · '))}</div></div><span class='sp'></span><div class='qa'>${callBtns(c.tel)}</div></div>`;
  const sec=(l,L,full)=>(q.trim()||cfOn())&&!L.length?'':`<div${full?" style='grid-column:1/-1'":''}><h2 style='font-size:16px;margin:10px 0 6px'>${l} (${L.length})</h2>${L.length?L.map(card).join(''):`<p class='m'>Aucun contact.</p>`}</div>`;
  cfApply(g);const n=Object.values(g).reduce((s,a)=>s+a.length,0);
  if((q.trim()||cfOn())&&!n)return `<p class='m'>Aucun contact ne correspond à votre recherche ou à vos filtres.</p>`;
@@ -4604,7 +4613,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v129'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v130'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
