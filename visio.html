@@ -28,7 +28,7 @@ const frame=async(u,t)=>{
   const vid=document.getElementById('vid'),dc=document.getElementById('doc');let vw=null,fr=null;
   try{
     if(!window.DailyIframe){try{await loadJs('https://unpkg.com/@daily-co/daily-js@0.67.0')}catch(e){await loadJs('https://unpkg.com/@daily-co/daily-js')}}
-    await loadJs('visdoc.js');
+    await loadJs('visdoc.js?v=137');
     fr=window.DailyIframe.createFrame(vid,{iframeStyle:{width:'100%',height:'100%',border:'0'},showLeaveButton:true,lang:'fr'});
     fr.on('app-message',async ev=>{const d=ev&&ev.data;if(!d||d.ys!==1)return;
       try{
