@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Visioconférence · YES Immobilier</title>
+<style>
+:root{--ac:#a4573f;--bg:#f8f3ef;--tx:#2b2220;--mu:#7b6a64;--bd:#e5d8d1}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;display:flex;flex-direction:column}
+header{background:#fff;border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;gap:12px}
+header img{height:36px}header b{color:var(--ac)}.m{color:var(--mu);font-size:14px}
+main{flex:1;display:flex;flex-direction:column;min-height:0}
+#info{padding:10px 16px;font-size:14px;color:var(--mu);background:#fffaf6;border-bottom:1px solid var(--bd)}
+iframe{flex:1;border:0;width:100%;min-height:0;background:#000}
+.err{max-width:520px;margin:40px auto;padding:20px;background:#fff;border:1px solid var(--bd);border-radius:14px}
+a.btn{display:inline-block;background:var(--ac);color:#fff;border-radius:10px;padding:10px 16px;text-decoration:none;font-weight:600}
+</style></head><body>
+<header><img src="yes-logo.png" alt="YES Immobilier"><div><b>Visioconférence</b><div class="m">YES Immobilier</div></div></header>
+<main id="m"></main>
+<script>
+const q=new URLSearchParams(location.search),d=q.get('d')||'',r=q.get('r')||'';
+const m=document.getElementById('m');
+if(!/^[a-z0-9-]{2,60}$/i.test(d)||!/^[\w-]{2,80}$/.test(r)){
+  m.innerHTML='<div class="err"><h2 style="margin-top:0">Lien incomplet</h2><p>Ce lien de visioconférence n’est pas valide. Demandez-en un nouveau à votre conseiller YES Immobilier.</p></div>';
+}else{
+  const u='https://'+d+'.daily.co/'+r;
+  m.innerHTML='<div id="info">Autorisez la caméra et le micro quand votre navigateur le demande. Si la vidéo ne s’affiche pas, <a href="'+u+'" target="_blank" rel="noopener">ouvrez la visio dans un nouvel onglet</a>.</div><iframe allow="camera; microphone; fullscreen; display-capture; autoplay" src="'+u+'"></iframe>';
+}
+</script></body></html>
