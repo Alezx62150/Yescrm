@@ -2,7 +2,7 @@
   "name": "Agenda YES CRM",
   "short_name": "YES Agenda",
   "description": "L'agenda du CRM YES Immobilier",
-  "start_url": "/?app=agenda",
+  "start_url": "/agenda.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f8f3ef",
