@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v134</title>
+<title>YES CRM · v135</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,10 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-26i',v:'v135',t:'Documents dans la visio',l:[
+['📄','Pendant la visio, bouton **Documents** : choisissez un PDF du dossier, le client le voit à côté de la vidéo.'],
+['🔍','Votre zoom, vos pages et votre défilement sont suivis en direct chez le client, sans partage d’écran.']
+]},
 {id:'2026-10-26h',v:'v134',t:'Visio protégée par un code',l:[
 ['🔐','Chaque visio a maintenant un **code à 6 chiffres** que le client saisit pour entrer.'],
 ['📊','Le CRM affiche les **minutes de visio utilisées** ce mois-ci.']
@@ -1911,7 +1915,7 @@ document.addEventListener('input',onFilt);document.addEventListener('change',onF
 
 function visInfo(f){const v=f&&f.vroom;if(!v||!v.url||(v.exp&&Date.now()/1000>v.exp))return null;return v}
 function visLink(u,k){const m=String(u||'').match(/^https:\/\/([a-z0-9-]+)\.daily\.co\/([\w-]+)$/i);return m?ESPHOST+'/visio.html?d='+m[1]+'&r='+m[2]+(k?'&c=1':''):u}
-function visClose(){const o=document.getElementById('visov');if(o)o.remove()}
+function visClose(){const o=document.getElementById('visov');if(o)o.remove();visEnd()}
 async function visStart(fid,force){const f=S.f.find(x=>x.id===fid);if(!f)return;let v=force?null:visInfo(f);
  if(!v){toast('Création de la salle de visio…');try{const ss=await SB.auth.getSession(),tk=ss&&ss.data&&ss.data.session&&ss.data.session.access_token;
   const resp=await fetch(SB.supabaseUrl+'/functions/v1/visio',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB.supabaseKey,Authorization:'Bearer '+(tk||SB.supabaseKey)},body:'{}'});
@@ -1921,17 +1925,52 @@ async function visStart(fid,force){const f=S.f.find(x=>x.id===fid);if(!f)return;
  visOpen(fid,false)}
 function visOpen(fid,call){const f=S.f.find(x=>x.id===fid),v=visInfo(f);if(!v)return;visClose();const d=document.createElement('div');d.id='visov';d.style.cssText='position:fixed;inset:0;z-index:9000;background:var(--bg,#f8f3ef);display:flex;flex-direction:column';
  const link=visLink(v.url,v.code),hh=v.exp?new Date(v.exp*1000).toLocaleString('fr-FR',{weekday:'long',hour:'2-digit',minute:'2-digit'}):'';
- d.innerHTML=`<div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#fff;border-bottom:1px solid var(--bd,#e5d8d1)'><b>📹 Visio · ${esc(f.name)}</b><span style='flex:1'></span>${call?`<button type='button' data-v='copy'>📋 Copier le lien client</button><button type='button' data-v='prep'>← Invitation</button>`:''}<button type='button' data-v='close'>${call?'Quitter la visio':'Fermer'}</button></div>`
- +(call?`<iframe allow='camera; microphone; fullscreen; display-capture; autoplay; clipboard-write' style='flex:1;border:0;width:100%;background:#000' src='${esc(v.url+(v.token?'?t='+v.token:''))}'></iframe>`
+ d.innerHTML=`<div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#fff;border-bottom:1px solid var(--bd,#e5d8d1)'><b>📹 Visio · ${esc(f.name)}</b><span style='flex:1'></span>${call?`<button type='button' data-v='docs' class='p'>📄 Documents</button><button type='button' data-v='copy'>📋 Copier le lien client</button><button type='button' data-v='prep'>← Invitation</button>`:''}<button type='button' data-v='close'>${call?'Quitter la visio':'Fermer'}</button></div>`
+ +(call?`<div style='flex:1;display:flex;min-height:0'><div id='visvid' style='flex:1;min-width:0;display:flex;background:#000'></div><div id='visside' style='display:none;width:48%;min-width:300px;border-left:1px solid var(--bd,#e5d8d1);flex-direction:column;background:#fff'></div></div>`
  :`<div style='max-width:560px;margin:28px auto;padding:0 16px;width:100%'><div style='background:#fff;border:1px solid var(--bd,#e5d8d1);border-radius:14px;padding:20px'><h2 style='margin:0 0 4px'>Salle de visio prête ✅</h2><p class='m' style='margin:0 0 12px'>Valable jusqu’à ${esc(hh)}. Envoyez ce lien à votre client : il suffit de cliquer, sans rien installer.</p><input readonly value="${esc(link)}" style='width:100%' onclick='this.select()'>${v.code?`<p style='margin:12px 0 0'>Code d’accès à donner au client : <b style='font-size:22px;letter-spacing:4px'>${esc(v.code)}</b></p>`:''}<p class='m' id='visuse' style='font-size:12px;margin:8px 0 0'></p><div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:12px'><button type='button' data-v='copy'>📋 Copier le lien</button><button type='button' data-v='mail'>✉️ Envoyer par e-mail</button><button type='button' class='p' data-v='go'>▶ Démarrer la visio</button></div><p class='m' style='font-size:12px;margin:14px 0 0'>Pour présenter le compromis : une fois en visio, utilisez le bouton de partage d’écran.</p><button type='button' data-v='new' style='margin-top:6px;font-size:12px'>Créer une nouvelle salle</button></div></div>`);
  d.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-v]');if(!b)return;const k=b.dataset.v;
   if(k==='close')visClose();else if(k==='copy'){const ok=()=>toast('Lien et code copiés : collez-les dans votre message.'),tx=link+(v.code?'\nCode d’accès : '+v.code:'');try{navigator.clipboard.writeText(tx).then(ok,()=>mdFb(tx,ok))}catch(x){mdFb(tx,ok)}}
   else if(k==='go')visOpen(fid,true);else if(k==='prep')visOpen(fid,false);else if(k==='new'){visClose();visStart(fid,true)}
-  else if(k==='mail'){visClose();visMail(fid)}});
- document.body.appendChild(d);if(!call)visUsage()}
+  else if(k==='mail'){visClose();visMail(fid)}
+  else if(k==='docs')visSide(fid);else if(k==='pick')visPick(fid,b.dataset.did);else if(k==='pdfadd'){const fi=document.getElementById('visfile');if(fi)fi.click()}});
+ document.body.appendChild(d);if(!call)visUsage();else visCallInit(fid)}
 async function visUsage(){const el=()=>document.getElementById('visuse');try{const ss=await SB.auth.getSession(),tk=ss&&ss.data&&ss.data.session&&ss.data.session.access_token;
  const resp=await fetch(SB.supabaseUrl+'/functions/v1/visio',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB.supabaseKey,Authorization:'Bearer '+(tk||SB.supabaseKey)},body:JSON.stringify({action:'usage'})});
  const j=await resp.json();if(!resp.ok||typeof j.minutes!=='number')throw 0;if(el())el().textContent='📊 Minutes utilisées ce mois-ci : '+j.minutes+' sur '+j.max+' gratuites (un appel à 2 personnes compte double).'}catch(e){if(el())el().textContent=''}}
+var VS={fr:null,vw:null,cur:null,paths:[]};
+function visJs(src){return new Promise((ok,ko)=>{const x=document.createElement('script');x.src=src;x.onload=ok;x.onerror=()=>ko(new Error(src));document.head.appendChild(x)})}
+function visSend(o){try{if(VS.fr)VS.fr.sendAppMessage(Object.assign({ys:1},o),'*')}catch(e){}}
+function visResend(){if(VS.cur&&VS.vw)visSend({t:'doc',url:VS.cur.url,name:VS.cur.name,v:VS.vw.view()})}
+function visEnd(){try{if(VS.vw)VS.vw.stop()}catch(e){}try{if(VS.fr){VS.fr.destroy()}}catch(e){}
+ if(VS.paths.length){try{SB.storage.from('espaces').remove(VS.paths)}catch(e){}}
+ VS={fr:null,vw:null,cur:null,paths:[]}}
+async function visCallInit(fid){const f=S.f.find(x=>x.id===fid),v=visInfo(f),box=document.getElementById('visvid');if(!v||!box)return;
+ const src=v.url+(v.token?'?t='+v.token:'');
+ try{
+  if(!window.DailyIframe){try{await visJs('https://unpkg.com/@daily-co/daily-js@0.67.0')}catch(e){await visJs('https://unpkg.com/@daily-co/daily-js')}}
+  await visJs(ESPHOST+'/visdoc.js');
+  VS.fr=window.DailyIframe.createFrame(box,{iframeStyle:{width:'100%',height:'100%',border:'0'},showLeaveButton:false,lang:'fr'});
+  VS.fr.on('app-message',ev=>{const d=ev&&ev.data;if(d&&d.ys===1&&d.t==='hello')visResend()});
+  VS.fr.on('participant-joined',()=>setTimeout(visResend,800));
+  await VS.fr.join(v.token?{url:v.url,token:v.token}:{url:v.url})
+ }catch(e){VS.fr=null;box.innerHTML="<iframe allow='camera; microphone; fullscreen; display-capture; autoplay; clipboard-write' style='width:100%;height:100%;border:0;background:#000' src='"+esc(src)+"'></iframe>";toast('Le partage de documents dans la visio est indisponible (outil non chargé).')}}
+function visSide(fid,on){const sd=document.getElementById('visside');if(!sd)return;if(on===undefined)on=sd.style.display==='none';sd.style.display=on?'flex':'none';if(!on)return;
+ const f=S.f.find(x=>x.id===fid),L=(f.d||[]).filter(x=>x.pdf);
+ sd.innerHTML=`<div id='visdl' style='padding:12px;overflow:auto;${VS.cur?'display:none':''}'><b>📄 Documents du dossier</b><p class='m' style='margin:4px 0 10px;font-size:12px'>Choisissez un document : le client le voit à côté de la vidéo, avec votre zoom et vos pages.</p>${L.length?L.map(x=>`<button type='button' data-v='pick' data-did='${esc(x.id)}' style='display:block;width:100%;text-align:left;margin:0 0 6px'>📄 ${esc(x.t||'Document')}</button>`).join(''):`<p class='m'>Aucun PDF dans ce dossier.</p>`}<button type='button' data-v='pdfadd' style='display:block;width:100%;margin-top:8px'>➕ Choisir un PDF sur l’ordinateur</button><input type='file' id='visfile' accept='application/pdf' style='display:none'></div><div id='visview' style='flex:1;min-height:0;display:${VS.cur?'flex':'none'};flex-direction:column'></div>`;
+ const fi=document.getElementById('visfile');if(fi)fi.addEventListener('change',()=>{const x=fi.files&&fi.files[0];if(x)visShow(fid,x,x.name.replace(/\.pdf$/i,''))});
+ if(VS.cur&&VS.vw){const vv=document.getElementById('visview');/* le visualiseur existe deja : on le remet */}}
+async function visShow(fid,blob,nm){try{
+  toast('Préparation du document…');
+  if(!(blob instanceof Blob))blob=new Blob([blob],{type:'application/pdf'});
+  if(blob.size>25*1024*1024){toast('Document trop lourd (25 Mo maximum).');return}
+  const p=window.__UID+'/visio/'+uid()+uid()+'.pdf',r=await SB.storage.from('espaces').upload(p,blob,{contentType:'application/pdf',upsert:false});if(r.error)throw r.error;
+  VS.paths.push(p);const url=SB.storage.from('espaces').getPublicUrl(p).data.publicUrl;
+  const dl=document.getElementById('visdl'),vw=document.getElementById('visview');if(!vw)return;dl.style.display='none';vw.style.display='flex';
+  if(VS.vw){try{VS.vw.stop()}catch(e){}}
+  VS.vw=window.YSDoc(vw,{ctl:true,onView:v=>visSend({t:'view',v}),onStop:()=>visStopDoc(fid)});VS.cur={url,name:nm};
+  await VS.vw.load(url,nm);visSend({t:'doc',url,name:nm,v:VS.vw.view()})}catch(e){toast('Impossible d’afficher ce document : '+(e&&e.message||e));VS.cur=null;VS.vw=null;visSide(fid,true)}}
+function visStopDoc(fid){visSend({t:'stop'});try{if(VS.vw)VS.vw.stop()}catch(e){}VS.vw=null;VS.cur=null;visSide(fid,true)}
+async function visPick(fid,did){try{const b=await fget(did);if(!b)throw new Error('fichier introuvable sur cet appareil');const d=(S.f.find(x=>x.id===fid).d||[]).find(x=>x.id===did);await visShow(fid,b,(d&&d.t)||'Document')}catch(e){toast('Document indisponible : '+(e&&e.message||e))}}
 function visMail(fid){const f=S.f.find(x=>x.id===fid),v=visInfo(f);if(!f||!v)return;const link=visLink(v.url,v.code),to=((typeof partyC==='function'?partyC(f,'aids'):[])||[]).map(c=>c.email||c.mail).find(Boolean)||'',su='Visioconférence – '+f.name,body='Bonjour,\n\nVoici le lien pour nous retrouver en visioconférence :\n'+link+(v.code?'\n\nCode d’accès : '+v.code:'')+'\n\nIl suffit de cliquer, sans rien installer. Autorisez la caméra et le micro quand votre navigateur le demande.\n\nCordialement,';
  if(typeof MC!=='undefined'&&MC){as();M.fid=null;if(M.nav==='folder'){M.nav='inbox';M.q='in:inbox'}M.th=null;M.img=false;M.filing=false;M.err='';M.cur={compose:true,msgs:[],open:new Set(),subject:''};M.comp={to,subject:su,body,reply:null,busy:false,msg:'',url:''};go('mail');if(!M.init)mailStart();else mailSearch();toast('Envoyez le message, puis revenez au dossier pour rejoindre la visio.');return}
  gmailCompose(to,su,body)}
@@ -4650,7 +4689,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v134'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v135'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
