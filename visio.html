@@ -18,7 +18,7 @@ a.btn{display:inline-block;background:var(--ac);color:#fff;border-radius:10px;pa
 <main id="m"></main>
 <script>
 const SBU='https://lkbjenepslizldroamsi.supabase.co',SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrYmplbmVwc2xpemxkcm9hbXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0OTQyNjEsImV4cCI6MjEwODA3MDI2MX0.qDdYmgJ-N5yFU-K1RT_VtHUOY0-EAQUx-_9L-v3UnQ0';
-const q=new URLSearchParams(location.search),d=q.get('d')||'',r=q.get('r')||'',needCode=q.get('c')==='1';
+const q=new URLSearchParams(location.search),d=q.get('d')||'',r=q.get('r')||'',needCode=(q.get('c')||'').charAt(0)==='1';
 const m=document.getElementById('m');
 const SU=SBU+'/storage/v1/object/public/espaces/';
 const loadJs=src=>new Promise((ok,ko)=>{const x=document.createElement('script');x.src=src;x.onload=ok;x.onerror=()=>ko(new Error(src));document.head.appendChild(x)});
