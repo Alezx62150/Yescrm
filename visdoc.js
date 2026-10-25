@@ -13,11 +13,16 @@ window.YSDoc=function(root,o){
   var sc=document.createElement('div');sc.style.cssText='flex:1;overflow:auto;min-height:0;padding:8px';
   var cv=document.createElement('canvas');cv.style.cssText='display:block;margin:0 auto;box-shadow:0 1px 6px rgba(0,0,0,.25);background:#fff';sc.appendChild(cv);
   var ttl=document.createElement('b');ttl.style.cssText='flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';bar.appendChild(ttl);
-  var lab=document.createElement('span');
+  var lab=document.createElement('span'),pin=null,wide=false;
   function btn(t,ti,fn){var b=document.createElement('button');b.type='button';b.textContent=t;b.title=ti;b.style.cssText='padding:4px 9px;border:1px solid #e5d8d1;border-radius:8px;background:#fff;cursor:pointer;font:inherit';b.addEventListener('click',fn);bar.appendChild(b);return b}
   if(ctl){
-    btn('◀','Page précédente',function(){go(p-1)});bar.appendChild(lab);btn('▶','Page suivante',function(){go(p+1)});
-    btn('−','Zoom arrière',function(){zoom(z/1.25)});btn('+','Zoom avant',function(){zoom(z*1.25)});btn('↔','Ajuster à la largeur',function(){zoom(1)});
+    btn('📄 Autres documents','Choisir un autre document',function(){if(o.onList)o.onList()});
+    btn('◀','Page précédente',function(){go(p-1)});
+    pin=document.createElement('input');pin.type='number';pin.min=1;pin.title='Aller à la page';pin.style.cssText='width:54px;padding:4px;border:1px solid #e5d8d1;border-radius:8px;font:inherit';
+    pin.addEventListener('change',function(){go(parseInt(pin.value,10)||p);pin.value=p});pin.addEventListener('keydown',function(e){if(e.key==='Enter')pin.blur()});
+    bar.appendChild(pin);bar.appendChild(lab);btn('▶','Page suivante',function(){go(p+1)});
+    btn('−','Zoom arrière',function(){zoom(z/1.25)});btn('+','Zoom avant',function(){zoom(z*1.25)});
+    btn('⛶','Agrandir ou réduire le panneau du document',function(){wide=!wide;if(o.onWide)o.onWide(wide)});
     btn('✕ Arrêter','Arrêter de montrer ce document',function(){if(o.onStop)o.onStop()})
   }else bar.appendChild(lab);
   root.appendChild(bar);root.appendChild(sc);
@@ -32,7 +37,7 @@ window.YSDoc=function(root,o){
     if(rt){try{rt.cancel()}catch(e){}}
     cv.width=Math.floor(vp.width);cv.height=Math.floor(vp.height);cv.style.width=(vp.width/dpr)+'px';cv.style.height=(vp.height/dpr)+'px';
     rt=pg.render({canvasContext:cv.getContext('2d'),viewport:vp});try{await rt.promise}catch(e){}
-    lab.textContent=p+' / '+doc.numPages}
+    lab.textContent=pin?'/ '+doc.numPages:p+' / '+doc.numPages;if(pin)pin.value=p}
   async function go(n){if(!doc)return;n=Math.max(1,Math.min(doc.numPages,n));if(n===p)return;p=n;quiet=true;await render();sc.scrollTop=0;sc.scrollLeft=0;quiet=false;if(ctl&&o.onView)o.onView(view())}
   async function zoom(nz){if(!doc)return;nz=Math.max(.5,Math.min(5,nz));if(nz===z)return;var v=view();z=nz;quiet=true;await render();setScroll(v);quiet=false;if(ctl&&o.onView)o.onView(view())}
   var self={

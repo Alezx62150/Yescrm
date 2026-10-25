@@ -34,6 +34,7 @@ const frame=async(u,t)=>{
       try{
         if(d.t==='doc'&&typeof d.url==='string'&&d.url.indexOf(SU)===0){dc.style.display='flex';vw=window.YSDoc(dc,{ctl:false});await vw.load(d.url,String(d.name||'Document').slice(0,120),d.v)}
         else if(d.t==='view'&&vw)vw.apply(d.v);
+        else if(d.t==='wide'){dc.style.width=(d.w&&window.innerWidth>800)?'72%':'';setTimeout(()=>window.dispatchEvent(new Event('resize')),50)}
         else if(d.t==='stop'&&vw){vw.stop();vw=null;dc.style.display='none'}
       }catch(e){}});
     await fr.join(t?{url:u,token:t}:{url:u});
