@@ -15,12 +15,23 @@ a.btn{display:inline-block;background:var(--ac);color:#fff;border-radius:10px;pa
 <header><img src="yes-logo.png" alt="YES Immobilier"><div><b>Visioconférence</b><div class="m">YES Immobilier</div></div></header>
 <main id="m"></main>
 <script>
-const q=new URLSearchParams(location.search),d=q.get('d')||'',r=q.get('r')||'';
+const SBU='https://lkbjenepslizldroamsi.supabase.co',SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrYmplbmVwc2xpemxkcm9hbXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0OTQyNjEsImV4cCI6MjEwODA3MDI2MX0.qDdYmgJ-N5yFU-K1RT_VtHUOY0-EAQUx-_9L-v3UnQ0';
+const q=new URLSearchParams(location.search),d=q.get('d')||'',r=q.get('r')||'',needCode=q.get('c')==='1';
 const m=document.getElementById('m');
+const frame=(u,t)=>{const src=u+(t?'?t='+encodeURIComponent(t):'');m.innerHTML='<div id="info">Autorisez la caméra et le micro quand votre navigateur le demande. Si la vidéo ne s’affiche pas, <a href="'+src+'" target="_blank" rel="noopener">ouvrez la visio dans un nouvel onglet</a>.</div><iframe allow="camera; microphone; fullscreen; display-capture; autoplay" src="'+src+'"></iframe>'};
 if(!/^[a-z0-9-]{2,60}$/i.test(d)||!/^[\w-]{2,80}$/.test(r)){
   m.innerHTML='<div class="err"><h2 style="margin-top:0">Lien incomplet</h2><p>Ce lien de visioconférence n’est pas valide. Demandez-en un nouveau à votre conseiller YES Immobilier.</p></div>';
 }else{
   const u='https://'+d+'.daily.co/'+r;
-  m.innerHTML='<div id="info">Autorisez la caméra et le micro quand votre navigateur le demande. Si la vidéo ne s’affiche pas, <a href="'+u+'" target="_blank" rel="noopener">ouvrez la visio dans un nouvel onglet</a>.</div><iframe allow="camera; microphone; fullscreen; display-capture; autoplay" src="'+u+'"></iframe>';
+  if(!needCode)frame(u,'');
+  else{
+    m.innerHTML='<div class="err"><h2 style="margin-top:0">Code d’accès</h2><p>Saisissez le code à 6 chiffres reçu de votre conseiller YES Immobilier.</p><input id="cd" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="font-size:28px;letter-spacing:8px;text-align:center;width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px"><p id="er" style="color:#b3261e;min-height:22px;margin:8px 0"></p><a class="btn" href="#" id="go">Rejoindre la visio</a></div>';
+    const go=async ev=>{if(ev)ev.preventDefault();const c=document.getElementById('cd').value.replace(/\D/g,''),er=document.getElementById('er');if(c.length!==6){er.textContent='Le code comporte 6 chiffres.';return}
+      er.textContent='Vérification…';
+      try{const x=await fetch(SBU+'/functions/v1/visio-join',{method:'POST',headers:{'Content-Type':'application/json',apikey:SBK},body:JSON.stringify({room:r,code:c})});const j=await x.json().catch(()=>({}));
+        if(!x.ok||!j.token){er.textContent=j.error||'Accès refusé ('+x.status+')';return}
+        frame(u,j.token)}catch(e){er.textContent='Connexion impossible, réessayez.'}};
+    document.getElementById('go').addEventListener('click',go);document.getElementById('cd').addEventListener('keydown',e=>{if(e.key==='Enter')go(e)});
+  }
 }
 </script></body></html>
