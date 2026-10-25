@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Espace acquéreur · YES Immobilier</title>
+<style>
+:root{--ac:#a4573f;--bg:#f8f3ef;--tx:#2b2220;--mu:#7b6a64;--bd:#e5d8d1;--cd:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--bd);padding:12px 16px;display:flex;align-items:center;gap:12px}
+header img{height:38px}header b{color:var(--ac)}
+main{max-width:860px;margin:0 auto;padding:16px 16px 60px}
+h1{font-size:22px;margin:8px 0 2px;color:var(--ac)}h2{font-size:18px;margin:26px 0 8px;color:var(--ac);border-bottom:2px solid var(--bd);padding-bottom:4px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin:10px 0}
+.m{color:var(--mu);font-size:14px}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.g img{width:100%;height:120px;object-fit:cover;border-radius:8px;cursor:zoom-in}
+table{width:100%;border-collapse:collapse}td,th{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top;font-size:15px}th{color:var(--mu);font-weight:600;font-size:13px}
+td:first-child.k{color:var(--mu);width:46%}
+label{display:block;font-weight:600;margin:10px 0 3px;font-size:14px}
+input[type=text],input[type=email]{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font:inherit}
+button,.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:12px 18px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+button:disabled{opacity:.45;cursor:not-allowed}
+.att{background:#fffaf6;border:1px solid var(--bd);border-radius:10px;padding:12px 14px;font-size:14.5px;max-height:48vh;overflow:auto}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-weight:400}.chk input{margin-top:4px;width:20px;height:20px}
+.err{color:#b3261e;font-weight:600;margin-top:8px}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:9}#lb img{max-width:96vw;max-height:94vh}
+.big{font-size:24px;font-weight:700}.tag{display:inline-block;background:#f1e3dc;border-radius:20px;padding:3px 10px;margin:3px 4px 3px 0;font-size:14px}
+</style></head><body>
+<header><img src="yes-logo.png" alt="YES Immobilier"><div><b>Espace acquéreur</b><div class="m" id="sub">Chargement…</div></div></header>
+<main id="m"></main><div id="lb" onclick="this.style.display='none'"><img id="lbi" alt=""></div>
+<script>
+const URL_='https://lkbjenepslizldroamsi.supabase.co',KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrYmplbmVwc2xpemxkcm9hbXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0OTQyNjEsImV4cCI6MjEwODA3MDI2MX0.qDdYmgJ-N5yFU-K1RT_VtHUOY0-EAQUx-_9L-v3UnQ0';
+const T=new URLSearchParams(location.search).get('t')||'';
+const $=id=>document.getElementById(id),esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function rpc(fn,args){const r=await fetch(URL_+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify(args)});if(!r.ok)throw new Error('http '+r.status);return r.json()}
+function bad(msg){$('m').innerHTML='<div class="card"><h1>Accès indisponible</h1><p>'+esc(msg)+'</p></div>';$('sub').textContent=''}
+function attText(ag,label,prenom,nom){const who=(prenom||nom)?(prenom+' '+nom).trim():'[prénom et nom]';
+return 'ATTESTATION DE VISITE ET D’ENGAGEMENT\n\nJe soussigné(e) '+who+', atteste avoir visité l’immeuble « '+label+' » présenté par '+ag+', en qualité de mandataire, et reçois de sa part les informations contenues dans le présent espace (photos, diagnostics, caractéristiques techniques et financières).\n\n1. Ces informations sont confidentielles et destinées à mon seul usage.\n2. Je m’engage à ne pas traiter directement avec le propriétaire du bien, ni par personne interposée ou société que je contrôle, sans l’intervention de '+ag+'. Toute offre, négociation ou acquisition relative à ce bien sera transmise par l’intermédiaire de '+ag+'.\n3. À défaut, je serai redevable envers '+ag+' d’une indemnité égale au montant des honoraires prévus au mandat de vente.\n4. Je reconnais que la validation ci-dessous vaut signature électronique ; la date, l’heure et l’adresse IP de connexion sont enregistrées.'}
+function showAtt(o){$('sub').textContent=o.agence||'YES Immobilier';const ag=o.agence||'YES Immobilier',label=o.label||'immeuble visité';
+$('m').innerHTML='<h1>Avant d’accéder aux informations</h1><p class="m">Merci de lire et de valider l’attestation de visite ci-dessous.</p><div class="card"><div class="att" id="at"></div><label>Prénom</label><input type="text" id="pn" autocomplete="given-name"><label>Nom</label><input type="text" id="nm" autocomplete="family-name"><label>E-mail</label><input type="email" id="em" autocomplete="email"><label class="chk"><input type="checkbox" id="ck"><span>J’ai lu l’attestation et je m’engage à la respecter.</span></label><button id="go" disabled>Valider et accéder aux informations</button><div class="err" id="er"></div></div>';
+const up=()=>{$('at').innerText=attText(ag,label,$('pn').value.trim(),$('nm').value.trim());$('go').disabled=!($('ck').checked&&$('pn').value.trim()&&$('nm').value.trim()&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($('em').value.trim()))};
+['pn','nm','em','ck'].forEach(i=>$(i).addEventListener('input',up));up();
+$('go').onclick=async()=>{$('go').disabled=true;$('er').textContent='';try{const r=await rpc('espace_signer',{p_token:T,p_nom:$('nm').value.trim(),p_prenom:$('pn').value.trim(),p_email:$('em').value.trim(),p_texte:$('at').innerText,p_ua:navigator.userAgent});if(r.statut==='ok')show(r);else{$('er').textContent='Validation impossible. Vérifiez vos informations.';$('go').disabled=false}}catch(e){$('er').textContent='Problème de connexion, réessayez.';$('go').disabled=false}}}
+const tb=(rows)=>'<table>'+rows.map(r=>'<tr><td class="k">'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('')+'</table>';
+function show(r){const c=r.contenu||{};$('sub').textContent=c.agence||'YES Immobilier';let h='<h1>'+esc(c.titre||c.label||'Immeuble')+'</h1><div class="m">'+esc([c.adr,c.adr2].filter(Boolean).join(' · '))+'</div><p class="m">Accès de '+esc(r.nom||'')+' · attestation signée le '+esc(new Date(r.signe_le).toLocaleString('fr-FR'))+'</p>';
+if((c.ph||[]).length)h+='<h2>Photos</h2><div class="g">'+c.ph.map(u=>'<img loading="lazy" src="'+esc(u)+'" data-big="'+esc(u)+'" alt="">').join('')+'</div>';
+if(c.desc)h+='<h2>Description</h2><div class="card" style="white-space:pre-wrap">'+esc(c.desc)+'</div>';
+if((c.tech||[]).length||(c.eq||[]).length||(c.pieces||[]).length){h+='<h2>Caractéristiques techniques</h2><div class="card">';if((c.tech||[]).length)h+=tb(c.tech);if((c.eq||[]).length)h+='<p>'+c.eq.map(x=>'<span class="tag">'+esc(x)+'</span>').join('')+'</p>';if((c.pieces||[]).length)h+='<table><tr><th>Pièce</th><th>m²</th><th>Niveau</th><th>Remarque</th></tr>'+c.pieces.map(p=>'<tr><td>'+esc(p.n)+'</td><td>'+esc(p.s)+'</td><td>'+esc(p.lv)+'</td><td>'+esc(p.note)+'</td></tr>').join('')+'</table>';h+='</div>'}
+if((c.fin||[]).length||(c.lots||[]).length){h+='<h2>Informations financières</h2><div class="card">';if((c.fin||[]).length)h+=tb(c.fin);if(c.rend&&(c.rend.m||c.rend.brut))h+='<p style="margin-top:10px"><b>Loyers :</b> '+esc(c.rend.m)+' / mois · '+esc(c.rend.a)+' / an'+(c.rend.brut?'<br><b>Rendement brut :</b> '+esc(c.rend.brut):'')+(c.rend.net?' · <b>net avant impôts :</b> '+esc(c.rend.net):'')+'</p>';if((c.lots||[]).length)h+='<table><tr><th>Lot</th><th>m²</th><th>Loyer/mois</th><th>Occupation</th><th>Note</th></tr>'+c.lots.map(p=>'<tr><td>'+esc(p.n)+'</td><td>'+esc(p.s)+'</td><td>'+esc(p.loyer)+'</td><td>'+esc(p.occ)+'</td><td>'+esc(p.note)+'</td></tr>').join('')+'</table>';h+='</div>'}
+if((c.diag||[]).length||(c.docs||[]).length){h+='<h2>Diagnostics et documents</h2><div class="card">';if((c.diag||[]).length)h+=tb(c.diag);if((c.docs||[]).length)h+='<p style="margin-top:10px">'+c.docs.map(d=>'<a class="btn" style="margin:4px 6px 4px 0;padding:8px 14px" target="_blank" rel="noopener" href="'+esc(d.u)+'">📄 '+esc(d.n)+'</a>').join('')+'</p>';h+='</div>'}
+if(c.contact&&(c.contact.nom||c.contact.tel||c.contact.mail))h+='<h2>Votre contact</h2><div class="card"><b>'+esc(c.contact.nom||'')+'</b><br>'+(c.contact.tel?'📞 <a href="tel:'+esc(c.contact.tel)+'">'+esc(c.contact.tel)+'</a><br>':'')+(c.contact.mail?'✉️ <a href="mailto:'+esc(c.contact.mail)+'">'+esc(c.contact.mail)+'</a>':'')+'</div>';
+h+='<p class="m" style="margin-top:24px">Informations confidentielles communiquées par '+esc(c.agence||'YES Immobilier')+'. Mise à jour du '+esc(c.maj?new Date(c.maj).toLocaleDateString('fr-FR'):'')+'.</p>';
+$('m').innerHTML=h;$('m').querySelectorAll('[data-big]').forEach(i=>i.onclick=()=>{$('lbi').src=i.dataset.big;$('lb').style.display='flex'})}
+(async()=>{if(!T)return bad('Ce lien est incomplet.');try{const r=await rpc('espace_ouvrir',{p_token:T});if(r.statut==='attestation')showAtt(r);else if(r.statut==='ok')show(r);else bad('Ce lien n’est plus valide. Contactez votre conseiller YES Immobilier.')}catch(e){bad('Problème de connexion. Réessayez dans un instant.')}})();
+</script></body></html>
