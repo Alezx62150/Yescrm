@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v142</title>
+<title>YES CRM · v143</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,10 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-27a',v:'v143',t:'Publier sur Facebook et Instagram',l:[
+['🚀','Dans l’onglet **Publication Facebook** d’un bien : bouton **Publier maintenant** sur la page YES Immobilier.'],
+['📸','Choisissez les photos et les réseaux (Facebook, Instagram ou les deux), puis publiez en un clic.']
+]},
 {id:'2026-10-26l',v:'v140',t:'Barème d’honoraires',l:[
 ['💶','Nouvelle tuile **Barème d’honoraires** sur l’accueil : vente, immeuble de rapport, location et gestion.'],
 ['🧮','Entrez un prix ou une surface : le CRM donne les **honoraires TTC** tout de suite.']
@@ -1704,6 +1708,36 @@ function bFbTxt(b){const l=b.mode==='l',th=b.fbth||'new',ville=(String(b.adr||''
  if(th!=='vendu')L.push('','📞 Contactez YES Immobilier pour organiser une visite.'+(b.ref?' Réf. '+b.ref:''));
  const tag=['#immobilier','#yesimmobilier',ville?'#'+ville.toLowerCase().replace(/[^a-z0-9àâäéèêëîïôöùûüç]/g,''):'',l?'#location':'#vente',typ.toLowerCase().includes('appart')?'#appartement':typ.toLowerCase().includes('maison')?'#maison':''].filter(Boolean);
  L.push('',tag.join(' '));return L.join('\n')}
+
+/* --- publication directe Facebook + Instagram --- */
+var PBS={};
+function pbJpg(bl){return createImageBitmap(bl).then(bm=>{const k=Math.min(1,1600/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bm,0,0,c.width,c.height);return new Promise(r=>c.toBlob(r,'image/jpeg',.9))}).catch(()=>bl)}
+function pbUi(b){const P=PBS,fb=P.fb!==false,ig=P.ig!==false,ph=b.ph||[];
+ const chip=(k,on,t)=>`<button type='button' data-a='pbT' data-id='${k}' style='${on?'background:var(--ac,#a4573f);color:#fff;border-color:var(--ac,#a4573f)':''}'>${on?'✓ ':''}${t}</button>`;
+ const d=b.pbd?`<p class='m' style='margin:8px 0 0'>Dernière publication : ${esc(new Date(b.pbd.d).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}))}${b.pbd.fb?' · Facebook ✓':''}${b.pbd.ig?' · Instagram ✓':''}</p>`:'';
+ return `<div class='bsec' style='margin-top:14px'><h3>🚀 Publier directement</h3><p class='m' style='margin:0 0 8px'>Publie le texte ci-dessus et les photos choisies sur la page YES Immobilier, sans quitter le CRM. Relisez bien le texte : une publication ne s’annule pas d’ici.</p>
+<div style='display:flex;gap:6px;flex-wrap:wrap'>${chip('fb',fb,'Facebook')}${chip('ig',ig,'Instagram')}</div>
+<label style='margin-top:10px'>Photos à publier <span class='m' style='font-weight:400'>(10 maximum, Instagram en demande au moins une)</span></label>
+${ph.length?`<div style='display:flex;gap:8px;flex-wrap:wrap'>${ph.map(id=>{const on=!P.sel||P.sel[id]!==false;return `<div data-a='pbT' data-id='${id}' style='position:relative;cursor:pointer;width:96px;height:72px;border-radius:8px;overflow:hidden;border:3px solid ${on?'var(--ac,#a4573f)':'transparent'};opacity:${on?1:.45}'><img data-ph='${id}' alt='' style='width:100%;height:100%;object-fit:cover;pointer-events:none'>${on?`<span style='position:absolute;top:2px;right:4px;color:#fff;background:var(--ac,#a4573f);border-radius:50%;width:18px;height:18px;font-size:12px;display:flex;align-items:center;justify-content:center'>✓</span>`:''}</div>`}).join('')}</div>`:`<p class='m'>Aucune photo : ajoutez-en dans l’onglet Fiche.</p>`}
+<div style='margin-top:10px'><button type='button' class='p' data-a='pbGo' ${P.busy?'disabled':''}>${P.busy?'Publication en cours…':'🚀 Publier maintenant'}</button></div>${P.msg?`<p class='m' style='margin-top:8px;white-space:pre-line'>${esc(P.msg)}</p>`:''}${d}</div>`}
+async function pbGo(){const b=bCur();if(!b||PBS.busy)return;const fb=PBS.fb!==false,ig=PBS.ig!==false;
+ if(!fb&&!ig){toast('Choisissez Facebook et/ou Instagram');return}
+ const txt=((b.fb||'').trim()||bFbTxt(b)).trim();if(!txt){toast('Le texte est vide');return}
+ const ids=(b.ph||[]).filter(id=>!PBS.sel||PBS.sel[id]!==false).slice(0,10);
+ if(ig&&!ids.length){toast('Instagram demande au moins une photo');return}
+ if(!confirm('Publier maintenant sur '+[fb?'Facebook':'',ig?'Instagram':''].filter(Boolean).join(' et ')+' (page YES Immobilier) ?'))return;
+ PBS.busy=true;PBS.msg='Préparation des photos…';render();const paths=[];
+ try{const urls=[];for(const id of ids){const b0=await fget('bp_'+id);if(!b0)continue;const j=await pbJpg(await bStamp(b0));const p=window.__UID+'/pub/p-'+uid()+uid()+'.jpg';const r=await SB.storage.from('espaces').upload(p,j,{contentType:'image/jpeg',upsert:false});if(r.error)throw r.error;paths.push(p);urls.push(espUrl(p))}
+  if(ig&&!urls.length)throw new Error('Aucune photo exploitable');
+  PBS.msg='Envoi vers Facebook / Instagram…';render();
+  const ss=await SB.auth.getSession(),tk=ss&&ss.data&&ss.data.session&&ss.data.session.access_token;
+  const resp=await fetch(SB.supabaseUrl+'/functions/v1/publier',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB.supabaseKey,Authorization:'Bearer '+(tk||SB.supabaseKey)},body:JSON.stringify({message:txt,images:urls,fb,ig})});
+  const j=await resp.json().catch(()=>({}));if(j.error)throw new Error(j.error);if(!resp.ok)throw new Error('Erreur '+resp.status);
+  const L=[];if(j.facebook)L.push(j.facebook.ok?'✅ Facebook : publié':'❌ Facebook : '+(j.facebook.error||'erreur'));if(j.instagram)L.push(j.instagram.ok?'✅ Instagram : publié':'❌ Instagram : '+(j.instagram.error||'erreur'));
+  PBS.msg=L.join('\n');const okf=!!(j.facebook&&j.facebook.ok),oki=!!(j.instagram&&j.instagram.ok);if(okf||oki){b.pbd={d:Date.now(),fb:okf,ig:oki};save()}
+ }catch(e){PBS.msg='❌ '+(e&&e.message||'Publication impossible')}
+ try{if(paths.length)SB.storage.from('espaces').remove(paths)}catch(e){}
+ PBS.busy=false;render()}
 function bFbTab(b){const l=b.mode==='l',TH=l?FBTH_L:FBTH_V,ph=(b.ph||[])[0];
  return `<div class='bsec novoc'><h3>📣 Publication Facebook</h3><p class='m' style='margin:0 0 8px'>1. Choisissez le thème. 2. Ajoutez vos instructions (facultatif). 3. Générez le texte, relisez-le, copiez-le et collez-le sur Facebook avec la photo.</p>
 <div class='cgrid'>${bS(b,'fbth','Thème de la publication',TH)}</div>
@@ -1712,7 +1746,7 @@ function bFbTab(b){const l=b.mode==='l',TH=l?FBTH_L:FBTH_V,ph=(b.ph||[])[0];
 <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:8px'><button type='button' class='p' data-a='fbGen'>✨ Générer le texte</button><button type='button' data-a='fbAi' ${V.fbBusy?'disabled':''}>✨ Rendre plus chaleureux (IA)</button></div>
 <div style='margin-top:10px'><label>Texte de la publication (modifiable)</label><textarea data-bf='fb' rows='12'>${esc(b.fb||'')}</textarea></div>${V.fbMsg?`<p class='m'>${esc(V.fbMsg)}</p>`:''}
 <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:8px'><button type='button' class='p' data-a='fbCopy'>📋 Copier le texte</button><a href="${esc(socUrl('fb'))}" target='_blank' rel='noopener noreferrer' style='text-decoration:none'><button type='button'>↗ Ouvrir Facebook</button></a></div>
-<p class='m' style='font-size:12px;margin-top:8px'>Le texte est construit à partir de la fiche du bien. Relisez-le avant de publier.</p></div>`}
+<p class='m' style='font-size:12px;margin-top:8px'>Le texte est construit à partir de la fiche du bien. Relisez-le avant de publier.</p></div>${pbUi(b)}`}
 /* --- documents du bien : bon de visite, fiche de caractéristiques --- */
 const bdDot=(v,n)=>v?esc(v):'.'.repeat(n||34);
 const bdRows=R=>`<table>${R.filter(r=>r[1]!==''&&r[1]!=null&&r[1]!==false).map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(String(r[1]))}</td></tr>`).join('')}</table>`;
@@ -4416,6 +4450,8 @@ document.addEventListener('click',e=>{
  else if(a==='esCompDel'){const e=estList().find(x=>x.id===ES.id);e.comp=e.comp.filter(x=>x.id!==id);save();render()}
  else if(a==='esDel'){const e=estList().find(x=>x.id===ES.id);if(e)confirmDlg({title:'Supprimer cette estimation ?',text:'« '+(e.name||e.adr||'Estimation')+' » sera supprimée.',ok:'Supprimer',danger:true}).then(ok=>{if(!ok)return;S.est=S.est.filter(x=>x.id!==ES.id);ES.id=null;save();render()})}
  else if(a==='esPdf'){const e=estList().find(x=>x.id===ES.id);if(!e)return;if(!window.jspdf){toast('Outil PDF non chargé. Vérifiez votre connexion et rechargez la page.');return}mkPdf([{t:'Estimation – '+(e.name||e.adr||'immeuble'),h:(id==='a'?estHtmlA(e):estHtml(e))}]).then(b=>xdl((id==='a'?'Fiche locative - ':'Estimation - ')+String(e.name||e.adr||'immeuble').replace(/[\\\\/:*?"<>|]+/g,'-').slice(0,60)+'.pdf',b)).catch(()=>toast('Export PDF impossible.'))}
+ else if(a==='pbT'){const k=el.dataset.id,b=bCur();if(k==='fb'||k==='ig')PBS[k]=PBS[k]===false;else if(b){PBS.sel=PBS.sel||{};PBS.sel[k]=PBS.sel[k]===false}render()}
+ else if(a==='pbGo'){pbGo()}
  else if(a==='fbGen'){const b=bCur();if(b){b.fb=bFbTxt(b);V.fbMsg='';save();render()}}
  else if(a==='fbCopy'){const b=bCur();if(b){if(!(b.fb||'').trim())b.fb=bFbTxt(b);bCp(b.fb);save();render()}}
  else if(a==='fbAi'){const b=bCur();if(b){(async()=>{if(!(b.fb||'').trim())b.fb=bFbTxt(b);V.fbBusy=true;V.fbMsg='L’assistant travaille…';render();try{const r=await SB.functions.invoke('ai-mail',{body:{mode:'chaleureux',text:b.fb}});if(r.error)throw r.error;const o=r.data&&r.data.text;if(!o)throw new Error('vide');b.fb=o;V.fbMsg='Texte amélioré : relisez-le avant de publier.';save()}catch(e){V.fbMsg='L’assistant IA n’est pas disponible pour le moment : le texte généré reste utilisable tel quel.'}V.fbBusy=false;render()})()}}
@@ -4747,7 +4783,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v142'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v143'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
