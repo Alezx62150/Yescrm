@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v158</title>
+<title>YES CRM · v159</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,11 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-27q',v:'v159',t:'Visuel, QR code et rappel de visite',l:[
+['🖼️','Fiche d’un bien > Publication : **Créer le visuel du bien** (photo, prix, QR code, numéros), prêt pour Facebook et Instagram. Vous pouvez aussi **ajouter une image libre**.'],
+['📋','Le **bon de visite** porte maintenant le QR code et les numéros de l’agence. Les liens des QR codes se règlent dans Réglages.'],
+['💬','Dans les visites d’un bien : bouton **Rappel veille** qui prépare le message WhatsApp de confirmation.']
+]},
 {id:'2026-10-27p',v:'v158',t:'Rendement avec travaux dans la liste des biens',l:[
 ['📈','Dans la liste des biens, le rendement affiché donne aussi le rendement avec travaux et frais de notaire.']
 ]},
@@ -1090,7 +1095,7 @@ const AVIS=[['Très intéressé','#2e8b57'],['Intéressé','#6aa84f'],['Hésitan
 function panelVis(f){const op=V['pn_vi']?' open':'',L=(f.vis||[]).slice().sort((a,b)=>(b.d+(b.h||'')).localeCompare(a.d+(a.h||''))),ac=S.c.filter(c=>c.role==='acquereur'),aids=partyC(f,'aids').map(c=>c.id);
  const opt=ac.concat(S.c.filter(c=>aids.includes(c.id)&&!ac.includes(c)));
  return `<details class='pnl'${op} data-pn='vi'><summary>👀 Visites et retours · ${L.length} visite${L.length>1?'s':''}</summary>
-${L.length?L.map(v=>{const a=AVIS.find(x=>x[0]===v.avis);const late=v.rel&&!v.relOk&&v.rel<isoT();return `<div class='rw' style='align-items:center;gap:8px;flex-wrap:wrap'><span style='flex:1;min-width:180px'><b>${esc(fDate(v.d))}${v.h?' · '+esc(v.h):''}</b> — ${esc(visNom(v)||'visiteur')}${v.note?`<br><span class='m'>${esc(v.note)}</span>`:''}${v.rel?`<br><span class='m' style='${late?'color:var(--dn);font-weight:600':''}'>Relance le ${esc(fDate(v.rel))}${v.relOk?' ✓ faite':''}</span>`:''}</span>${a?`<span style='background:${a[1]};color:#fff;border-radius:10px;padding:2px 9px;font-size:12px'>${esc(a[0])}</span>`:''}${v.rel?`<button type='button' data-a='visRel' data-id='${v.id}' style='padding:2px 8px'>${v.relOk?'Rouvrir':'Relance faite'}</button>`:''}<button type='button' data-a='visDel' data-id='${v.id}' title='Supprimer' style='padding:2px 8px'>🗑</button></span></div>`}).join(''):`<p class='m'>Aucune visite enregistrée.</p>`}
+${L.length?L.map(v=>{const a=AVIS.find(x=>x[0]===v.avis);const late=v.rel&&!v.relOk&&v.rel<isoT();return `<div class='rw' style='align-items:center;gap:8px;flex-wrap:wrap'><span style='flex:1;min-width:180px'><b>${esc(fDate(v.d))}${v.h?' · '+esc(v.h):''}</b> — ${esc(visNom(v)||'visiteur')}${v.note?`<br><span class='m'>${esc(v.note)}</span>`:''}${v.rel?`<br><span class='m' style='${late?'color:var(--dn);font-weight:600':''}'>Relance le ${esc(fDate(v.rel))}${v.relOk?' ✓ faite':''}</span>`:''}</span>${a?`<span style='background:${a[1]};color:#fff;border-radius:10px;padding:2px 9px;font-size:12px'>${esc(a[0])}</span>`:''}${v.d>=isoT()?`<button type='button' data-a='visRap' data-id='${v.id}' style='padding:2px 8px' title='Prépare le message de confirmation à envoyer la veille (WhatsApp)'>💬 Rappel veille</button>`:''}${v.rel?`<button type='button' data-a='visRel' data-id='${v.id}' style='padding:2px 8px'>${v.relOk?'Rouvrir':'Relance faite'}</button>`:''}<button type='button' data-a='visDel' data-id='${v.id}' title='Supprimer' style='padding:2px 8px'>🗑</button></span></div>`}).join(''):`<p class='m'>Aucune visite enregistrée.</p>`}
 <div class='agf' style='margin-top:10px'><b>Nouvelle visite</b><div class='agg'><label>Date<input type='date' id='viD' value='${isoT()}'></label><label>Heure<input type='time' id='viH'></label><label>Avis<select id='viA'>${AVIS.map(a=>`<option>${a[0]}</option>`).join('')}</select></label></div>
 <div class='agg2'><label>Visiteur (contact)<select id='viC'><option value=''>— autre / saisir le nom —</option>${opt.map(c=>`<option value='${c.id}'>${esc(nom(c))}</option>`).join('')}</select></label><label>… ou nom du visiteur<input id='viN' placeholder='Nom du visiteur'></label></div>
 <label>Retour du visiteur<input id='viT' placeholder='Ex. : aime le jardin, trouve la cuisine trop petite'></label><label>Relancer le<input type='date' id='viR'></label>
@@ -1795,6 +1800,104 @@ function pbJpg(bl){return createImageBitmap(bl).then(bm=>{const k=Math.min(1,160
  const c=document.createElement('canvas');c.width=cw;c.height=ch;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cw,ch);
  if(cw!==iw||ch!==ih){try{const s=Math.max(cw/iw,ch/ih);x.save();x.filter='blur(24px)';x.drawImage(bm,(cw-iw*s)/2,(ch-ih*s)/2,iw*s,ih*s);x.restore();x.filter='none';x.fillStyle='rgba(255,255,255,.25)';x.fillRect(0,0,cw,ch)}catch(e){}}
  x.drawImage(bm,Math.round((cw-iw)/2),Math.round((ch-ih)/2),iw,ih);return new Promise(r=>c.toBlob(r,'image/jpeg',.9))}).catch(()=>bl)}
+/* Générateur de QR code (octets, correction M) — basé sur l’algorithme public de la norme ISO 18004 */
+var QRX=(function(){
+var ECC=[-1,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28],
+    NB=[-1,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49];
+function raw(v){var r=(16*v+128)*v+64;if(v>=2){var n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36}return r}
+function align(v){if(v==1)return[];var n=Math.floor(v/7)+2,st=v==32?26:Math.ceil((v*4+4)/(n*2-2))*2,r=[6];for(var p=v*4+10;r.length<n;p-=st)r.splice(1,0,p);return r}
+var EXP=[],LOG=[];(function(){var x=1;for(var i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11D}for(i=255;i<512;i++)EXP[i]=EXP[i-255]})();
+function mul(a,b){return a&&b?EXP[LOG[a]+LOG[b]]:0}
+function rsGen(d){var g=[1];for(var i=0;i<d;i++){var n=g.concat([0]);for(var j=0;j<g.length;j++){n[j]=mul(g[j],1)^(j?mul(g[j-1],EXP[i]):0);}
+ /* recalcul propre */ }
+ g=[1];for(i=0;i<d;i++){var h=new Array(g.length+1).fill(0);for(j=0;j<g.length;j++){h[j]^=g[j];h[j+1]^=mul(g[j],EXP[i])}g=h}return g}
+function rsRem(data,g){var d=g.length-1,r=new Array(d).fill(0);data.forEach(function(b){var f=b^r[0];r.shift();r.push(0);if(f)for(var i=0;i<d;i++)r[i]^=mul(g[i+1],f)});return r}
+function bytes(s){return Array.from(unescape(encodeURIComponent(s))).map(function(c){return c.charCodeAt(0)})}
+function make(text){var b=bytes(text),v,cap;
+ for(v=1;v<=40;v++){var dc=Math.floor(raw(v)/8)-ECC[v]*NB[v],cb=v<=9?8:16;if(4+cb+8*b.length<=dc*8){cap=dc;break}}
+ if(!cap)throw new Error('QR trop long');
+ var bits=[];function put(val,n){for(var i=n-1;i>=0;i--)bits.push((val>>>i)&1)}
+ put(4,4);put(b.length,v<=9?8:16);b.forEach(function(x){put(x,8)});
+ put(0,Math.min(4,cap*8-bits.length));while(bits.length%8)bits.push(0);
+ for(var pad=0xEC;bits.length<cap*8;pad^=0xEC^0x11)put(pad,8);
+ var cw=[];for(var i=0;i<bits.length;i+=8){var x=0;for(var j=0;j<8;j++)x=x<<1|bits[i+j];cw.push(x)}
+ var nb=NB[v],el=ECC[v],rc=Math.floor(raw(v)/8),ns=nb-rc%nb,sl=Math.floor(rc/nb),g=rsGen(el),blocks=[],k=0;
+ for(i=0;i<nb;i++){var dl=sl-el+(i<ns?0:1),dat=cw.slice(k,k+dl);k+=dl;var e=rsRem(dat,g);if(i<ns)dat.push(null);blocks.push(dat.concat(e))}
+ var res=[];for(i=0;i<blocks[0].length;i++)blocks.forEach(function(bl,j){if(i!=sl-el||j>=ns)res.push(bl[i])});
+ var N=v*4+17,M=[],F=[];for(i=0;i<N;i++){M.push(new Array(N).fill(false));F.push(new Array(N).fill(false))}
+ function set(x,y,d){if(x>=0&&x<N&&y>=0&&y<N){M[y][x]=d;F[y][x]=true}}
+ for(i=0;i<N;i++){set(6,i,i%2==0);set(i,6,i%2==0)}
+ function finder(cx,cy){for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){var d=Math.max(Math.abs(dx),Math.abs(dy));set(cx+dx,cy+dy,d!=2&&d!=4)}}
+ finder(3,3);finder(N-4,3);finder(3,N-4);
+ var ap=align(v),na=ap.length;for(i=0;i<na;i++)for(j=0;j<na;j++){if(!(i==0&&j==0||i==0&&j==na-1||i==na-1&&j==0)){for(var dy=-2;dy<=2;dy++)for(var dx=-2;dx<=2;dx++)set(ap[i]+dx,ap[j]+dy,Math.max(Math.abs(dx),Math.abs(dy))!=1)}}
+ function fmt(mask){var d=0<<3|mask,r=d;for(var i=0;i<10;i++)r=(r<<1)^((r>>9)*0x537);var bs=((d<<10)|r)^0x5412;
+  for(i=0;i<=5;i++)set(8,i,(bs>>i&1)!=0);set(8,7,(bs>>6&1)!=0);set(8,8,(bs>>7&1)!=0);set(7,8,(bs>>8&1)!=0);for(i=9;i<15;i++)set(14-i,8,(bs>>i&1)!=0);
+  for(i=0;i<8;i++)set(N-1-i,8,(bs>>i&1)!=0);for(i=8;i<15;i++)set(8,N-15+i,(bs>>i&1)!=0);set(8,N-8,true)}
+ fmt(0);
+ if(v>=7){var r2=v;for(i=0;i<12;i++)r2=(r2<<1)^((r2>>11)*0x1F25);var vb=(v<<12)|r2;for(i=0;i<18;i++){var bt=(vb>>i&1)!=0,a=N-11+i%3,c=Math.floor(i/3);set(a,c,bt);set(c,a,bt)}}
+ var idx=0,tot=res.length*8;for(var right=N-1;right>=1;right-=2){if(right==6)right=5;for(var vert=0;vert<N;vert++)for(j=0;j<2;j++){var x=right-j,up=((right+1)&2)==0,y=up?N-1-vert:vert;if(!F[y][x]&&idx<tot){M[y][x]=((res[idx>>3]>>(7-(idx&7)))&1)!=0;idx++}}}
+ var best=0,bp=1e9,final=null;
+ for(var mask=0;mask<8;mask++){var Q=M.map(function(r){return r.slice()});
+  for(y=0;y<N;y++)for(x=0;x<N;x++){if(!F[y][x]){var inv;switch(mask){case 0:inv=(x+y)%2==0;break;case 1:inv=y%2==0;break;case 2:inv=x%3==0;break;case 3:inv=(x+y)%3==0;break;case 4:inv=(Math.floor(x/3)+Math.floor(y/2))%2==0;break;case 5:inv=x*y%2+x*y%3==0;break;case 6:inv=(x*y%2+x*y%3)%2==0;break;default:inv=((x+y)%2+x*y%3)%2==0}if(inv)Q[y][x]=!Q[y][x]}}
+  var save=M;M=Q;fmt(mask);var p=pen(Q,N);M=save;if(p<bp){bp=p;best=mask;final=Q.map(function(r){return r.slice()})}}
+ return final;
+ function pen(Q,N){var r=0,y,x,i;for(y=0;y<N;y++){var run=1;for(x=1;x<N;x++){if(Q[y][x]==Q[y][x-1]){run++;if(run==5)r+=3;else if(run>5)r++}else run=1}}
+  for(x=0;x<N;x++){run=1;for(y=1;y<N;y++){if(Q[y][x]==Q[y-1][x]){run++;if(run==5)r+=3;else if(run>5)r++}else run=1}}
+  for(y=0;y<N-1;y++)for(x=0;x<N-1;x++)if(Q[y][x]==Q[y][x+1]&&Q[y][x]==Q[y+1][x]&&Q[y][x]==Q[y+1][x+1])r+=3;
+  var dk=0;for(y=0;y<N;y++)for(x=0;x<N;x++)if(Q[y][x])dk++;r+=Math.floor(Math.abs(dk*20-N*N*10)/(N*N))*10;return r}}
+function svg(text,px,mg){var m=make(text),n=m.length,t=(mg==null?2:mg),s='';m.forEach(function(r,y){r.forEach(function(d,x){if(d)s+='M'+(x+t)+','+(y+t)+'h1v1h-1z'})});return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(n+2*t)+' '+(n+2*t)+'" width="'+px+'" height="'+px+'" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="'+s+'" fill="#2b1b15"/></svg>'}
+function draw(ctx,text,x0,y0,px,mg){var m=make(text),n=m.length,t=(mg==null?2:mg),k=px/(n+2*t);ctx.fillStyle='#fff';ctx.fillRect(x0,y0,px,px);ctx.fillStyle='#2b1b15';m.forEach(function(r,y){r.forEach(function(d,x){if(d)ctx.fillRect(Math.round(x0+(x+t)*k),Math.round(y0+(y+t)*k),Math.ceil(k),Math.ceil(k))})})}
+return {make:make,svg:svg,draw:draw}})();
+
+const YT1='09 85 15 77 66',YT2='07 81 30 78 19';
+const bQrUrl=b=>String((b&&b.mode==='l'?(S.set||{}).qrl:(S.set||{}).qrv)||'').trim()||(b&&b.mode==='l'?'https://formulaire-visiteslocations-yesimmo.netlify.app/':'https://yes-immobilier.fr/');
+function qrPng(text,px){const c=document.createElement('canvas');c.width=c.height=px;QRX.draw(c.getContext('2d'),text,0,0,px,2);return c.toDataURL('image/png')}
+function qrBlock(b){let u='';try{u=qrPng(bQrUrl(b),220)}catch(e){return ''}
+ return `<table style='margin-top:18px;border:none'><tr><td style='width:120px;border:none'><img src="${u}" width='110' height='110' alt='QR code'></td><td style='border:none'><p><b>Une autre visite ? Une question ?</b><br>Scannez le QR code pour demander le formulaire de visite, ou contactez YES Immobilier :<br>Beauvais : ${YT1} · Béthune : ${YT2}</p></td></tr></table>`}
+var _bdBon0=bdBon,_bdBonL0=bdBonL;
+bdBon=function(b,v){return _bdBon0(b,v)+qrBlock(b)};
+bdBonL=function(b,v){return _bdBonL0(b,v)+qrBlock(b)};
+/* ---- visuel automatique d’un bien ---- */
+function pbWrap(x,t,mw,maxL){const w=t.split(/\s+/),L=[];let c='';w.forEach(s=>{const n=c?c+' '+s:s;if(x.measureText(n).width>mw&&c){L.push(c);c=s}else c=n});if(c)L.push(c);return L.slice(0,maxL)}
+async function pbVisu(b){const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),l=b.mode==='l';
+ x.fillStyle='#5a362a';x.fillRect(0,0,W,H);
+ const id=(b.ph||[])[0];let bm=null;if(id){try{const bl=await fget('bp_'+id);if(bl)bm=await createImageBitmap(bl)}catch(e){}}
+ const PH=760;if(bm){const k=Math.max(W/bm.width,PH/bm.height),w=bm.width*k,h=bm.height*k;x.save();x.beginPath();x.rect(0,0,W,PH);x.clip();x.drawImage(bm,(W-w)/2,(PH-h)/2,w,h);x.restore()}else{x.fillStyle='#a4573f';x.fillRect(0,0,W,PH)}
+ let g=x.createLinearGradient(0,0,0,PH);g.addColorStop(0,'rgba(60,32,22,.6)');g.addColorStop(.25,'rgba(60,32,22,0)');g.addColorStop(.7,'rgba(60,32,22,0)');g.addColorStop(1,'rgba(90,54,42,1)');x.fillStyle=g;x.fillRect(0,0,W,PH);
+ try{const lg=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=LG()});const lw=140,lh=lw*lg.height/lg.width;x.drawImage(lg,50,34,lw,lh)}catch(e){}
+ const tag=l?'À LOUER':'À VENDRE';x.font='700 34px Helvetica,Arial,sans-serif';const tw=x.measureText(tag).width+56;x.fillStyle='#a4573f';x.beginPath();x.roundRect?x.roundRect(W-50-tw,50,tw,64,32):x.rect(W-50-tw,50,tw,64);x.fill();x.fillStyle='#fff';x.textBaseline='middle';x.fillText(tag,W-50-tw+28,83);x.textBaseline='alphabetic';
+ const ville=(String(b.adr||'').match(/\b\d{5}\s+(.+)$/)||[])[1]||'',tt=b.titre||[b.type||'Bien',ville].filter(Boolean).join(' – ');
+ x.fillStyle='#fff';x.font='700 58px Georgia,serif';let y=805;pbWrap(x,tt,960,2).forEach(s=>{x.fillText(s,60,y);y+=66});
+ x.fillStyle='#ecd9cd';x.font='400 34px Helvetica,Arial,sans-serif';const sub=[ville,b.surf?b.surf+' m²':'',b.nbp?b.nbp+' pièces':'',b.nbch?b.nbch+' ch.':''].filter(Boolean).join(' · ');x.fillText(sub,60,y+4);
+ const p=l?(num(b.prix)?eur(num(b.prix))+' / mois'+(num(b.lchg)?' + '+eur(num(b.lchg))+' de charges':''):''):(num(b.prix)?eur(num(b.prix)):'');
+ if(p){x.fillStyle='#f0b89c';x.font='700 66px Georgia,serif';x.fillText(p,60,y+78)}
+ /* cadre contact */
+ const cy=1040,ch=280;x.fillStyle='#a4573f';x.beginPath();x.roundRect?x.roundRect(50,cy,W-100,ch,26):x.rect(50,cy,W-100,ch);x.fill();
+ x.fillStyle='#fff';x.beginPath();x.roundRect?x.roundRect(80,cy+35,210,210,18):x.rect(80,cy+35,210,210);x.fill();QRX.draw(x,bQrUrl(b),90,cy+45,190,1);
+ x.fillStyle='#fff';x.font='700 38px Georgia,serif';x.fillText(l?'Demandez une visite':'Une visite ? Contactez-nous',340,cy+80);
+ x.font='400 26px Helvetica,Arial,sans-serif';x.fillStyle='#f8e6dc';x.fillText(l?'Scannez le QR code ou écrivez-nous en message privé':'Scannez le QR code ou écrivez-nous en message privé',340,cy+120);
+ x.font='600 18px Helvetica,Arial,sans-serif';x.fillStyle='#f0d3c3';x.fillText('BEAUVAIS',340,cy+168);x.fillText('BÉTHUNE',640,cy+168);
+ x.font='700 34px Helvetica,Arial,sans-serif';x.fillStyle='#fff';x.fillText(YT1,340,cy+206);x.fillText(YT2,640,cy+206);
+ x.font='400 22px Helvetica,Arial,sans-serif';x.fillStyle='#f8e6dc';x.fillText((b.ref?'Réf. '+b.ref+' · ':'')+'YES Immobilier · Dites oui à l’immobilier',340,cy+250);
+ return new Promise(r=>c.toBlob(r,'image/jpeg',.92))}
+async function pbBlobs(b){const out=[];
+ if(PBS.visu&&PBS.visuOn!==false)out.push(await pbJpg(PBS.visu));
+ for(const e of (PBS.extra||[]))out.push(await pbJpg(e.blob));
+ const ids=(b.ph||[]).filter(id=>!PBS.sel||PBS.sel[id]!==false);
+ for(const id of ids){if(out.length>=10)break;const b0=await fget('bp_'+id);if(!b0)continue;out.push(await pbJpg(await bStamp(b0)))}
+ return out.slice(0,10)}
+const pbNb=b=>(PBS.visu&&PBS.visuOn!==false?1:0)+(PBS.extra||[]).length+(b.ph||[]).filter(id=>!PBS.sel||PBS.sel[id]!==false).length;
+function pbVisuUi(b){const P=PBS,u=P.visu?(P.visuUrl=P.visuUrl||URL.createObjectURL(P.visu)):'';
+ return `<div style='margin-top:12px'><label>Visuel et images libres <span class='m' style='font-weight:400'>(ajoutés en premier à la publication)</span></label><div style='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-top:4px'>
+ <button type='button' data-a='pbVisu' ${P.busy||P.vbusy?'disabled':''}>${P.vbusy?'Création…':(P.visu?'🔄 Refaire le visuel du bien':'🖼️ Créer le visuel du bien')}</button><button type='button' data-a='pbXadd'>➕ Ajouter une image</button></div>
+ <div style='display:flex;gap:10px;flex-wrap:wrap;margin-top:8px'>${P.visu?`<div style='width:120px'><img src="${u}" alt='' style='width:120px;border-radius:8px;border:3px solid ${P.visuOn!==false?'var(--ac,#a4573f)':'transparent'};opacity:${P.visuOn!==false?1:.45};cursor:pointer' data-a='pbVisuT'><div class='m' style='font-size:11px'>Visuel · cliquez pour ${P.visuOn!==false?'retirer':'inclure'}</div><button type='button' data-a='pbVisuDl' style='padding:2px 8px;font-size:12px'>⬇ Télécharger</button></div>`:''}
+ ${(P.extra||[]).map((e,i)=>`<div style='width:120px'><img src="${e.url}" alt='' style='width:120px;border-radius:8px;border:3px solid var(--ac,#a4573f)'><button type='button' data-a='pbXdel' data-i='${i}' style='padding:2px 8px;font-size:12px'>✕ Retirer</button></div>`).join('')}</div>
+ <input type='file' id='pbXin' accept='image/*' multiple hidden></div>`}
+document.addEventListener('change',e=>{const t=e.target;if(!t||t.id!=='pbXin')return;PBS.extra=PBS.extra||[];[...t.files].forEach(f=>{if(PBS.extra.length<9)PBS.extra.push({blob:f,url:URL.createObjectURL(f)})});t.value='';render()});
+function visRap(id){const o=VO(),v=((o&&o.vis)||[]).find(x=>x.id===id);if(!v)return;const c=v.cid?S.c.find(x=>x.id===v.cid):null,tel=(c&&c.tel)||v.tel||'',pr=(c&&(c.prenom||nom(c).split(' ')[0]))||(v.nom||'').split(' ')[0]||'',
+ ad=(o.adr||o.titre||o.bien||'le logement'),dt=new Date(v.d+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+ const msg='Bonjour'+(pr?' '+pr:'')+',\n\nRappel de votre visite demain : '+dt+(v.h?' à '+v.h:'')+'.\n\n✅ Merci de CONFIRMER en répondant OUI à ce message.\n⚠️ Sans confirmation, la visite sera annulée.\nUn empêchement ? Prévenez-nous au moins 3 h avant la visite.\n\nL’adresse exacte vous sera communiquée après confirmation.\n\nYES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
+ if(tel){window.open('https://wa.me/'+waN(tel)+'?text='+encodeURIComponent(msg),'_blank')}else{try{navigator.clipboard.writeText(msg);toast('Pas de numéro pour ce visiteur : message copié, collez-le dans WhatsApp ou un SMS.')}catch(e){toast('Pas de numéro pour ce visiteur.')}}}
 function pbUi(b){const P=PBS,fb=P.fb!==false,ig=P.ig!==false,ph=b.ph||[];
  const chip=(k,on,t)=>`<button type='button' data-a='pbT' data-id='${k}' style='${on?'background:var(--ac,#a4573f);color:#fff;border-color:var(--ac,#a4573f)':''}'>${on?'✓ ':''}${t}</button>`;
  const d=b.pbd?`<p class='m' style='margin:8px 0 0'>Dernière publication : ${esc(new Date(b.pbd.d).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}))}${b.pbd.fb?' · Facebook ✓':''}${b.pbd.ig?' · Instagram ✓':''}</p>`:'';
@@ -1802,15 +1905,15 @@ function pbUi(b){const P=PBS,fb=P.fb!==false,ig=P.ig!==false,ph=b.ph||[];
 <div style='display:flex;gap:6px;flex-wrap:wrap'>${chip('fb',fb,'Facebook')}${chip('ig',ig,'Instagram')}</div>
 <label style='margin-top:10px'>Photos à publier <span class='m' style='font-weight:400'>(10 maximum, Instagram en demande au moins une)</span></label>
 ${ph.length?`<div style='display:flex;gap:8px;flex-wrap:wrap'>${ph.map(id=>{const on=!P.sel||P.sel[id]!==false;return `<div data-a='pbT' data-id='${id}' style='position:relative;cursor:pointer;width:96px;height:72px;border-radius:8px;overflow:hidden;border:3px solid ${on?'var(--ac,#a4573f)':'transparent'};opacity:${on?1:.45}'><img data-ph='${id}' alt='' style='width:100%;height:100%;object-fit:cover;pointer-events:none'>${on?`<span style='position:absolute;top:2px;right:4px;color:#fff;background:var(--ac,#a4573f);border-radius:50%;width:18px;height:18px;font-size:12px;display:flex;align-items:center;justify-content:center'>✓</span>`:''}</div>`}).join('')}</div>`:`<p class='m'>Aucune photo : ajoutez-en dans l’onglet Fiche.</p>`}
+${pbVisuUi(b)}
 <div style='margin-top:10px'><button type='button' class='p' data-a='pbGo' ${P.busy?'disabled':''}>${P.busy?'Publication en cours…':'🚀 Publier maintenant'}</button></div>${P.msg?`<p class='m' style='margin-top:8px;white-space:pre-line'>${esc(P.msg)}</p>`:''}${d}${pbpUi(b)}</div>`}
 async function pbGo(){const b=bCur();if(!b||PBS.busy)return;const fb=PBS.fb!==false,ig=PBS.ig!==false;
  if(!fb&&!ig){toast('Choisissez Facebook et/ou Instagram');return}
  const txt=((b.fb||'').trim()||bFbTxt(b)).trim();if(!txt){toast('Le texte est vide');return}
- const ids=(b.ph||[]).filter(id=>!PBS.sel||PBS.sel[id]!==false).slice(0,10);
- if(ig&&!ids.length){toast('Instagram demande au moins une photo');return}
+ if(ig&&!pbNb(b)){toast('Instagram demande au moins une photo');return}
  if(!confirm('Publier maintenant sur '+[fb?'Facebook':'',ig?'Instagram':''].filter(Boolean).join(' et ')+' (page YES Immobilier) ?'))return;
  PBS.busy=true;PBS.msg='Préparation des photos…';render();const paths=[];
- try{const urls=[];for(const id of ids){const b0=await fget('bp_'+id);if(!b0)continue;const j=await pbJpg(await bStamp(b0));const p=window.__UID+'/pub/p-'+uid()+uid()+'.jpg';const r=await SB.storage.from('espaces').upload(p,j,{contentType:'image/jpeg',upsert:false});if(r.error)throw r.error;paths.push(p);urls.push(espUrl(p))}
+ try{const urls=[];for(const j of await pbBlobs(b)){const p=window.__UID+'/pub/p-'+uid()+uid()+'.jpg';const r=await SB.storage.from('espaces').upload(p,j,{contentType:'image/jpeg',upsert:false});if(r.error)throw r.error;paths.push(p);urls.push(espUrl(p))}
   if(ig&&!urls.length)throw new Error('Aucune photo exploitable');
   PBS.msg='Envoi vers Facebook / Instagram…';render();
   const ss=await SB.auth.getSession(),tk=ss&&ss.data&&ss.data.session&&ss.data.session.access_token;
@@ -1837,9 +1940,9 @@ async function pbProg(){const b=bCur();if(!b||PBP.busy)return;const fb=PBS.fb!==
  if(!fb&&!ig){toast('Choisissez Facebook et/ou Instagram');return}
  const w=PBS.when?new Date(PBS.when):null;if(!w||isNaN(w)||w.getTime()<Date.now()+2*60000){toast('Choisissez une date et une heure dans le futur');return}
  const txt=((b.fb||'').trim()||bFbTxt(b)).trim();if(!txt){toast('Le texte est vide');return}
- const ids=(b.ph||[]).filter(id=>!PBS.sel||PBS.sel[id]!==false).slice(0,10);if(ig&&!ids.length){toast('Instagram demande au moins une photo');return}
+ if(ig&&!pbNb(b)){toast('Instagram demande au moins une photo');return}
  PBP.busy=true;render();const paths=[];
- try{for(const id of ids){const b0=await fget('bp_'+id);if(!b0)continue;const j=await pbJpg(await bStamp(b0));const p=window.__UID+'/pub/prog-'+uid()+uid()+'.jpg';const r=await SB.storage.from('espaces').upload(p,j,{contentType:'image/jpeg',upsert:false});if(r.error)throw r.error;paths.push(p)}
+ try{for(const j of await pbBlobs(b)){const p=window.__UID+'/pub/prog-'+uid()+uid()+'.jpg';const r=await SB.storage.from('espaces').upload(p,j,{contentType:'image/jpeg',upsert:false});if(r.error)throw r.error;paths.push(p)}
   if(ig&&!paths.length)throw new Error('Aucune photo exploitable');
   const r=await SB.from('crm_publications').insert({auteur:String((S.set&&S.set.me)||''),bien:b.adr||b.ref||'',message:txt,images:paths,fb,ig,quand:w.toISOString()});if(r.error)throw r.error;
   toast('Publication programmée le '+w.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}));PBS.when=''}
@@ -3616,7 +3719,7 @@ function imgOp(op){const ed=$('#ed');if(!ed)return;
  markDirty()}
 function addImage(file){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const png=/png|svg|gif|webp/.test(file.type),k=Math.min(1,(png?500:900)/im.width),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k)),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');if(!png){x.fillStyle='#fff';x.fillRect(0,0,w,h)}x.drawImage(im,0,0,w,h);const u=c.toDataURL(png?'image/png':'image/jpeg',.82);exec('insertHTML','<img src="'+u+'" data-w="'+w+'" data-h="'+h+'" style="width:'+Math.min(w,300)+'px">')};im.onerror=()=>toast('Image illisible.');im.src=r.result};r.readAsDataURL(file)}
 function vSet(){const st=S.set||{};return `${tabsBar()}<h1 style='margin-bottom:6px'>Réglages des documents</h1><p class='m'>Ces réglages s’appliquent à l’en-tête et au pied de page de chaque page des exports PDF et Word.</p>
-<label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nojingle'${st.nojingle?' checked':''}> Désactiver l’écran d’accueil et la musique</label><label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nocom'${st.nocom?' checked':''}> Je ne perçois pas de commission de mandataire (direction, salarié)</label><label>Votre nom et prénom (affichés en haut à droite et sur la page d’accueil)</label><input data-s='me' placeholder='Alexandre Desfontaines' value="${esc(st.me)}" autocomplete='name'>
+<label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nojingle'${st.nojingle?' checked':''}> Désactiver l’écran d’accueil et la musique</label><label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nocom'${st.nocom?' checked':''}> Je ne perçois pas de commission de mandataire (direction, salarié)</label><div class='cgrid' style='margin:8px 0'><div><label>Lien du QR code – biens à louer</label><input data-s='qrl' placeholder='https://formulaire-visiteslocations-yesimmo.netlify.app/' value="${esc(st.qrl||'')}"></div><div><label>Lien du QR code – biens à vendre</label><input data-s='qrv' placeholder='https://yes-immobilier.fr/' value="${esc(st.qrv||'')}"></div></div><label>Votre nom et prénom (affichés en haut à droite et sur la page d’accueil)</label><input data-s='me' placeholder='Alexandre Desfontaines' value="${esc(st.me)}" autocomplete='name'>
 ${mpBox()}<h3 style='margin:14px 0 6px'>Objectifs commerciaux mensuels</h3><div class='cgrid'><div><label>Ventes par mois</label><input data-s='o_ventes' inputmode='decimal' value="${esc(st.o_ventes!==undefined?st.o_ventes:'2')}"></div><div><label>Chiffre d’affaires HT par mois (€)</label><input data-s='o_ca' inputmode='decimal' value="${esc(st.o_ca!==undefined?st.o_ca:'12000')}"></div><div><label>Mandats par mois</label><input data-s='o_mand' inputmode='decimal' value="${esc(st.o_mand!==undefined?st.o_mand:'4')}"></div><div><label>dont mandats exclusifs</label><input data-s='o_excl' inputmode='decimal' value="${esc(st.o_excl!==undefined?st.o_excl:'2')}"></div><div><label>Délai entre validation et encaissement (mois)</label><input data-s='o_delai' inputmode='decimal' value="${esc(st.o_delai!==undefined?st.o_delai:'3')}"></div></div>
 <label>Texte d’en-tête, à côté du logo (une ligne par ligne, 4 au maximum)</label><textarea data-s='hdr' rows='3' placeholder="YES Immobilier&#10;12 rue Exemple, 75000 Paris&#10;Tél. 01 23 45 67 89">${esc(st.hdr)}</textarea>
 <label>Texte de pied de page (5 lignes au maximum, centré à côté du petit logo)</label><textarea data-s='ftr' rows='5' placeholder="Raison sociale · SIRET · Carte professionnelle n°">${esc(ftrOf(st))}</textarea><label>Médiateur de la consommation (nom et coordonnées, affiché sur le bon de visite)</label><textarea data-s='med' rows='2' placeholder="Nom, adresse, site du médiateur">${esc(st.med||'')}</textarea>
@@ -4769,6 +4872,12 @@ document.addEventListener('click',e=>{
  else if(a==='tpCopy'){const T=tpls().find(x=>x.id===TP.id),f=TP.fid?S.f.find(x=>x.id===TP.fid):null,c=TP.cid?S.c.find(x=>x.id===TP.cid):null;if(T){const tx=(T.k==='mail'&&T.s?tpFill(T.s,f,c)+'\n\n':'')+tpFill(T.b,f,c);(navigator.clipboard?navigator.clipboard.writeText(tx):Promise.reject()).then(()=>toast('Message copié.')).catch(()=>toast('Copie impossible : sélectionnez le texte à la main.'))}}
  else if(a==='lgCalc'){const f=F(),L=lgDates(f);if(!L)return;f.ag=f.ag||[];L.forEach(([k,t,d])=>{const e=f.ag.find(x=>x.auto===k);if(e){if(!e.ok){e.d=d;e.t=t}}else f.ag.push({id:uid(),d,t,ok:false,auto:k})});V.pn_m=true;save();render();toast('Échéances ajoutées à l’agenda.')}
  else if(a==='visAdd'){const f=VO(),d=$('#viD').value;if(!d){toast('Indiquez la date de la visite.');return}const cid=$('#viC').value,nm=$('#viN').value.trim();if(!cid&&!nm){toast('Choisissez ou saisissez le visiteur.');return}f.vis=f.vis||[];f.vis.push({id:uid(),d,h:$('#viH').value,cid,nom:nm,avis:$('#viA').value,note:$('#viT').value.trim(),rel:$('#viR').value});V.pn_vi=true;save();render();toast('Visite enregistrée.')}
+ else if(a==='pbVisu'){const b=bCur();if(b&&!PBS.vbusy){PBS.vbusy=true;render();pbVisu(b).then(bl=>{PBS.visu=bl;PBS.visuUrl='';PBS.visuOn=true}).catch(()=>toast('Création du visuel impossible')).finally(()=>{PBS.vbusy=false;render()})}}
+ else if(a==='pbVisuT'){PBS.visuOn=PBS.visuOn===false;render()}
+ else if(a==='pbVisuDl'){if(PBS.visu)xdl('visuel-'+((bCur()||{}).ref||'bien')+'.jpg',PBS.visu)}
+ else if(a==='pbXadd'){const i=document.getElementById('pbXin');if(i)i.click()}
+ else if(a==='pbXdel'){(PBS.extra||[]).splice(+el.dataset.i,1);render()}
+ else if(a==='visRap'){visRap(id)}
  else if(a==='visDel'){const f=VO();f.vis=(f.vis||[]).filter(x=>x.id!==id);V.pn_vi=true;save();render()}
  else if(a==='visRel'){const v=((VO().vis)||[]).find(x=>x.id===id);if(v){v.relOk=!v.relOk;V.pn_vi=true;save();render()}}
  else if(a==='agenda'){as();go('agenda')}
@@ -4999,7 +5108,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v158'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v159'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
