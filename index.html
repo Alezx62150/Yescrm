@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v147</title>
+<title>YES CRM · v148</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,10 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-27f',v:'v148',t:'Programmer une publication',l:[
+['🕒','Dans l’onglet **Facebook** d’un bien : choisissez un jour et une heure, le CRM publie tout seul sur Facebook et Instagram.'],
+['📋','La liste des publications programmées, publiées ou en erreur s’affiche au même endroit ; vous pouvez annuler une publication avant son heure.']
+]},
 {id:'2026-10-27e',v:'v147',t:'Relances automatiques',l:[
 ['🔔','Un dossier avant compromis **sans activité depuis 15 jours** apparaît dans « À faire aujourd’hui » et dans l’agenda.'],
 ['🏢','Un bien en mandat **sans visite depuis 30 jours** aussi : pensez à faire le point avec le vendeur.']
@@ -1736,7 +1740,7 @@ function pbUi(b){const P=PBS,fb=P.fb!==false,ig=P.ig!==false,ph=b.ph||[];
 <div style='display:flex;gap:6px;flex-wrap:wrap'>${chip('fb',fb,'Facebook')}${chip('ig',ig,'Instagram')}</div>
 <label style='margin-top:10px'>Photos à publier <span class='m' style='font-weight:400'>(10 maximum, Instagram en demande au moins une)</span></label>
 ${ph.length?`<div style='display:flex;gap:8px;flex-wrap:wrap'>${ph.map(id=>{const on=!P.sel||P.sel[id]!==false;return `<div data-a='pbT' data-id='${id}' style='position:relative;cursor:pointer;width:96px;height:72px;border-radius:8px;overflow:hidden;border:3px solid ${on?'var(--ac,#a4573f)':'transparent'};opacity:${on?1:.45}'><img data-ph='${id}' alt='' style='width:100%;height:100%;object-fit:cover;pointer-events:none'>${on?`<span style='position:absolute;top:2px;right:4px;color:#fff;background:var(--ac,#a4573f);border-radius:50%;width:18px;height:18px;font-size:12px;display:flex;align-items:center;justify-content:center'>✓</span>`:''}</div>`}).join('')}</div>`:`<p class='m'>Aucune photo : ajoutez-en dans l’onglet Fiche.</p>`}
-<div style='margin-top:10px'><button type='button' class='p' data-a='pbGo' ${P.busy?'disabled':''}>${P.busy?'Publication en cours…':'🚀 Publier maintenant'}</button></div>${P.msg?`<p class='m' style='margin-top:8px;white-space:pre-line'>${esc(P.msg)}</p>`:''}${d}</div>`}
+<div style='margin-top:10px'><button type='button' class='p' data-a='pbGo' ${P.busy?'disabled':''}>${P.busy?'Publication en cours…':'🚀 Publier maintenant'}</button></div>${P.msg?`<p class='m' style='margin-top:8px;white-space:pre-line'>${esc(P.msg)}</p>`:''}${d}${pbpUi(b)}</div>`}
 async function pbGo(){const b=bCur();if(!b||PBS.busy)return;const fb=PBS.fb!==false,ig=PBS.ig!==false;
  if(!fb&&!ig){toast('Choisissez Facebook et/ou Instagram');return}
  const txt=((b.fb||'').trim()||bFbTxt(b)).trim();if(!txt){toast('Le texte est vide');return}
@@ -1755,6 +1759,32 @@ async function pbGo(){const b=bCur();if(!b||PBS.busy)return;const fb=PBS.fb!==fa
  }catch(e){PBS.msg='❌ '+(e&&e.message||'Publication impossible')}
  try{if(paths.length)SB.storage.from('espaces').remove(paths)}catch(e){}
  PBS.busy=false;render()}
+
+/* --- publications programmées --- */
+var PBP={rows:null,t:0,err:'',busy:false};
+async function pbpLoad(){if(!window.SB||!SB.from)return;PBP.t=Date.now();try{const r=await SB.from('crm_publications').select('id,bien,message,images,fb,ig,quand,statut,resultat').order('quand',{ascending:false}).limit(15);if(r.error)throw r.error;PBP.rows=r.data||[];PBP.err=''}catch(e){PBP.err=(e&&e.message)||'indisponible'}if(V.v==='bien')render()}
+function pbpUi(b){if(window.__WEB&&(!PBP.t||Date.now()-PBP.t>60000)){PBP.t=Date.now();setTimeout(pbpLoad,0)}
+ const mn=new Date(Date.now()+3*60000-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+ const lab={prevue:['Programmée','#3b6fb6'],en_cours:['En cours','#d98a2b'],envoyee:['Publiée','#3e8e4f'],erreur:['Erreur','#c2492f']};
+ const R=(PBP.rows||[]).slice(0,8).map(p=>{const l=lab[p.statut]||[p.statut,'#888'],res=p.resultat||{},er=[res.facebook&&!res.facebook.ok?'Facebook : '+res.facebook.error:'',res.instagram&&!res.instagram.ok?'Instagram : '+res.instagram.error:''].filter(Boolean).join(' · ');
+  return `<div class='rw' style='align-items:center;gap:8px;flex-wrap:wrap'><span style='flex:1;min-width:200px'><b>${esc(new Date(p.quand).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}))}</b> · ${[p.fb?'Facebook':'',p.ig?'Instagram':''].filter(Boolean).join(' + ')}${p.bien?' · '+esc(p.bien):''}<br><span class='m'>${esc(String(p.message).slice(0,90))}${String(p.message).length>90?'…':''}</span>${er?`<br><span class='m' style='color:var(--dn)'>${esc(er)}</span>`:''}</span><span class='badge' style='background:${l[1]};color:#fff'>${l[0]}</span>${p.statut==='prevue'?`<button type='button' class='d' data-a='pbpDel' data-id='${p.id}'>Annuler</button>`:''}</div>`}).join('');
+ return `<h3 style='margin:14px 0 4px'>🕒 Programmer pour plus tard</h3><p class='m' style='margin:0 0 8px'>Choisissez le jour et l’heure : le CRM publiera tout seul, même si vous êtes déconnecté. Mêmes réseaux, texte et photos que ci-dessus.</p>
+<div style='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end'><div><label>Date et heure</label><input type='datetime-local' data-pbw='1' min='${mn}' value='${esc(PBS.when||'')}'></div><button type='button' class='p' data-a='pbProg' ${PBP.busy?'disabled':''}>${PBP.busy?'Programmation…':'🕒 Programmer la publication'}</button></div>
+${PBP.err?`<p class='m' style='margin-top:6px'>Les publications programmées ne sont pas encore disponibles (${esc(PBP.err)}).</p>`:''}${R?`<div style='margin-top:10px'>${R}</div>`:''}`}
+async function pbProg(){const b=bCur();if(!b||PBP.busy)return;const fb=PBS.fb!==false,ig=PBS.ig!==false;
+ if(!fb&&!ig){toast('Choisissez Facebook et/ou Instagram');return}
+ const w=PBS.when?new Date(PBS.when):null;if(!w||isNaN(w)||w.getTime()<Date.now()+2*60000){toast('Choisissez une date et une heure dans le futur');return}
+ const txt=((b.fb||'').trim()||bFbTxt(b)).trim();if(!txt){toast('Le texte est vide');return}
+ const ids=(b.ph||[]).filter(id=>!PBS.sel||PBS.sel[id]!==false).slice(0,10);if(ig&&!ids.length){toast('Instagram demande au moins une photo');return}
+ PBP.busy=true;render();const paths=[];
+ try{for(const id of ids){const b0=await fget('bp_'+id);if(!b0)continue;const j=await pbJpg(await bStamp(b0));const p=window.__UID+'/pub/prog-'+uid()+uid()+'.jpg';const r=await SB.storage.from('espaces').upload(p,j,{contentType:'image/jpeg',upsert:false});if(r.error)throw r.error;paths.push(p)}
+  if(ig&&!paths.length)throw new Error('Aucune photo exploitable');
+  const r=await SB.from('crm_publications').insert({auteur:String((S.set&&S.set.me)||''),bien:b.adr||b.ref||'',message:txt,images:paths,fb,ig,quand:w.toISOString()});if(r.error)throw r.error;
+  toast('Publication programmée le '+w.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}));PBS.when=''}
+ catch(e){try{if(paths.length)SB.storage.from('espaces').remove(paths)}catch(_){}toast('Programmation impossible : '+((e&&e.message)||'erreur'))}
+ PBP.busy=false;await pbpLoad();render()}
+async function pbpDel(id){const p=(PBP.rows||[]).find(x=>x.id===id);if(!p||!confirm('Annuler cette publication programmée ?'))return;try{const r=await SB.from('crm_publications').delete().eq('id',id);if(r.error)throw r.error;if((p.images||[]).length)SB.storage.from('espaces').remove(p.images)}catch(e){toast('Annulation impossible')}await pbpLoad();render()}
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.pbw)PBS.when=t.value});
 function bFbTab(b){const l=b.mode==='l',TH=l?FBTH_L:FBTH_V,ph=(b.ph||[])[0];
  return `<div class='bsec novoc'><h3>📣 Publication Facebook</h3><p class='m' style='margin:0 0 8px'>1. Choisissez le thème. 2. Ajoutez vos instructions (facultatif). 3. Générez le texte, relisez-le, copiez-le et collez-le sur Facebook avec la photo.</p>
 <div class='cgrid'>${bS(b,'fbth','Thème de la publication',TH)}</div>
@@ -4533,7 +4563,7 @@ document.addEventListener('click',e=>{
  else if(a==='esDel'){const e=estList().find(x=>x.id===ES.id);if(e)confirmDlg({title:'Supprimer cette estimation ?',text:'« '+(e.name||e.adr||'Estimation')+' » sera supprimée.',ok:'Supprimer',danger:true}).then(ok=>{if(!ok)return;S.est=S.est.filter(x=>x.id!==ES.id);ES.id=null;save();render()})}
  else if(a==='esPdf'){const e=estList().find(x=>x.id===ES.id);if(!e)return;if(!window.jspdf){toast('Outil PDF non chargé. Vérifiez votre connexion et rechargez la page.');return}mkPdf([{t:'Estimation – '+(e.name||e.adr||'immeuble'),h:(id==='a'?estHtmlA(e):estHtml(e))}]).then(b=>xdl((id==='a'?'Fiche locative - ':'Estimation - ')+String(e.name||e.adr||'immeuble').replace(/[\\\\/:*?"<>|]+/g,'-').slice(0,60)+'.pdf',b)).catch(()=>toast('Export PDF impossible.'))}
  else if(a==='pbT'){const k=el.dataset.id,b=bCur();if(k==='fb'||k==='ig')PBS[k]=PBS[k]===false;else if(b){PBS.sel=PBS.sel||{};PBS.sel[k]=PBS.sel[k]===false}render()}
- else if(a==='pbGo'){pbGo()}
+ else if(a==='pbGo'){pbGo()} else if(a==='pbProg'){pbProg()} else if(a==='pbpDel'){pbpDel(id)}
  else if(a==='fbGen'){const b=bCur();if(b){b.fb=bFbTxt(b);V.fbMsg='';save();render()}}
  else if(a==='fbCopy'){const b=bCur();if(b){if(!(b.fb||'').trim())b.fb=bFbTxt(b);bCp(b.fb);save();render()}}
  else if(a==='fbAi'){const b=bCur();if(b){(async()=>{if(!(b.fb||'').trim())b.fb=bFbTxt(b);V.fbBusy=true;V.fbMsg='L’assistant travaille…';render();try{const r=await SB.functions.invoke('ai-mail',{body:{mode:'chaleureux',text:b.fb}});if(r.error)throw r.error;const o=r.data&&r.data.text;if(!o)throw new Error('vide');b.fb=o;V.fbMsg='Texte amélioré : relisez-le avant de publier.';save()}catch(e){V.fbMsg='L’assistant IA n’est pas disponible pour le moment : le texte généré reste utilisable tel quel.'}V.fbBusy=false;render()})()}}
@@ -4865,7 +4895,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v147'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v148'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
