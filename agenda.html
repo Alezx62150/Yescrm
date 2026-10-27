@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v162</title>
+<title>YES CRM · v163</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,11 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-27u',v:'v163',t:'Fiches de biens verrouillées',l:[
+['🔒','Une fiche de bien se **verrouille toute seule** quand vous la quittez (bouton **Verrouiller la fiche** pour le faire à la main). Les champs, les pièces, les travaux et les photos ne peuvent plus être modifiés par erreur.'],
+['🔓','Seuls l’auteur de la fiche et les administrateurs peuvent la **déverrouiller**. Visites, documents et publications restent utilisables.'],
+['⚙️','Réglages : case pour désactiver le verrouillage automatique.']
+]},
 {id:'2026-10-27t',v:'v162',t:'QR code des biens à vendre : SMS prêt à envoyer',l:[
 ['📱','Sur le visuel et le bon de visite d’un bien à vendre, le QR code ouvre maintenant un **SMS prêt à envoyer** au 07 81 30 78 19, avec la référence du bien. Vous pouvez toujours mettre un autre lien dans Réglages.']
 ]},
@@ -1960,6 +1965,25 @@ function dvAdd(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;if(((S
 function dvWa(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;const d=r.d,tel=dvTel(d.telephone||d.tel),pr=String(d.name||d.nom||'').split(/\s+/)[0];
  const msg='Bonjour'+(pr?' '+pr:'')+',\n\nMerci pour votre demande de visite'+(d.bien?' ('+d.bien+')':'')+'. Quel jour et quelle heure vous arrangent ? Nous vous confirmerons le créneau.\n\nYES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
  window.open('https://wa.me/'+waN(tel)+'?text='+encodeURIComponent(msg),'_blank')}
+
+/* ===== verrouillage de la fiche d’un bien ===== */
+const bLocked=b=>!!(b&&b.lock&&b.lock.on);
+const bCanUnlock=b=>!!(window.__ADM||!window.__WEB||!b.lock||!b.lock.uid||b.lock.uid===window.__UID);
+function bLockSet(b,on,auto){if(on)b.lock={on:true,by:String((S.set&&S.set.me)||'').trim(),uid:window.__UID||'',at:new Date().toISOString(),auto:!!auto};else delete b.lock;save()}
+var _render0=render;
+render=function(){
+ if(V.v==='bien'){const b=bCur();if(b)window.__lastB=b.id}
+ else if(window.__lastB){const b=bBy(window.__lastB);window.__lastB=null;if(b&&b.adr&&!b.arch&&!b.lock&&!(S.set&&S.set.noautolock)){bLockSet(b,true,true);setTimeout(()=>toast('Fiche « '+(b.titre||b.adr)+' » verrouillée automatiquement.'),50)}}
+ _render0();bLockPost()};
+const BLK_BTN=/^(bAnn|bMove|bDel|bPartyDel|bNewC|bPhPick|bPhFirst|bPhL|bPhR|bPhDel|bPcAdd|bPcDel|bPcQ|bTxAdd|bTxDel|bLtAdd|bLtDel)$/;
+function bLockPost(){if(V.v!=='bien')return;const b=bCur(),root=document.getElementById('app');if(!b||!root)return;
+ const lk=bLocked(b),rdv=root.querySelector('[data-a=bRdv]');
+ if(rdv&&rdv.parentNode){const x=document.createElement('button');x.type='button';x.id='blkbtn';x.setAttribute('data-a',lk?'bUnlock':'bLock');x.textContent=lk?'🔓 Déverrouiller':'🔒 Verrouiller la fiche';x.title=lk?'Réservé à l’auteur de la fiche et aux administrateurs':'Empêche les modifications par erreur';rdv.parentNode.insertBefore(x,rdv)}
+ if(!lk)return;
+ const t2=root.querySelector('.tabs2');if(t2){const d=document.createElement('div');d.className='card';d.id='blkb';d.style.cssText='margin:8px 0;gap:8px;align-items:center;background:var(--ac2)';d.innerHTML='<span>🔒</span><span>Fiche verrouillée'+(b.lock.by?' par <b>'+esc(b.lock.by)+'</b>':'')+(b.lock.at?' le '+esc(new Date(b.lock.at).toLocaleDateString('fr-FR')):'')+'. Seuls l’auteur de la fiche et les administrateurs peuvent la déverrouiller.</span>';t2.parentNode.insertBefore(d,t2.nextSibling)}
+ if(V.btab&&V.btab!=='g'&&V.btab!=='t')return;
+ root.querySelectorAll('input,select,textarea').forEach(e=>{if(e.type!=='file')e.disabled=true});
+ root.querySelectorAll('button[data-a]').forEach(e=>{if(BLK_BTN.test(e.getAttribute('data-a'))){e.disabled=true;e.title='Fiche verrouillée'}})}
 function pbUi(b){const P=PBS,fb=P.fb!==false,ig=P.ig!==false,ph=b.ph||[];
  const chip=(k,on,t)=>`<button type='button' data-a='pbT' data-id='${k}' style='${on?'background:var(--ac,#a4573f);color:#fff;border-color:var(--ac,#a4573f)':''}'>${on?'✓ ':''}${t}</button>`;
  const d=b.pbd?`<p class='m' style='margin:8px 0 0'>Dernière publication : ${esc(new Date(b.pbd.d).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}))}${b.pbd.fb?' · Facebook ✓':''}${b.pbd.ig?' · Instagram ✓':''}</p>`:'';
@@ -3781,7 +3805,7 @@ function imgOp(op){const ed=$('#ed');if(!ed)return;
  markDirty()}
 function addImage(file){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const png=/png|svg|gif|webp/.test(file.type),k=Math.min(1,(png?500:900)/im.width),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k)),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');if(!png){x.fillStyle='#fff';x.fillRect(0,0,w,h)}x.drawImage(im,0,0,w,h);const u=c.toDataURL(png?'image/png':'image/jpeg',.82);exec('insertHTML','<img src="'+u+'" data-w="'+w+'" data-h="'+h+'" style="width:'+Math.min(w,300)+'px">')};im.onerror=()=>toast('Image illisible.');im.src=r.result};r.readAsDataURL(file)}
 function vSet(){const st=S.set||{};return `${tabsBar()}<h1 style='margin-bottom:6px'>Réglages des documents</h1><p class='m'>Ces réglages s’appliquent à l’en-tête et au pied de page de chaque page des exports PDF et Word.</p>
-<label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nojingle'${st.nojingle?' checked':''}> Désactiver l’écran d’accueil et la musique</label><label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nocom'${st.nocom?' checked':''}> Je ne perçois pas de commission de mandataire (direction, salarié)</label><div class='cgrid' style='margin:8px 0'><div><label>Lien du QR code – biens à louer</label><input data-s='qrl' placeholder='https://formulaire-visiteslocations-yesimmo.netlify.app/' value="${esc(st.qrl||'')}"></div><div><label>Lien du QR code – biens à vendre</label><input data-s='qrv' placeholder='Vide = SMS prêt à envoyer au 07 81 30 78 19' value="${esc(st.qrv||'')}"></div></div><label>Votre nom et prénom (affichés en haut à droite et sur la page d’accueil)</label><input data-s='me' placeholder='Alexandre Desfontaines' value="${esc(st.me)}" autocomplete='name'>
+<label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nojingle'${st.nojingle?' checked':''}> Désactiver l’écran d’accueil et la musique</label><label style='display:flex;gap:8px;align-items:center;margin-bottom:10px'><input type='checkbox' data-s='nocom'${st.nocom?' checked':''}> Je ne perçois pas de commission de mandataire (direction, salarié)</label><label style='display:flex;gap:8px;align-items:center;margin:8px 0'><input type='checkbox' data-s='noautolock'${st.noautolock?' checked':''}> Ne pas verrouiller automatiquement la fiche d’un bien quand je la quitte</label><div class='cgrid' style='margin:8px 0'><div><label>Lien du QR code – biens à louer</label><input data-s='qrl' placeholder='https://formulaire-visiteslocations-yesimmo.netlify.app/' value="${esc(st.qrl||'')}"></div><div><label>Lien du QR code – biens à vendre</label><input data-s='qrv' placeholder='Vide = SMS prêt à envoyer au 07 81 30 78 19' value="${esc(st.qrv||'')}"></div></div><label>Votre nom et prénom (affichés en haut à droite et sur la page d’accueil)</label><input data-s='me' placeholder='Alexandre Desfontaines' value="${esc(st.me)}" autocomplete='name'>
 ${mpBox()}<h3 style='margin:14px 0 6px'>Objectifs commerciaux mensuels</h3><div class='cgrid'><div><label>Ventes par mois</label><input data-s='o_ventes' inputmode='decimal' value="${esc(st.o_ventes!==undefined?st.o_ventes:'2')}"></div><div><label>Chiffre d’affaires HT par mois (€)</label><input data-s='o_ca' inputmode='decimal' value="${esc(st.o_ca!==undefined?st.o_ca:'12000')}"></div><div><label>Mandats par mois</label><input data-s='o_mand' inputmode='decimal' value="${esc(st.o_mand!==undefined?st.o_mand:'4')}"></div><div><label>dont mandats exclusifs</label><input data-s='o_excl' inputmode='decimal' value="${esc(st.o_excl!==undefined?st.o_excl:'2')}"></div><div><label>Délai entre validation et encaissement (mois)</label><input data-s='o_delai' inputmode='decimal' value="${esc(st.o_delai!==undefined?st.o_delai:'3')}"></div></div>
 <label>Texte d’en-tête, à côté du logo (une ligne par ligne, 4 au maximum)</label><textarea data-s='hdr' rows='3' placeholder="YES Immobilier&#10;12 rue Exemple, 75000 Paris&#10;Tél. 01 23 45 67 89">${esc(st.hdr)}</textarea>
 <label>Texte de pied de page (5 lignes au maximum, centré à côté du petit logo)</label><textarea data-s='ftr' rows='5' placeholder="Raison sociale · SIRET · Carte professionnelle n°">${esc(ftrOf(st))}</textarea><label>Médiateur de la consommation (nom et coordonnées, affiché sur le bon de visite)</label><textarea data-s='med' rows='2' placeholder="Nom, adresse, site du médiateur">${esc(st.med||'')}</textarea>
@@ -4946,6 +4970,8 @@ document.addEventListener('click',e=>{
  else if(a==='dvAdd'){dvAdd(id)}
  else if(a==='dvWa'){dvWa(id)}
  else if(a==='dvAll'){DVS.all=!DVS.all;dvPaint()}
+ else if(a==='bLock'){const b=bCur();if(b){bLockSet(b,true);toast('Fiche verrouillée.');render()}}
+ else if(a==='bUnlock'){const b=bCur();if(b){if(!bCanUnlock(b)){toast('Seuls l’auteur de la fiche et les administrateurs peuvent la déverrouiller.');return}bLockSet(b,false);toast('Fiche déverrouillée : pensez à la verrouiller après vos modifications.');render()}}
  else if(a==='visDel'){const f=VO();f.vis=(f.vis||[]).filter(x=>x.id!==id);V.pn_vi=true;save();render()}
  else if(a==='visRel'){const v=((VO().vis)||[]).find(x=>x.id===id);if(v){v.relOk=!v.relOk;V.pn_vi=true;save();render()}}
  else if(a==='agenda'){as();go('agenda')}
@@ -5176,7 +5202,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v162'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v163'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
