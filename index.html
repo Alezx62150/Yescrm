@@ -571,6 +571,10 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-28f',v:'v171',t:'Proposition de créneau envoyée depuis le CRM',l:[
+['📨','« Proposer un autre créneau » : le message s’affiche dans le CRM, vous pouvez le modifier, puis **Envoyer** : il part de votre Gmail sans ouvrir de fenêtre. « Ouvrir dans Gmail » reste possible.'],
+['📝','Depuis l’agenda, l’envoi est noté sur la demande de visite (date et créneaux proposés).']
+]},
 {id:'2026-10-28e',v:'v170',t:'Proposer un autre créneau de visite',l:[
 ['✉️','Demandes de visite, et dans l’agenda le bouton ✉️ sur une demande de visite : **Proposer un autre créneau**. Choisissez une ou deux dates et heures, Gmail s’ouvre avec le message prêt pour le client (créneau demandé indisponible + vos propositions). Relisez et envoyez.']
 ]},
@@ -2055,26 +2059,39 @@ function dvAdd(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;if(((S
  S.set=S.set||{};S.set.dvimp=(S.set.dvimp||[]).concat([id]).slice(-300);save();toast((neu?'Contact créé':'Contact déjà existant')+(sl?' + visite ajoutée dans l’agenda ('+sl.d.split('-').reverse().join('/')+' à '+sl.h.replace(':','h')+').':' + tâche ajoutée dans l’agenda.'));dvPaint();try{scAlert(b,nm,sl)}catch(e){}}
 /* --- proposer un autre créneau par e-mail (Gmail s’ouvre, vous relisez et envoyez) --- */
 var ALT=null;
-function altOpen(info){ALT={info,s:[{},{}]};altPaint()}
+function altOpen(info){ALT={info,s:[{},{}],txt:'',ed:false,busy:false};ALT.txt=altMsg().body;altPaint()}
+const altFj=x=>new Date(x.d+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(x.h?' à '+String(x.h).replace(':','h'):'');
+function altMsg(){const I=ALT.info,S2=ALT.s.filter(x=>x&&x.d),pr=String(I.pr||'').trim(),me=((S.set||{}).me||'').trim();
+ const body='Bonjour'+(pr?' '+pr.charAt(0).toUpperCase()+pr.slice(1):'')+',\n\nMerci pour votre demande de visite'+(I.bien?' ('+I.bien+')':'')+'.\n\n'+(I.slot?'Le créneau du '+altFj(I.slot)+' n’est malheureusement pas disponible de notre côté. ':'')+(S2.length>1?'Nous pouvons vous proposer l’un de ces créneaux :\n':'Nous pouvons vous proposer le créneau suivant :\n')+(S2.length?S2.map(x=>'- '+altFj(x)).join('\n'):'- (choisissez une date)')+'\n\nMerci de nous confirmer en répondant à ce message. Si aucun ne vous convient, indiquez-nous vos disponibilités.\n\nBien cordialement,\n'+(me?me+'\n':'')+'YES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
+ return {n:S2.length,body,sub:'Votre demande de visite – '+(S2.length>1?'nouveaux créneaux proposés':'nouveau créneau proposé')}}
 function altPaint(){let o=document.getElementById('altov');if(!ALT){if(o)o.remove();return}
  if(!o){o=document.createElement('div');o.id='altov';o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:10000;background:rgba(40,25,20,.5);overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';document.body.appendChild(o)}
- const I=ALT.info,i=(k,n,t)=>`<input type='${t}' data-alt='${k}${n}' value="${esc(((ALT.s[n]||{})[k])||'')}" style='width:auto'>`,fj=altFj;
- o.innerHTML=`<div style='background:var(--sf);border-radius:14px;max-width:520px;width:100%;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h2 style='margin:0 0 4px'>✉ Proposer un autre créneau</h2>
- <p class='m' style='margin:0 0 8px'>${esc(I.nom||'')} · ${esc(I.email)}${I.bien?' · '+esc(I.bien):''}${I.slot?'<br>Créneau demandé : '+esc(fj(I.slot)):''}</p>
+ const I=ALT.info,i=(k,n,t)=>`<input type='${t}' data-alt='${k}${n}' value="${esc(((ALT.s[n]||{})[k])||'')}" style='width:auto'>`;
+ o.innerHTML=`<div style='background:var(--sf);border-radius:14px;max-width:560px;width:100%;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h2 style='margin:0 0 4px'>✉ Proposer un autre créneau</h2>
+ <p class='m' style='margin:0 0 8px'>À : ${esc(I.nom||'')} · ${esc(I.email)}${I.bien?' · '+esc(I.bien):''}${I.slot?'<br>Créneau demandé : '+esc(altFj(I.slot)):''}</p>
  <div style='display:flex;gap:6px;flex-wrap:wrap;align-items:center'>1. ${i('d',0,'date')}${i('h',0,'time')}</div><div style='display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px'>2. ${i('d',1,'date')}${i('h',1,'time')} <span class='m'>(facultatif)</span></div>
- <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:12px'><button type='button' class='p' data-a='altGo'>✉ Écrire avec Gmail</button><button type='button' data-a='altClose'>Annuler</button></div><p class='m' style='margin:6px 0 0;font-size:12px'>Gmail s’ouvre avec le message prêt : relisez-le puis cliquez sur Envoyer.</p></div>`}
-document.addEventListener('input',e=>{const t=e.target;if(!t||!t.dataset||t.dataset.alt===undefined||!ALT)return;const k=t.dataset.alt[0],n=+t.dataset.alt.slice(1);ALT.s[n]=ALT.s[n]||{};ALT.s[n][k]=t.value});
-const altFj=x=>new Date(x.d+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(x.h?' à '+String(x.h).replace(':','h'):'');
-function altGo(){if(!ALT)return;const I=ALT.info,S2=ALT.s.filter(x=>x&&x.d);if(!S2.length){toast('Choisissez au moins une date.');return}
- const pr=String(I.pr||'').trim(),me=((S.set||{}).me||'').trim();
- const body='Bonjour'+(pr?' '+pr.charAt(0).toUpperCase()+pr.slice(1):'')+',\n\nMerci pour votre demande de visite'+(I.bien?' ('+I.bien+')':'')+'.\n\n'+(I.slot?'Le créneau du '+altFj(I.slot)+' n’est malheureusement pas disponible de notre côté. ':'')+(S2.length>1?'Nous pouvons vous proposer l’un de ces créneaux :\n':'Nous pouvons vous proposer le créneau suivant :\n')+S2.map(x=>'- '+altFj(x)).join('\n')+'\n\nMerci de nous confirmer en répondant à ce message. Si aucun ne vous convient, indiquez-nous vos disponibilités.\n\nBien cordialement,\n'+(me?me+'\n':'')+'YES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
- const sub='Votre demande de visite – '+(S2.length>1?'nouveaux créneaux proposés':'nouveau créneau proposé');
- window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(String(I.email||'').trim())+'&su='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body),'_blank');ALT=null;altPaint()}
+ <label style='margin-top:10px'>Message <span class='m' style='font-weight:400'>(modifiable)</span></label><textarea data-altx rows='12' style='width:100%'>${esc(ALT.txt)}</textarea>
+ <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:10px'><button type='button' class='p' data-a='altSend' ${ALT.busy?'disabled':''}>${ALT.busy?'Envoi…':'📨 Envoyer'}</button><button type='button' data-a='altGo'>Ouvrir dans Gmail</button><button type='button' data-a='altClose'>Annuler</button></div>
+ <p class='m' style='margin:6px 0 0;font-size:12px'>Le mail part de votre adresse Gmail ; vous le retrouverez dans vos messages envoyés.</p></div>`}
+document.addEventListener('input',e=>{const t=e.target;if(!t||!t.dataset||!ALT)return;
+ if(t.dataset.altx!==undefined){ALT.txt=t.value;ALT.ed=true;return}
+ if(t.dataset.alt===undefined)return;const k=t.dataset.alt[0],n=+t.dataset.alt.slice(1);ALT.s[n]=ALT.s[n]||{};ALT.s[n][k]=t.value;
+ if(!ALT.ed){ALT.txt=altMsg().body;const x=document.querySelector('#altov textarea[data-altx]');if(x)x.value=ALT.txt}});
+function altGo(){if(!ALT)return;const m=altMsg();if(!m.n&&!ALT.ed){toast('Choisissez au moins une date.');return}
+ window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(String(ALT.info.email||'').trim())+'&su='+encodeURIComponent(m.sub)+'&body='+encodeURIComponent(ALT.txt),'_blank');ALT=null;altPaint()}
+async function altSend(){if(!ALT||ALT.busy)return;const m=altMsg();if(!m.n&&!ALT.ed){toast('Choisissez au moins une date.');return}
+ if(/\(choisissez une date\)/.test(ALT.txt)){toast('Le message contient encore « choisissez une date ».');return}
+ const A=ALT,to=String(A.info.email||'').trim();A.busy=true;altPaint();
+ const send=()=>GMSHIM.callTool('','send_message',{to:[to],subject:m.sub,body:A.txt});
+ try{if(!GMT||Date.now()>GMX)await gmConnect();try{await send()}catch(e){if(e&&e.code==='needs_reauth'){await gmConnect();await send()}else throw e}
+  if(A.info.ev){const e=(S.ev||[]).find(x=>x.id===A.info.ev);if(e){const sl=A.s.filter(x=>x&&x.d).map(altFj).join(' ou ');e.note=(e.note?e.note+' | ':'')+'Créneau proposé par e-mail le '+new Date().toLocaleDateString('fr-FR')+(sl?' : '+sl:'');save();try{render()}catch(x){}}}
+  ALT=null;altPaint();toast('Mail envoyé à '+to+'.')}
+ catch(e){A.busy=false;if(ALT===A)altPaint();toast('Envoi impossible'+(e&&e.code==='needs_reauth'?' : reconnectez Gmail (autorisez la fenêtre Google).':e&&e.code==='tool_error'?' : accès Gmail refusé.':'.'))}}
 function dvAlt(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;const d=r.d,b=dvBien(d.bien),nm=String(d.name||d.nom||'').trim();altOpen({nom:nm,pr:nm.split(/\s+/)[0],email:d.email,bien:d.bien||(b&&(b.titre||b.adr))||'',slot:r.slot})}
 const agVisReq=e=>e&&e.src==='ev'&&/^(demande de visite|visite)\s*–/i.test(String(e.t||''))&&(()=>{const c=e.c&&S.c.find(x=>x.id===e.c);return !!(c&&c.email)})();
 function agAlt(id){const e=(S.ev||[]).find(x=>x.id===id);if(!e)return;const c=S.c.find(x=>x.id===e.c);if(!c||!c.email){toast('Pas d’e-mail pour ce contact.');return}
  const b=e.b&&bBy(e.b),bn=(b&&(b.titre||b.adr||b.ref))||((String(e.note||'').match(/Bien\s*:\s*([^|]+)/)||[])[1]||'').trim();
- altOpen({nom:nom(c),pr:c.prenom||nom(c).split(' ')[0],email:c.email,bien:bn,slot:/^visite/i.test(e.t)&&e.h?{d:e.d,h:e.h}:null})}
+ altOpen({ev:e.id,nom:nom(c),pr:c.prenom||nom(c).split(' ')[0],email:c.email,bien:bn,slot:/^visite/i.test(e.t)&&e.h?{d:e.d,h:e.h}:null})}
 function dvWa(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;const d=r.d,tel=dvTel(d.telephone||d.tel),pr=String(d.name||d.nom||'').split(/\s+/)[0];
  const msg='Bonjour'+(pr?' '+pr:'')+',\n\nMerci pour votre demande de visite'+(d.bien?' ('+d.bien+')':'')+'. Quel jour et quelle heure vous arrangent ? Nous vous confirmerons le créneau.\n\nYES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
  window.open('https://wa.me/'+waN(tel)+'?text='+encodeURIComponent(msg),'_blank')}
@@ -5216,6 +5233,7 @@ document.addEventListener('click',e=>{
  else if(a==='dvAlt'){dvAlt(id)}
  else if(a==='agAlt'){agAlt(id)}
  else if(a==='altGo'){altGo()}
+ else if(a==='altSend'){altSend()}
  else if(a==='altClose'){ALT=null;altPaint()}
  else if(a==='dvAll'){DVS.all=!DVS.all;dvPaint()}
  else if(a==='bLock'){const b=bCur();if(b){bLockSet(b,true);toast('Fiche verrouillée.');render()}}
@@ -5450,7 +5468,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v170'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v171'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
