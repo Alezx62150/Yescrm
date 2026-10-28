@@ -571,6 +571,10 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-28d',v:'v169',t:'Fiche story : logo et texte court',l:[
+['🖼️','Le pied de la fiche story affiche le logo YES Immobilier.'],
+['✏️','Nouveau champ **Texte court de la fiche** dans Publication. Laissé vide, la fiche reprend le début du descriptif (sans le titre en majuscules ni la liste des lots) et coupe à la fin d’une phrase.']
+]},
 {id:'2026-10-28c',v:'v168',t:'Fiche story Instagram d’un immeuble',l:[
 ['📱','Fiche d’un bien à vendre > Publication : **Créer la fiche story** (format 1080 × 1920), sur le modèle de vos fiches Canva : prix HAI, photos, surface, ville, rendement, descriptif, caractéristiques, Indice Investissement.'],
 ['📈','Rendement de la fiche : loyers annuels ÷ (prix + travaux). Les travaux viennent du pré-chiffrage Works, sinon de l’onglet Travaux.'],
@@ -1928,6 +1932,7 @@ const frN=(n,d)=>(Math.round(n*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('f
 function bLotsTxt(b){const L=(b.lt||[]).filter(x=>x.n||x.s||x.loyer);if(!L.length)return '';const c={},o=[];
  L.forEach(x=>{const m=String(x.n||'').match(/\b(studio|t\d|f\d)\b/i);const k=m?(/studio/i.test(m[1])?'Studio':m[1].toUpperCase()):'';if(!k)return;if(!(k in c)){c[k]=0;o.push(k)}c[k]++});
  return o.length?o.map(k=>c[k]+' '+k).join(' / '):L.length+' lot'+(L.length>1?'s':'')}
+function stDesc(b){const f=String(b.fdesc||'').trim();if(f)return f;let L=String(b.desc||'').split(/\n/).map(s=>s.trim()).filter(Boolean);L=L.filter(s=>!(s===s.toUpperCase()&&/[A-ZÀ-Ü]{3}/.test(s)));const i=L.findIndex(s=>/^(lots?\s+et\s+loyers|-|•)/i.test(s));if(i>0)L=L.slice(0,i);return L.join(' ')}
 function stWrap(x,t,mw){const out=[];String(t||'').split(/\n/).forEach(par=>{const w=par.split(/\s+/).filter(Boolean);let c='';w.forEach(s=>{const n=c?c+' '+s:s;if(x.measureText(n).width>mw&&c){out.push(c);c=s}else c=n});if(c)out.push(c)});return out}
 async function stImg(id){if(!id)return null;try{let bl=await fget('bp_'+id);if(!bl)return null;try{bl=await bStamp(bl)}catch(e){}return await createImageBitmap(bl)}catch(e){return null}}
 function stCover(x,bm,X,Y,W,H){if(!bm){x.fillStyle='#e9e2da';x.fillRect(X,Y,W,H);return}const k=Math.max(W/bm.width,H/bm.height),w=bm.width*k,h=bm.height*k;x.save();x.beginPath();x.rect(X,Y,W,H);x.clip();x.drawImage(bm,X+(W-w)/2,Y+(H-h)/2,w,h);x.restore()}
@@ -1951,8 +1956,8 @@ async function pbStory(b){const W=1080,H=1920,c=document.createElement('canvas')
  x.fillStyle=BG;x.fillRect(0,920,W,102);stCover(x,p1,57,841,459,286);stCover(x,p2,554,841,495,283);
  /* colonne gauche : titre + description */
  x.textAlign='center';x.fillStyle=INK;x.font='700 30px '+F;const tt=stWrap(x,b.titre||b.type||'',480).slice(0,2);let y=1240;tt.forEach(s=>{x.fillText(s,268,y);y+=38});
- x.textAlign='left';x.font='400 21px '+F;let ds=stWrap(x,b.desc||'',500);const MX=Math.max(4,Math.floor((1600-(y+30))/30));if(ds.length>MX){ds=ds.slice(0,MX);ds[MX-1]=ds[MX-1].replace(/[\s,;.]*\S*$/,'')+'…'}
- y+=30;ds.forEach(s=>{x.fillText(s,30,y);y+=30});
+ x.textAlign='left';x.font='400 22px '+F;const MX=Math.max(4,Math.floor((1600-(y+30))/31));let ds=stWrap(x,stDesc(b),500);if(ds.length>MX){let t=ds.slice(0,MX).join(' ');const k=t.lastIndexOf('. ');t=k>60?t.slice(0,k+1):t.replace(/[\s,;.:]*\S*$/,'')+'…';ds=stWrap(x,t,500)}
+ y+=30;ds.forEach(s=>{x.fillText(s,30,y);y+=31});
  /* colonne droite : caractéristiques */
  const pts=[],lt=bLotsTxt(b),r=bRent(b),tv=bTravBud(b).v;
  if(lt)pts.push(lt);if(tv)pts.push('Projet de travaux / Devis consultable');if(r.m)pts.push('Loyers : '+eur(r.m)+' / mois');
@@ -1967,13 +1972,14 @@ async function pbStory(b){const W=1080,H=1920,c=document.createElement('canvas')
  x.textAlign='center';x.fillStyle='#3b3a5a';x.font='700 32px '+F;x.fillText('Contactez-nous pour une visite !',540,1767);
  /* pied */
  x.fillStyle=BG;x.fillRect(0,1825,W,95);
- try{const lg=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ko;i.src=LG()});let lh=72,lw=lh*lg.width/lg.height;if(lw>260){lw=260;lh=lw*lg.height/lg.width}x.drawImage(lg,28,1872-lh/2,lw,lh)}catch(e){}
+ try{const lg=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ko;i.src=WMLOGO});let lh=72,lw=lh*lg.width/lg.height;if(lw>260){lw=260;lh=lw*lg.height/lg.width}x.drawImage(lg,28,1872-lh/2,lw,lh)}catch(e){}
  x.fillStyle='#4a4f7a';x.font='400 24px '+F;x.fillText('PLUS D’INFORMATIONS EN MP',565,1882);
  x.textAlign='left';return new Promise(ok=>c.toBlob(ok,'image/png'))}
 function pbStoryUi(b){if(b.mode==='l')return '';const P=PBS,u=P.story?(P.storyUrl=P.storyUrl||URL.createObjectURL(P.story)):'',ai=bIdxAuto(bRendFiche(b)),rd=bRendFiche(b);
  return `<div style='margin-top:14px;padding-top:10px;border-top:1px dashed var(--bd)'><label>📱 Fiche story Instagram <span class='m' style='font-weight:400'>(1080 × 1920, à télécharger puis publier en story)</span></label>
  <p class='m' style='margin:2px 0 8px'>Rendement sur la fiche : ${rd?frN(rd,2)+' %':'— (renseignez le prix et les loyers des lots)'} <span style='font-size:12px'>(loyers annuels ÷ (prix + travaux))</span></p>
  <div style='display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end'><div><label style='margin:0'>Indice Investissement /10</label><input data-bf='idx' inputmode='decimal' placeholder='Auto : ${ai?frN(ai,1):'—'}' value="${esc(b.idx||'')}" style='width:120px'></div><span class='m' style='font-size:12px;max-width:340px'>Laissez vide pour le calcul automatique : moins de 7 % → 5 · 7 à 8 % → 7 · 8 à 9 % → 8 · 9 à 10 % → 8,5 · 10 % et plus → 10.</span></div>
+ <label style='margin-top:8px'>Texte court de la fiche <span class='m' style='font-weight:400'>(3 à 4 phrases ; vide = début du descriptif)</span></label><textarea data-bf='fdesc' rows='3' placeholder='Beau projet de division en 3 ou 4 appartements…'>${esc(b.fdesc||'')}</textarea>
  <label style='margin-top:8px'>Points en plus sur la fiche <span class='m' style='font-weight:400'>(un par ligne, ex. Compteurs individuels élec / eau, Plein centre-ville / Forte demande)</span></label><textarea data-bf='fpts' rows='3'>${esc(b.fpts||'')}</textarea>
  <p class='m' style='margin:4px 0 6px;font-size:12px'>La fiche reprend : prix, type, ville, surface, les 3 premières photos, le titre et le descriptif, les lots, les loyers et les travaux.</p>
  <div style='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start'><button type='button' data-a='pbStory' ${P.sbusy?'disabled':''}>${P.sbusy?'Création…':(P.story?'🔄 Refaire la fiche story':'📱 Créer la fiche story')}</button>
@@ -5415,7 +5421,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v168'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v169'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
