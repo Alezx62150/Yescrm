@@ -2061,19 +2061,24 @@ document.addEventListener('input',e=>{const t=e.target;if(t&&(t.id==='qeV'||t.id
 
 /* ===== v166 : secteurs des négociateurs ===== */
 const scN=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
-const scL=()=>{S.set=S.set||{};if(!Array.isArray(S.set.sect))S.set.sect=[];return S.set.sect};
+const SC={list:null,ok:false,t:null};
+const scL=()=>{if(window.__WEB&&SC.ok&&SC.list)return SC.list;S.set=S.set||{};if(!Array.isArray(S.set.sect))S.set.sect=[];return S.set.sect};
+const scEd=()=>!window.__WEB||!!window.__ADM;
+function scSave(){save();if(!window.__WEB||!SC.ok||!window.__ADM||!window.SB)return;clearTimeout(SC.t);SC.t=setTimeout(async()=>{try{const x=await window.SB.from('crm_shared').upsert({k:'secteurs',data:{list:SC.list||[]},updated_at:new Date().toISOString()});if(x&&x.error)toast('Secteurs non enregistrés : '+x.error.message)}catch(e){}},600)}
+async function scLoad(){if(!window.__WEB||!window.SB||SC.ok)return;try{const x=await window.SB.from('crm_shared').select('data').eq('k','secteurs').maybeSingle();if(x.error)return;SC.ok=true;if(x.data&&x.data.data&&Array.isArray(x.data.data.list)){SC.list=x.data.data.list}else{SC.list=((S.set||{}).sect||[]).slice();if(window.__ADM&&SC.list.length)scSave()}if(V.v==='settings'||V.v==='bien')render()}catch(e){}}
+{const _a=admCheck;admCheck=async function(){await _a.apply(this,arguments);await scLoad()}}
 function scZ(e){return String(e.z||'').split(/[,;\n]/).map(x=>scN(x).trim()).filter(Boolean)}
 function secOf(adr){const a=scN(adr);if(!a)return null;for(const e of scL()){for(const z of scZ(e)){if(/^\d{5}$/.test(z)?a.includes(z):/^\d{2}$/.test(z)?new RegExp('\\b'+z+'\\d{3}\\b').test(a):new RegExp('(^|[^a-z])'+z.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z]|$)').test(a))return e}}return null}
-function scBox(){if(window.__WEB&&!window.__ADM)return '';const L=scL();
- return `<h3 style='margin:14px 0 6px'>🗺️ Secteurs des négociateurs</h3><p class='m' style='margin:0 0 6px'>Pour chaque négociateur, indiquez les villes ou codes postaux de son secteur, séparés par des virgules. Un nouveau bien est attribué automatiquement au négociateur du secteur de son adresse. Les secteurs sont enregistrés dans votre compte.</p>
-${L.map((e,i)=>`<div class='agf' style='margin-bottom:8px'><div class='cgrid'><div><label>Négociateur</label><input data-sc='n' data-i='${i}' value="${esc(e.n||'')}" placeholder='Prénom Nom'></div><div><label>Téléphone</label><input data-sc='tel' data-i='${i}' value="${esc(e.tel||'')}"></div><div><label>E-mail</label><input data-sc='mail' data-i='${i}' value="${esc(e.mail||'')}"></div></div><label>Secteur (villes, codes postaux ou départements à 2 chiffres)</label><input data-sc='z' data-i='${i}' value="${esc(e.z||'')}" placeholder='Béthune, 62400, Lillers, 60000'><button type='button' data-a='scDel' data-id='${i}' style='margin-top:6px'>🗑 Supprimer ce négociateur</button></div>`).join('')}
-<button type='button' data-a='scAdd'>+ Ajouter un négociateur</button>${scStats()}`}
+function scBox(){const L=scL(),ed=scEd();
+ return `<h3 style='margin:14px 0 6px'>🗺️ Secteurs des négociateurs</h3><p class='m' style='margin:0 0 6px'>Pour chaque négociateur, indiquez les villes ou codes postaux de son secteur, séparés par des virgules. Un nouveau bien est attribué automatiquement au négociateur du secteur de son adresse. ${ed?(window.__WEB?'Les secteurs sont partagés avec toute l’équipe (lecture seule pour les collaborateurs).':'Les secteurs sont enregistrés dans votre compte.'):'Ces secteurs sont définis par la direction (lecture seule).'}</p>
+${L.map((e,i)=>`<div class='agf' style='margin-bottom:8px'><div class='cgrid'><div><label>Négociateur</label><input data-sc='n' data-i='${i}' ${ed?'':'disabled'} value="${esc(e.n||'')}" placeholder='Prénom Nom'></div><div><label>Téléphone</label><input data-sc='tel' data-i='${i}' ${ed?'':'disabled'} value="${esc(e.tel||'')}"></div><div><label>E-mail</label><input data-sc='mail' data-i='${i}' ${ed?'':'disabled'} value="${esc(e.mail||'')}"></div></div><label>Secteur (villes, codes postaux ou départements à 2 chiffres)</label><input data-sc='z' data-i='${i}' ${ed?'':'disabled'} value="${esc(e.z||'')}" placeholder='Béthune, 62400, Lillers, 60000'>${ed?`<button type='button' data-a='scDel' data-id='${i}' style='margin-top:6px'>🗑 Supprimer ce négociateur</button>`:''}</div>`).join('')}
+${ed?`<button type='button' data-a='scAdd'>+ Ajouter un négociateur</button>`:''}${scStats()}`}
 function scStats(){const L=scL();if(!L.length)return '';const y=String(new Date().getFullYear()),rows=(window.TM&&TM.rows&&TM.rows.length)?TM.rows.map(r=>r.S||{}):[S],R={};
  const get=k=>R[k]=R[k]||{n:k,v:0,t:0,ca:0,b:0};
  rows.forEach(D=>{(D.f||[]).filter(f=>f.mode!=='l'&&VALID.includes(f.etape)&&f.vdate).forEach(f=>{const e=secOf(f.bien),r=get(e?e.n:'Hors secteur');r.t++;if(f.vdate.slice(0,4)===y){r.v++;r.ca+=htOf(f)}});(D.b||[]).filter(b=>!b.arch&&b.mode!=='l'&&bSt(b)==='Mandat').forEach(b=>{const e=secOf(b.adr);get(e?e.n:'Hors secteur').b++})});
  L.forEach(e=>get(e.n));const T=Object.values(R).sort((a,b)=>b.v-a.v||b.t-a.t||b.b-a.b);
  return `<h3 style='margin:14px 0 6px'>Ventes par secteur</h3><table class='estt'><thead><tr><th>Secteur / négociateur</th><th>Ventes ${y}</th><th>CA HT ${y}</th><th>Ventes au total</th><th>Biens en mandat</th></tr></thead><tbody>${T.map(r=>`<tr><td>${esc(r.n)}</td><td><b>${r.v}</b></td><td>${r.ca?eur(Math.round(r.ca)):'—'}</td><td>${r.t}</td><td>${r.b}</td></tr>`).join('')}</tbody></table><p class='m' style='font-size:12px'>Classé par nombre de ventes. Les ventes sont les compromis signés, rattachés au secteur de l’adresse du bien.${(window.TM&&TM.rows&&TM.rows.length)?' Chiffres de toute l’équipe.':' Chiffres de votre compte (ouvrez la Vue d’équipe pour inclure toute l’équipe).'}</p>`}
-document.addEventListener('input',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.sc){const L=scL(),o=L[+t.dataset.i];if(o){o[t.dataset.sc]=t.value;save()}}
+document.addEventListener('input',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.sc){const L=scL(),o=L[+t.dataset.i];if(o&&scEd()){o[t.dataset.sc]=t.value;scSave()}}
  if(t&&t.dataset&&t.dataset.bf==='neg'){const b=bCur();if(b)delete b.negAuto}});
 function scAlert(b,nm,sl){const s=b&&secOf(b.adr),me=String((S.set||{}).me||'').trim();if(!s||!s.n||scN(s.n)===scN(me))return;const pr=String(s.n).split(/\s+/)[0];
  crShow('Bonjour '+pr+',\n\nNouvelle demande de visite sur ton secteur : '+(b.adr||b.ref)+(b.ref?' (réf. '+b.ref+')':'')+'.\nVisiteur : '+(nm||'à préciser')+(sl?'\nCréneau demandé : '+sl.d.split('-').reverse().join('/')+' à '+sl.h.replace(':','h'):'')+'\n\nMerci de le contacter.\nYES Immobilier',s.mail,s.tel,'🔔 Prévenir '+s.n,'Demande de visite – '+(b.adr||b.ref))}
@@ -5057,7 +5062,7 @@ document.addEventListener('click',e=>{
  else if(a==='pbVisuDl'){if(PBS.visu)xdl('visuel-'+((bCur()||{}).ref||'bien')+'.jpg',PBS.visu)}
  else if(a==='pbXadd'){const i=document.getElementById('pbXin');if(i)i.click()}
  else if(a==='pbXdel'){(PBS.extra||[]).splice(+el.dataset.i,1);render()}
- else if(a==='visRap'){visRap(id)}else if(a==='visCR'){visCR()}else if(a==='scAdd'){scL().push({n:'',tel:'',mail:'',z:''});save();render()}else if(a==='scDel'){scL().splice(+id,1);save();render()}else if(a==='scWarn'){const b=bCur();if(b)scAlert(b,'à préciser',null)}
+ else if(a==='visRap'){visRap(id)}else if(a==='visCR'){visCR()}else if(a==='scAdd'){if(scEd()){scL().push({n:'',tel:'',mail:'',z:''});scSave();render()}}else if(a==='scDel'){if(scEd()){scL().splice(+id,1);scSave();render()}}else if(a==='scWarn'){const b=bCur();if(b)scAlert(b,'à préciser',null)}
  else if(a==='dv'||a==='dvOpen'){DVS.show=true;dvPaint();if(DVS.rows==null&&!DVS.busy)dvLoad()}
  else if(a==='dvLoad'){dvLoad()}
  else if(a==='dvClose'){DVS.show=false;dvPaint()}
