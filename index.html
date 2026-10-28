@@ -571,6 +571,9 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-28h',v:'v173',t:'Compresser les pièces jointes',l:[
+['🗜️','Envoyer au notaire : bouton **Compresser les pièces jointes** si l’envoi est trop lourd. Les gros PDF et photos sont allégés pour l’envoi seulement : l’original du dossier ne change pas.']
+]},
 {id:'2026-10-28g',v:'v172',t:'Envoyer des documents au notaire',l:[
 ['📨','Dossier > Documents : cochez des tuiles puis **Envoyer au notaire**. Choisissez le notaire dans l’annuaire (celui du dossier est proposé), l’adresse du clerc ou de l’étude, et un message type : rédaction du compromis, pièces complémentaires, compromis signé, acte authentique ou message libre.'],
 ['📎','Le message reprend le dossier (bien, vendeurs, acquéreurs, prix) et la liste des pièces. Les documents partent en pièces jointes depuis votre Gmail, et l’envoi est noté dans l’historique du dossier.']
@@ -4975,7 +4978,7 @@ function ntsGen(){if(NTS.ed)return;const f=FF(NTS.fid),n=ntsN(),me=((S.set||{}).
  const S0={promesse:'Rédaction du compromis',comp:'Pièces complémentaires',signe:'Compromis signé',acte:'Préparation de l’acte authentique',docs:'Documents',libre:'Dossier'}[NTS.tpl];
  NTS.sub=S0+' – '+f.name;
  NTS.body=who+'\n\n'+(I?I+'\n'+rec+pj+'\n\n'+(NTS.tpl==='promesse'?'N’hésitez pas à revenir vers moi pour toute pièce manquante.\n\n':'Je reste à votre disposition pour tout complément.\n\n'):'\n\n'+rec+pj+'\n\n')+'Bien cordialement,\n'+(me?me+'\n':'')+'YES Immobilier – Beauvais '+YT1+' · Béthune '+YT2}
-async function ntsSize(){let t=0;for(const d of ntsDocs()){if(d.pdf){try{const b=await fget(d.id);t+=b?b.size:0}catch(e){}}else t+=60000}if(NTS){NTS.size=t;ntsPaint()}}
+async function ntsSize(){let t=0;for(const d of ntsDocs()){if(d.pdf){try{const b=await ntsBlob(d);t+=b?b.size:0}catch(e){}}else t+=60000}if(NTS){NTS.size=Math.round(t*1.37);ntsPaint()}}
 const ntsMo=n=>(n/1048576).toLocaleString('fr-FR',{maximumFractionDigits:1})+' Mo';
 function ntsPaint(){let o=document.getElementById('ntsov');if(!NTS){if(o)o.remove();return}
  if(!o){o=document.createElement('div');o.id='ntsov';o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:10000;background:rgba(40,25,20,.5);overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';document.body.appendChild(o)}
@@ -4988,9 +4991,9 @@ function ntsPaint(){let o=document.getElementById('ntsov');if(!NTS){if(o)o.remov
  <label style='margin-top:10px'>Message type</label><select data-ntst>${NTS_T(f).map(([k,l])=>`<option value='${k}' ${NTS.tpl===k?'selected':''}>${esc(l)}</option>`).join('')}</select>
  <label style='margin-top:8px'>Objet</label><input data-ntss value="${esc(NTS.sub)}">
  <label style='margin-top:8px'>Message <span class='m' style='font-weight:400'>(modifiable)</span></label><textarea data-ntsb rows='13' style='width:100%'>${esc(NTS.body)}</textarea>
- <label style='margin-top:8px'>Pièces jointes · ${D.length}${NTS.size!=null&&D.length?' · environ '+ntsMo(NTS.size):''}</label>${D.length?`<div class='m' style='font-size:13px'>${D.map(d=>'📎 '+esc(d.t)+(d.pdf?'':' <span style="opacity:.7">(converti en PDF)</span>')).join('<br>')}</div>`:`<p class='m' style='margin:2px 0'>Aucun document coché : cochez des tuiles dans Documents pour les joindre.</p>`}
- ${big?`<p style='color:var(--dn);margin:6px 0'>Plus de 24 Mo : Gmail refusera l’envoi. Envoyez les documents en deux fois.</p>`:''}
- <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:12px'><button type='button' class='p' data-a='ntsSend' ${NTS.busy||big||!n||!ems.some(x=>NTS.to[x[0]])?'disabled':''}>${NTS.busy?'Envoi…':'📨 Envoyer'}</button><button type='button' data-a='ntsClose'>Annuler</button></div>
+ <label style='margin-top:8px'>Pièces jointes · ${D.length}${NTS.size!=null&&D.length?' · environ '+ntsMo(NTS.size):''}</label>${D.length?`<div class='m' style='font-size:13px'>${D.map(d=>'📎 '+esc(d.t)+(d.pdf?'':' <span style="opacity:.7">(converti en PDF)</span>')+(NTS.cmp&&NTS.cmp[d.id]?' <span style="color:#1e7a34">· compressé ('+ntsMo(NTS.cmp[d.id].size)+')</span>':'')).join('<br>')}</div><div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px'><button type='button' data-a='ntsComp' ${NTS.cbusy||NTS.busy?'disabled':''}>${NTS.cbusy?'Compression…':'🗜️ Compresser les pièces jointes'}</button>${NTS.cmp&&Object.keys(NTS.cmp).length&&!NTS.cbusy?`<button type='button' data-a='ntsUncomp'>Revenir aux originaux</button>`:''}<span class='m' style='font-size:12px'>${esc(NTS.cmsg||'')}</span></div><p class='m' style='font-size:11px;margin:4px 0 0'>La compression réduit les PDF de plus de 700 Ko (pages converties en images). Seule la copie envoyée est compressée, l’original reste intact. À éviter pour un document signé électroniquement : la signature ne serait plus vérifiable.</p>`:`<p class='m' style='margin:2px 0'>Aucun document coché : cochez des tuiles dans Documents pour les joindre.</p>`}
+ ${big?`<p style='color:var(--dn);margin:6px 0'>Plus de 24 Mo : Gmail refusera l’envoi. Cliquez sur « Compresser les pièces jointes », ou envoyez les documents en deux fois.</p>`:''}
+ <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:12px'><button type='button' class='p' data-a='ntsSend' ${NTS.busy||NTS.cbusy||big||!n||!ems.some(x=>NTS.to[x[0]])?'disabled':''}>${NTS.busy?'Envoi…':'📨 Envoyer'}</button><button type='button' data-a='ntsClose'>Annuler</button></div>
  <p class='m' style='margin:6px 0 0;font-size:12px'>Le mail part de votre adresse Gmail ; l’envoi est noté dans l’historique du dossier.</p></div>`}
 document.addEventListener('input',e=>{const t=e.target;if(!NTS||!t||!t.dataset)return;
  if(t.dataset.ntsq!==undefined){NTS.q=t.value;const p=t.selectionStart;ntsPaint();const x=document.querySelector('#ntsov input[data-ntsq]');if(x){x.focus();try{x.setSelectionRange(p,p)}catch(er){}}return}
@@ -4999,12 +5002,29 @@ document.addEventListener('input',e=>{const t=e.target;if(!NTS||!t||!t.dataset)r
 document.addEventListener('change',e=>{const t=e.target;if(!NTS||!t||!t.dataset)return;
  if(t.dataset.ntst!==undefined){if(NTS.ed){t.value=NTS.tpl;confirmDlg({title:'Remplacer le message ?',text:'Vos modifications du message seront remplacées par le nouveau modèle.',ok:'Remplacer'}).then(ok=>{if(!ok||!NTS)return;NTS.ed=false;NTS.tpl=e.target.value;ntsGen();ntsPaint()});return}NTS.tpl=t.value;ntsGen();ntsPaint()}
  if(t.dataset.ntsto!==undefined){NTS.to[t.dataset.ntsto]=t.checked?1:0;ntsGen();ntsPaint()}});
+/* compression des pièces jointes (copie envoyée seulement, l’original du dossier ne change pas) */
+async function ntsShrinkPdf(bl,q){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ const pdf=await pdfjsLib.getDocument({data:await bl.arrayBuffer()}).promise;let out=null;
+ for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i),v0=pg.getViewport({scale:1}),k=Math.min(q.px/Math.max(v0.width,v0.height),3),vp=pg.getViewport({scale:k}),c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:vp}).promise;
+  const w=v0.width,h=v0.height,o=w>h?'l':'p';if(!out)out=new jspdf.jsPDF({unit:'pt',format:[w,h],orientation:o,compress:true});else out.addPage([w,h],o);out.addImage(c.toDataURL('image/jpeg',q.j),'JPEG',0,0,w,h,undefined,'FAST');c.width=c.height=0}
+ return out.output('blob')}
+async function ntsShrinkImg(bl,q){const bm=await createImageBitmap(bl),k=Math.min(1,q.px*1.3/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);return new Promise(ok=>c.toBlob(ok,'image/jpeg',q.j))}
+async function ntsComp(){if(!NTS||NTS.cbusy)return;const N=NTS;N.cbusy=true;N.cmp={};N.cmsg='';ntsPaint();const Q=[{px:1650,j:.72},{px:1240,j:.6},{px:1000,j:.5}];let done=0,ko=0;
+ try{for(let lv=0;lv<Q.length;lv++){
+   for(const d of ntsDocs()){if(!d.pdf)continue;const o=await fget(d.id);if(!o||o.size<700*1024)continue;const ty=o.type||'application/pdf';
+    try{N.cmsg='Compression de « '+d.t+' »…';ntsPaint();const src=o,nb=/pdf/.test(ty)||!ty?await ntsShrinkPdf(src,Q[lv]):/image\//.test(ty)?await ntsShrinkImg(src,Q[lv]):null;
+     if(nb&&nb.size<(N.cmp[d.id]?N.cmp[d.id].size:o.size)){N.cmp[d.id]=nb;if(lv===0)done++}}catch(e){if(lv===0)ko++}}
+   await ntsSize();if(N.size<=22*1048576)break}
+  N.cmsg=(done?done+' document'+(done>1?'s':'')+' compressé'+(done>1?'s':''):'Rien à compresser (documents déjà légers)')+(ko?' · '+ko+' non compressible'+(ko>1?'s':''):'')+'.'}
+ catch(e){N.cmsg='Compression impossible.'}
+ N.cbusy=false;if(NTS===N){await ntsSize();ntsPaint()}}
+async function ntsBlob(d){return (NTS&&NTS.cmp&&NTS.cmp[d.id])||await fget(d.id)}
 const ntsB64=bl=>new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=ko;r.readAsDataURL(bl)});
 const ntsFn=(t,ext)=>String(t||'document').replace(/[\\/:*?"<>|]+/g,'-').slice(0,90)+ext;
 async function ntsSend(){if(!NTS||NTS.busy)return;const N=NTS,f=FF(N.fid),n=ntsN(),to=Object.keys(N.to).filter(k=>N.to[k]);if(!n||!to.length){toast('Choisissez un notaire et une adresse.');return}
  N.busy=true;ntsPaint();
  try{const att=[];for(const d of ntsDocs()){
-   if(d.pdf){const b=await fget(d.id);if(!b)throw {msg:'fichier introuvable : '+d.t};const ty=b.type||'application/pdf',ext=/word|docx/.test(ty)?'.docx':/msword/.test(ty)?'.doc':/image\//.test(ty)?'.'+ty.split('/')[1].replace('jpeg','jpg'):'.pdf';att.push({filename:ntsFn(d.t,ext),mimeType:ty,content:await ntsB64(b)})}
+   if(d.pdf){const b=await ntsBlob(d);if(!b)throw {msg:'fichier introuvable : '+d.t};const ty=b.type||'application/pdf',ext=/word|docx/.test(ty)?'.docx':/msword/.test(ty)?'.doc':/image\//.test(ty)?'.'+ty.split('/')[1].replace('jpeg','jpg'):'.pdf';att.push({filename:ntsFn(d.t,ext),mimeType:ty,content:await ntsB64(b)})}
    else{if(!window.jspdf)throw {msg:'outil PDF non chargé, rechargez la page'};att.push({filename:ntsFn(d.t,'.pdf'),mimeType:'application/pdf',content:await ntsB64(await mkPdf([d]))})}}
   const go=async()=>{const b=await gmBuild({to,subject:N.sub,body:N.body,attachments:att});let s=b.raw.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const raw=atob(s);
    const r=await fetch('https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send?uploadType=media',{method:'POST',headers:{Authorization:'Bearer '+GMT,'Content-Type':'message/rfc822'},body:raw});
@@ -5298,6 +5318,8 @@ document.addEventListener('click',e=>{
  else if(a==='ntsPick'){NTS.nid=id;NTS.q='';ntsDef();ntsGen();ntsPaint()}
  else if(a==='ntsCh'){NTS.nid='';NTS.to={};ntsPaint()}
  else if(a==='ntsSend'){ntsSend()}
+ else if(a==='ntsComp'){ntsComp()}
+ else if(a==='ntsUncomp'){NTS.cmp={};NTS.cmsg='';ntsSize()}
  else if(a==='ntsClose'){NTS=null;ntsPaint()}
  else if(a==='altClose'){ALT=null;altPaint()}
  else if(a==='dvAll'){DVS.all=!DVS.all;dvPaint()}
@@ -5533,7 +5555,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v172'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v173'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
