@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v167</title>
+<title>YES CRM · v168</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,28 +571,8 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
-{id:'2026-10-28h',v:'v173',t:'Compresser les pièces jointes',l:[
-['🗜️','Envoyer au notaire : bouton **Compresser les pièces jointes** si l’envoi est trop lourd. Les gros PDF et photos sont allégés pour l’envoi seulement : l’original du dossier ne change pas.']
-]},
-{id:'2026-10-28g',v:'v172',t:'Envoyer des documents au notaire',l:[
-['📨','Dossier > Documents : cochez des tuiles puis **Envoyer au notaire**. Choisissez le notaire dans l’annuaire (celui du dossier est proposé), l’adresse du clerc ou de l’étude, et un message type : rédaction du compromis, pièces complémentaires, compromis signé, acte authentique ou message libre.'],
-['📎','Le message reprend le dossier (bien, vendeurs, acquéreurs, prix) et la liste des pièces. Les documents partent en pièces jointes depuis votre Gmail, et l’envoi est noté dans l’historique du dossier.']
-]},
-{id:'2026-10-28f',v:'v171',t:'Proposition de créneau envoyée depuis le CRM',l:[
-['📨','« Proposer un autre créneau » : le message s’affiche dans le CRM, vous pouvez le modifier, puis **Envoyer** : il part de votre Gmail sans ouvrir de fenêtre. « Ouvrir dans Gmail » reste possible.'],
-['📝','Depuis l’agenda, l’envoi est noté sur la demande de visite (date et créneaux proposés).']
-]},
-{id:'2026-10-28e',v:'v170',t:'Proposer un autre créneau de visite',l:[
-['✉️','Demandes de visite, et dans l’agenda le bouton ✉️ sur une demande de visite : **Proposer un autre créneau**. Choisissez une ou deux dates et heures, Gmail s’ouvre avec le message prêt pour le client (créneau demandé indisponible + vos propositions). Relisez et envoyez.']
-]},
-{id:'2026-10-28d',v:'v169',t:'Fiche story : logo et texte court',l:[
-['🖼️','Le pied de la fiche story affiche le logo YES Immobilier.'],
-['✏️','Nouveau champ **Texte court de la fiche** dans Publication. Laissé vide, la fiche reprend le début du descriptif (sans le titre en majuscules ni la liste des lots) et coupe à la fin d’une phrase.']
-]},
-{id:'2026-10-28c',v:'v168',t:'Fiche story Instagram d’un immeuble',l:[
-['📱','Fiche d’un bien à vendre > Publication : **Créer la fiche story** (format 1080 × 1920), sur le modèle de vos fiches Canva : prix HAI, photos, surface, ville, rendement, descriptif, caractéristiques, Indice Investissement.'],
-['📈','Rendement de la fiche : loyers annuels ÷ (prix + travaux). Les travaux viennent du pré-chiffrage Works, sinon de l’onglet Travaux.'],
-['⭐','**Indice Investissement** calculé depuis le rendement (moins de 7 % → 5, 7 à 8 % → 7, 8 à 9 % → 8, 9 à 10 % → 8,5, 10 % et plus → 10), modifiable à la main sur chaque bien.']
+{id:'2026-10-29a',v:'v168',t:'Remplir la fiche depuis une pièce jointe de Gmail',l:[
+['📥','Gmail du CRM > **Enregistrer dans un dossier** : la case **Lire le PDF et remplir la fiche** lit le mandat, le compromis ou le bail enregistré et propose de remplir le dossier (vous vérifiez avant de valider).']
 ]},
 {id:'2026-10-28b',v:'v167',t:'Carte interactive des secteurs',l:[
 ['🗺️','Réglages > Secteurs : **Ouvrir la carte**. Choisissez un négociateur et passez sur les communes pour les lui attribuer (Pas-de-Calais, Nord, Oise). Zoom à la molette ou à deux doigts.'],
@@ -968,7 +948,7 @@ function agG2(e){const f=agFN(e.f);const det='Dossier de vente : '+(f||'—')+(e
  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(e.t+(f?' - '+f:''))+'&dates='+dates+'&details='+encodeURIComponent(det)+(e.lieu?'&location='+encodeURIComponent(e.lieu):'')}
 function agChip(e){const cl=e.ok?'agok':'agr';return `<div class='agc ${cl}' ${e.ok?'':`style='background:${agCol(e)};color:#fff'`} data-a='agxEv' data-id='${e.src}:${e.id}' title='${esc(e.t)}'>${e.h?'<b>'+esc(e.h)+'</b> ':''}${esc(e.t)}</div>`}
 function agRowX(e){const[n,r]=agRel(e.d),late=!e.ok&&n<0,f=agFN(e.f),c=null,cn=((e.cs&&e.cs.length?e.cs:(e.c?[e.c]:[])).map(id=>{const x=S.c.find(y=>y.id===id);return x?nom(x):''}).filter(Boolean)).concat((e.cx||[]).map(x=>x.n)).join(', ');
- return `<div class='rw agrw' style='align-items:center;gap:8px;border-left:5px solid ${e.ok?'var(--bd)':agCol(e)};padding-left:8px'>${e.src==='mn'||e.src==='vis'?`<span style='width:13px'></span>`:`<input type='checkbox' data-a='agxOk' data-id='${e.src}:${e.id}' ${e.ok?'checked':''} title='Fait'>`}<span style='flex:1;min-width:0;${e.ok?'text-decoration:line-through;opacity:.6':''}'><b>${e.h?esc(e.h)+(e.h2?'–'+esc(e.h2):'')+' · ':''}${esc(e.t)}</b>${f?` <a data-a='openF' data-id='${e.f}' class='m' style='cursor:pointer;text-decoration:underline'>${esc(f)}</a>`:''}${e.src==='ev'&&e.b&&bBy(e.b)?` <a data-a='bOpen' data-id='${e.b}' class='m' style='cursor:pointer;text-decoration:underline'>🏠 ${esc(bBy(e.b).adr||bBy(e.b).ref||'bien')}</a>`:''}${cn?` <span class='m'>· 👤 ${esc(cn)}</span>`:''}${e.lieu?` <span class='m'>· 📍 ${esc(e.lieu)}</span>`:''}${e.note?`<br><span class='m'>${esc(e.note)}</span>`:''}</span><span class='m' style='white-space:nowrap;${late?'color:var(--dn);font-weight:600':''}'>${e.ok?'fait ✓':esc(r)}</span><a href="${esc(agG2(e))}" target="_blank" rel="noopener noreferrer" title="Ajouter à Google Agenda" aria-label="Ajouter à Google Agenda" style="text-decoration:none"><button type='button' style='padding:2px 8px'>📅</button></a>${agVisReq(e)&&!e.ok?`<button type='button' data-a='agAlt' data-id='${e.id}' title='Proposer un autre créneau par e-mail' style='padding:2px 8px'>✉️</button>`:''}${e.src==='ev'?`<button type='button' data-a='agxEv' data-id='ev:${e.id}' title='Modifier' style='padding:2px 8px'>✏️</button>`:''}</div>`}
+ return `<div class='rw agrw' style='align-items:center;gap:8px;border-left:5px solid ${e.ok?'var(--bd)':agCol(e)};padding-left:8px'>${e.src==='mn'||e.src==='vis'?`<span style='width:13px'></span>`:`<input type='checkbox' data-a='agxOk' data-id='${e.src}:${e.id}' ${e.ok?'checked':''} title='Fait'>`}<span style='flex:1;min-width:0;${e.ok?'text-decoration:line-through;opacity:.6':''}'><b>${e.h?esc(e.h)+(e.h2?'–'+esc(e.h2):'')+' · ':''}${esc(e.t)}</b>${f?` <a data-a='openF' data-id='${e.f}' class='m' style='cursor:pointer;text-decoration:underline'>${esc(f)}</a>`:''}${e.src==='ev'&&e.b&&bBy(e.b)?` <a data-a='bOpen' data-id='${e.b}' class='m' style='cursor:pointer;text-decoration:underline'>🏠 ${esc(bBy(e.b).adr||bBy(e.b).ref||'bien')}</a>`:''}${cn?` <span class='m'>· 👤 ${esc(cn)}</span>`:''}${e.lieu?` <span class='m'>· 📍 ${esc(e.lieu)}</span>`:''}${e.note?`<br><span class='m'>${esc(e.note)}</span>`:''}</span><span class='m' style='white-space:nowrap;${late?'color:var(--dn);font-weight:600':''}'>${e.ok?'fait ✓':esc(r)}</span><a href="${esc(agG2(e))}" target="_blank" rel="noopener noreferrer" title="Ajouter à Google Agenda" aria-label="Ajouter à Google Agenda" style="text-decoration:none"><button type='button' style='padding:2px 8px'>📅</button></a>${e.src==='ev'?`<button type='button' data-a='agxEv' data-id='ev:${e.id}' title='Modifier' style='padding:2px 8px'>✏️</button>`:''}</div>`}
 /* --- invitations aux rendez-vous --- */
 const IV={rows:[],t:0,sig:''};
 async function ivLoad(force){if(!msgOn())return;if(!force&&Date.now()-IV.t<45000)return;IV.t=Date.now();try{const r=await window.SB.from('crm_invites').select('*').order('created_at',{ascending:false}).limit(200);if(r.error||!r.data)return;const sig=JSON.stringify(r.data.map(x=>[x.id,x.status,x.d,x.h,x.t]));if(sig!==IV.sig){IV.sig=sig;IV.rows=r.data;if(V.v==='home'||V.v==='agenda'||V.v==='ag')render()}}catch(e){}}
@@ -1938,66 +1918,6 @@ async function pbVisu(b){const W=1080,H=1350,c=document.createElement('canvas');
  x.font='700 34px Helvetica,Arial,sans-serif';x.fillStyle='#fff';x.fillText(YT1,340,cy+206);x.fillText(YT2,640,cy+206);
  x.font='400 22px Helvetica,Arial,sans-serif';x.fillStyle='#f8e6dc';x.fillText((b.ref?'Réf. '+b.ref+' · ':'')+'YES Immobilier · Dites oui à l’immobilier',340,cy+250);
  return new Promise(r=>c.toBlob(r,'image/jpeg',.92))}
-/* ---- fiche story Instagram d’un bien à vendre (1080 × 1920) ---- */
-function bRendFiche(b){const r=bRent(b),t=bTravBud(b).v,T=r.P+t;return r.a&&T?r.a*100/T:0}
-function bIdxAuto(rd){if(!rd)return 0;return rd<7?5:rd<8?7:rd<9?8:rd<10?8.5:10}
-function bIdx(b){const m=String(b.idx==null?'':b.idx).trim();return m!==''&&num(m)?num(m):bIdxAuto(bRendFiche(b))}
-const frN=(n,d)=>(Math.round(n*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('fr-FR');
-function bLotsTxt(b){const L=(b.lt||[]).filter(x=>x.n||x.s||x.loyer);if(!L.length)return '';const c={},o=[];
- L.forEach(x=>{const m=String(x.n||'').match(/\b(studio|t\d|f\d)\b/i);const k=m?(/studio/i.test(m[1])?'Studio':m[1].toUpperCase()):'';if(!k)return;if(!(k in c)){c[k]=0;o.push(k)}c[k]++});
- return o.length?o.map(k=>c[k]+' '+k).join(' / '):L.length+' lot'+(L.length>1?'s':'')}
-function stDesc(b){const f=String(b.fdesc||'').trim();if(f)return f;let L=String(b.desc||'').split(/\n/).map(s=>s.trim()).filter(Boolean);L=L.filter(s=>!(s===s.toUpperCase()&&/[A-ZÀ-Ü]{3}/.test(s)));const i=L.findIndex(s=>/^(lots?\s+et\s+loyers|-|•)/i.test(s));if(i>0)L=L.slice(0,i);return L.join(' ')}
-function stWrap(x,t,mw){const out=[];String(t||'').split(/\n/).forEach(par=>{const w=par.split(/\s+/).filter(Boolean);let c='';w.forEach(s=>{const n=c?c+' '+s:s;if(x.measureText(n).width>mw&&c){out.push(c);c=s}else c=n});if(c)out.push(c)});return out}
-async function stImg(id){if(!id)return null;try{let bl=await fget('bp_'+id);if(!bl)return null;try{bl=await bStamp(bl)}catch(e){}return await createImageBitmap(bl)}catch(e){return null}}
-function stCover(x,bm,X,Y,W,H){if(!bm){x.fillStyle='#e9e2da';x.fillRect(X,Y,W,H);return}const k=Math.max(W/bm.width,H/bm.height),w=bm.width*k,h=bm.height*k;x.save();x.beginPath();x.rect(X,Y,W,H);x.clip();x.drawImage(bm,X+(W-w)/2,Y+(H-h)/2,w,h);x.restore()}
-async function pbStory(b){const W=1080,H=1920,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
- const BG='#f1ece6',INK='#1d1d1f',RED='#e03a2f',F='Helvetica,Arial,sans-serif';
- x.fillStyle='#fff';x.fillRect(0,0,W,H);x.textBaseline='alphabetic';
- /* en-tête */
- x.fillStyle=INK;x.textAlign='center';x.font='400 38px '+F;x.fillText(String(b.type||'Bien').toUpperCase(),325,58);x.font='700 54px '+F;x.fillText('À VENDRE',325,112);
- x.fillStyle=BG;x.fillRect(652,0,W-652,130);x.fillStyle=INK;x.font='700 44px '+F;x.fillText(num(b.prix)?eur(num(b.prix))+' HAI':'Prix nous consulter',866,82);
- /* photos */
- const ph=b.ph||[],[p0,p1,p2]=await Promise.all([stImg(ph[0]),stImg(ph[1]),stImg(ph[2])]);
- stCover(x,p0,140,165,800,450);
- /* ligne d’infos */
- const ville=(String(b.adr||'').match(/\b\d{5}\s+(.+)$/)||[])[1]||b.ville||'',L=b.lt||[],sl=L.reduce((a,v)=>a+num(v.s),0),surf=num(b.surf)||sl,rd=bRendFiche(b);
- const it=[['Surface : ',surf?frN(surf,0)+' m²':'—',INK],['Localisation : ',ville||'—',INK],['Rendement : ',rd?frN(rd,2)+' %':'—',RED]];
- let fs=27;const mw=()=>it.map(([a,v])=>{x.font='400 '+fs+'px '+F;const w1=x.measureText(a).width;x.font='700 '+fs+'px '+F;return w1+x.measureText(v).width});
- let ws=mw();while(ws.reduce((a,v)=>a+v,0)>W-140&&fs>18){fs--;ws=mw()}
- const gap=(W-104-ws.reduce((a,v)=>a+v,0))/2;let xx=52;x.textAlign='left';
- it.forEach(([a,v,col],i)=>{x.font='400 '+fs+'px '+F;x.fillStyle=INK;x.fillText(a,xx,764);const w1=x.measureText(a).width;x.font='700 '+fs+'px '+F;x.fillStyle=col;x.fillText(v,xx+w1,764);xx+=ws[i]+gap});
- /* bandeau + deux photos */
- x.fillStyle=BG;x.fillRect(0,920,W,102);stCover(x,p1,57,841,459,286);stCover(x,p2,554,841,495,283);
- /* colonne gauche : titre + description */
- x.textAlign='center';x.fillStyle=INK;x.font='700 30px '+F;const tt=stWrap(x,b.titre||b.type||'',480).slice(0,2);let y=1240;tt.forEach(s=>{x.fillText(s,268,y);y+=38});
- x.textAlign='left';x.font='400 22px '+F;const MX=Math.max(4,Math.floor((1600-(y+30))/31));let ds=stWrap(x,stDesc(b),500);if(ds.length>MX){let t=ds.slice(0,MX).join(' ');const k=t.lastIndexOf('. ');t=k>60?t.slice(0,k+1):t.replace(/[\s,;.:]*\S*$/,'')+'…';ds=stWrap(x,t,500)}
- y+=30;ds.forEach(s=>{x.fillText(s,30,y);y+=31});
- /* colonne droite : caractéristiques */
- const pts=[],lt=bLotsTxt(b),r=bRent(b),tv=bTravBud(b).v;
- if(lt)pts.push(lt);if(tv)pts.push('Projet de travaux / Devis consultable');if(r.m)pts.push('Loyers : '+eur(r.m)+' / mois');
- String(b.fpts||'').split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(s=>pts.push(s));
- x.textAlign='center';x.fillStyle=INK;x.font='700 30px '+F;x.fillText('Caractéristiques',820,1182);
- x.font='400 27px '+F;y=1238;pts.slice(0,7).forEach(p=>{if(y>1600)return;const ls=stWrap(x,p,380).slice(0,3);
-  x.strokeStyle='#5a4636';x.lineWidth=4;x.lineCap='round';x.beginPath();x.moveTo(616,y-10);x.lineTo(627,y+4);x.lineTo(642,y-24);x.stroke();
-  x.fillStyle=INK;ls.forEach(s=>{x.fillText(s,862,y);y+=36});y+=26});
- /* indice + appel */
- const ix=bIdx(b);if(ix){x.font='400 32px '+F;const a='Notre Indice Investissement :  ',v=frN(ix,1)+' /10',wa=x.measureText(a).width;x.font='700 32px '+F;const wv=x.measureText(v).width,x0=(W-wa-wv)/2;
-  x.textAlign='left';x.font='400 32px '+F;x.fillStyle=INK;x.fillText(a,x0,1665);x.font='700 32px '+F;x.fillStyle=RED;x.fillText(v,x0+wa,1665)}
- x.textAlign='center';x.fillStyle='#3b3a5a';x.font='700 32px '+F;x.fillText('Contactez-nous pour une visite !',540,1767);
- /* pied */
- x.fillStyle=BG;x.fillRect(0,1825,W,95);
- try{const lg=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ko;i.src=WMLOGO});let lh=72,lw=lh*lg.width/lg.height;if(lw>260){lw=260;lh=lw*lg.height/lg.width}x.drawImage(lg,28,1872-lh/2,lw,lh)}catch(e){}
- x.fillStyle='#4a4f7a';x.font='400 24px '+F;x.fillText('PLUS D’INFORMATIONS EN MP',565,1882);
- x.textAlign='left';return new Promise(ok=>c.toBlob(ok,'image/png'))}
-function pbStoryUi(b){if(b.mode==='l')return '';const P=PBS,u=P.story?(P.storyUrl=P.storyUrl||URL.createObjectURL(P.story)):'',ai=bIdxAuto(bRendFiche(b)),rd=bRendFiche(b);
- return `<div style='margin-top:14px;padding-top:10px;border-top:1px dashed var(--bd)'><label>📱 Fiche story Instagram <span class='m' style='font-weight:400'>(1080 × 1920, à télécharger puis publier en story)</span></label>
- <p class='m' style='margin:2px 0 8px'>Rendement sur la fiche : ${rd?frN(rd,2)+' %':'— (renseignez le prix et les loyers des lots)'} <span style='font-size:12px'>(loyers annuels ÷ (prix + travaux))</span></p>
- <div style='display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end'><div><label style='margin:0'>Indice Investissement /10</label><input data-bf='idx' inputmode='decimal' placeholder='Auto : ${ai?frN(ai,1):'—'}' value="${esc(b.idx||'')}" style='width:120px'></div><span class='m' style='font-size:12px;max-width:340px'>Laissez vide pour le calcul automatique : moins de 7 % → 5 · 7 à 8 % → 7 · 8 à 9 % → 8 · 9 à 10 % → 8,5 · 10 % et plus → 10.</span></div>
- <label style='margin-top:8px'>Texte court de la fiche <span class='m' style='font-weight:400'>(3 à 4 phrases ; vide = début du descriptif)</span></label><textarea data-bf='fdesc' rows='3' placeholder='Beau projet de division en 3 ou 4 appartements…'>${esc(b.fdesc||'')}</textarea>
- <label style='margin-top:8px'>Points en plus sur la fiche <span class='m' style='font-weight:400'>(un par ligne, ex. Compteurs individuels élec / eau, Plein centre-ville / Forte demande)</span></label><textarea data-bf='fpts' rows='3'>${esc(b.fpts||'')}</textarea>
- <p class='m' style='margin:4px 0 6px;font-size:12px'>La fiche reprend : prix, type, ville, surface, les 3 premières photos, le titre et le descriptif, les lots, les loyers et les travaux.</p>
- <div style='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start'><button type='button' data-a='pbStory' ${P.sbusy?'disabled':''}>${P.sbusy?'Création…':(P.story?'🔄 Refaire la fiche story':'📱 Créer la fiche story')}</button>
- ${P.story?`<div style='width:120px'><img src="${u}" alt='' style='width:120px;border-radius:8px;border:1px solid var(--bd)'><button type='button' data-a='pbStoryDl' style='padding:2px 8px;font-size:12px'>⬇ Télécharger</button></div>`:''}</div></div>`}
 async function pbBlobs(b){const out=[];
  if(PBS.visu&&PBS.visuOn!==false)out.push(await pbJpg(PBS.visu));
  for(const e of (PBS.extra||[]))out.push(await pbJpg(e.blob));
@@ -2053,7 +1973,7 @@ function dvPaint(){let o=document.getElementById('dvov');if(!DVS.show){if(o)o.re
  const card=r=>{const d=r.d,nm=d.name||d.nom||'',b=dvBien(d.bien),tel=dvTel(d.telephone||d.tel),imp=done.includes(r.id),det=[['Bien',d.bien],['Occupants',d.occupants],['Situation',d.situation],['Revenus du foyer',d.revenus_foyer],['Garant',d.garant],['Entrée souhaitée',d.date_entree]].filter(x=>x[1]);
   return `<div class='card' style='flex-direction:column;align-items:stretch;gap:6px;margin:8px 0;${imp?'opacity:.55':''}'><div style='display:flex;gap:8px;flex-wrap:wrap;align-items:center'><b>${esc(nm)}</b><span class='m'>${esc(r.date?new Date(r.date).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'')}</span>${b?`<span class='badge'>${esc(b.ref||b.titre||'bien reconnu')}</span>`:''}${imp?`<span class='badge'>déjà importé</span>`:''}</div>
   ${r.slot?`<div style='font-weight:600'>📅 ${esc(new Date(r.slot.d+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}))} à ${esc(r.slot.h.replace(':','h'))}</div>`:`<div class='m'>Pas de créneau choisi (étape 2 non reçue)</div>`}<div class='m'>${esc([tel,d.email].filter(Boolean).join(' · '))}</div><div class='m' style='font-size:12px'>${det.map(x=>esc(x[0]+' : '+x[1])).join(' · ')}</div>
-  <div style='display:flex;gap:6px;flex-wrap:wrap'>${imp?'':`<button type='button' class='p' data-a='dvAdd' data-id='${esc(r.id)}'>➕ Créer le contact et la tâche</button>`}${tel?`<button type='button' data-a='dvWa' data-id='${esc(r.id)}'>💬 WhatsApp</button>`:''}${d.email?`<button type='button' data-a='dvAlt' data-id='${esc(r.id)}'>✉ Proposer un autre créneau</button>`:''}</div></div>`};
+  <div style='display:flex;gap:6px;flex-wrap:wrap'>${imp?'':`<button type='button' class='p' data-a='dvAdd' data-id='${esc(r.id)}'>➕ Créer le contact et la tâche</button>`}${tel?`<button type='button' data-a='dvWa' data-id='${esc(r.id)}'>💬 WhatsApp</button>`:''}</div></div>`};
  o.innerHTML=`<div style='background:var(--sf);border-radius:14px;max-width:760px;width:100%;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap'><h2 style='margin:0;flex:1'>📥 Demandes de visite</h2><button type='button' data-a='dvLoad'>${DVS.busy?'Lecture…':'↻ Lire mes e-mails'}</button><button type='button' data-a='dvClose'>Fermer</button></div>
  <p class='m' style='margin:6px 0'>Les demandes envoyées par le formulaire du site arrivent dans votre boîte Gmail. Ce bouton les lit (lecture seule), puis vous créez le contact et une tâche dans l’agenda.</p>
  ${DVS.err?`<p style='color:var(--dn)'>${esc(DVS.err)}</p>`:''}${DVS.rows==null?`<p class='m'>Cliquez sur « Lire mes e-mails ».</p>`:(L.length?L.map(card).join(''):`<p class='m'>Aucune nouvelle demande.</p>`)}
@@ -2064,41 +1984,6 @@ function dvAdd(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;if(((S
  const b=dvBien(d.bien),note=[['Bien',d.bien],['Occupants',d.occupants],['Situation',d.situation],['Revenus du foyer',d.revenus_foyer],['Garant',d.garant],['Entrée souhaitée',d.date_entree]].filter(x=>x[1]).map(x=>x[0]+' : '+x[1]).join(' | ');
  S.ev=S.ev||[];const sl=r.slot;if(sl&&b){b.vis=b.vis||[];b.vis.push({id:uid(),d:sl.d,h:sl.h.replace(':','h'),cid:c.id,note:'Demande via le formulaire du site | '+note})}else S.ev.push({id:uid(),d:sl?sl.d:isoT(),h:sl?sl.h:'',h2:'',t:(sl?'Visite – ':'Demande de visite – ')+nm+(d.bien?' – '+d.bien:''),f:'',b:b?b.id:'',c:c.id,lieu:(b&&b.adr)||'',note,ok:false});
  S.set=S.set||{};S.set.dvimp=(S.set.dvimp||[]).concat([id]).slice(-300);save();toast((neu?'Contact créé':'Contact déjà existant')+(sl?' + visite ajoutée dans l’agenda ('+sl.d.split('-').reverse().join('/')+' à '+sl.h.replace(':','h')+').':' + tâche ajoutée dans l’agenda.'));dvPaint();try{scAlert(b,nm,sl)}catch(e){}}
-/* --- proposer un autre créneau par e-mail (Gmail s’ouvre, vous relisez et envoyez) --- */
-var ALT=null;
-function altOpen(info){ALT={info,s:[{},{}],txt:'',ed:false,busy:false};ALT.txt=altMsg().body;altPaint()}
-const altFj=x=>new Date(x.d+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(x.h?' à '+String(x.h).replace(':','h'):'');
-function altMsg(){const I=ALT.info,S2=ALT.s.filter(x=>x&&x.d),pr=String(I.pr||'').trim(),me=((S.set||{}).me||'').trim();
- const body='Bonjour'+(pr?' '+pr.charAt(0).toUpperCase()+pr.slice(1):'')+',\n\nMerci pour votre demande de visite'+(I.bien?' ('+I.bien+')':'')+'.\n\n'+(I.slot?'Le créneau du '+altFj(I.slot)+' n’est malheureusement pas disponible de notre côté. ':'')+(S2.length>1?'Nous pouvons vous proposer l’un de ces créneaux :\n':'Nous pouvons vous proposer le créneau suivant :\n')+(S2.length?S2.map(x=>'- '+altFj(x)).join('\n'):'- (choisissez une date)')+'\n\nMerci de nous confirmer en répondant à ce message. Si aucun ne vous convient, indiquez-nous vos disponibilités.\n\nBien cordialement,\n'+(me?me+'\n':'')+'YES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
- return {n:S2.length,body,sub:'Votre demande de visite – '+(S2.length>1?'nouveaux créneaux proposés':'nouveau créneau proposé')}}
-function altPaint(){let o=document.getElementById('altov');if(!ALT){if(o)o.remove();return}
- if(!o){o=document.createElement('div');o.id='altov';o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:10000;background:rgba(40,25,20,.5);overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';document.body.appendChild(o)}
- const I=ALT.info,i=(k,n,t)=>`<input type='${t}' data-alt='${k}${n}' value="${esc(((ALT.s[n]||{})[k])||'')}" style='width:auto'>`;
- o.innerHTML=`<div style='background:var(--sf);border-radius:14px;max-width:560px;width:100%;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h2 style='margin:0 0 4px'>✉ Proposer un autre créneau</h2>
- <p class='m' style='margin:0 0 8px'>À : ${esc(I.nom||'')} · ${esc(I.email)}${I.bien?' · '+esc(I.bien):''}${I.slot?'<br>Créneau demandé : '+esc(altFj(I.slot)):''}</p>
- <div style='display:flex;gap:6px;flex-wrap:wrap;align-items:center'>1. ${i('d',0,'date')}${i('h',0,'time')}</div><div style='display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px'>2. ${i('d',1,'date')}${i('h',1,'time')} <span class='m'>(facultatif)</span></div>
- <label style='margin-top:10px'>Message <span class='m' style='font-weight:400'>(modifiable)</span></label><textarea data-altx rows='12' style='width:100%'>${esc(ALT.txt)}</textarea>
- <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:10px'><button type='button' class='p' data-a='altSend' ${ALT.busy?'disabled':''}>${ALT.busy?'Envoi…':'📨 Envoyer'}</button><button type='button' data-a='altGo'>Ouvrir dans Gmail</button><button type='button' data-a='altClose'>Annuler</button></div>
- <p class='m' style='margin:6px 0 0;font-size:12px'>Le mail part de votre adresse Gmail ; vous le retrouverez dans vos messages envoyés.</p></div>`}
-document.addEventListener('input',e=>{const t=e.target;if(!t||!t.dataset||!ALT)return;
- if(t.dataset.altx!==undefined){ALT.txt=t.value;ALT.ed=true;return}
- if(t.dataset.alt===undefined)return;const k=t.dataset.alt[0],n=+t.dataset.alt.slice(1);ALT.s[n]=ALT.s[n]||{};ALT.s[n][k]=t.value;
- if(!ALT.ed){ALT.txt=altMsg().body;const x=document.querySelector('#altov textarea[data-altx]');if(x)x.value=ALT.txt}});
-function altGo(){if(!ALT)return;const m=altMsg();if(!m.n&&!ALT.ed){toast('Choisissez au moins une date.');return}
- window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(String(ALT.info.email||'').trim())+'&su='+encodeURIComponent(m.sub)+'&body='+encodeURIComponent(ALT.txt),'_blank');ALT=null;altPaint()}
-async function altSend(){if(!ALT||ALT.busy)return;const m=altMsg();if(!m.n&&!ALT.ed){toast('Choisissez au moins une date.');return}
- if(/\(choisissez une date\)/.test(ALT.txt)){toast('Le message contient encore « choisissez une date ».');return}
- const A=ALT,to=String(A.info.email||'').trim();A.busy=true;altPaint();
- const send=()=>GMSHIM.callTool('','send_message',{to:[to],subject:m.sub,body:A.txt});
- try{if(!GMT||Date.now()>GMX)await gmConnect();try{await send()}catch(e){if(e&&e.code==='needs_reauth'){await gmConnect();await send()}else throw e}
-  if(A.info.ev){const e=(S.ev||[]).find(x=>x.id===A.info.ev);if(e){const sl=A.s.filter(x=>x&&x.d).map(altFj).join(' ou ');e.note=(e.note?e.note+' | ':'')+'Créneau proposé par e-mail le '+new Date().toLocaleDateString('fr-FR')+(sl?' : '+sl:'');save();try{render()}catch(x){}}}
-  ALT=null;altPaint();toast('Mail envoyé à '+to+'.')}
- catch(e){A.busy=false;if(ALT===A)altPaint();toast('Envoi impossible'+(e&&e.code==='needs_reauth'?' : reconnectez Gmail (autorisez la fenêtre Google).':e&&e.code==='tool_error'?' : accès Gmail refusé.':'.'))}}
-function dvAlt(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;const d=r.d,b=dvBien(d.bien),nm=String(d.name||d.nom||'').trim();altOpen({nom:nm,pr:nm.split(/\s+/)[0],email:d.email,bien:d.bien||(b&&(b.titre||b.adr))||'',slot:r.slot})}
-const agVisReq=e=>e&&e.src==='ev'&&/^(demande de visite|visite)\s*–/i.test(String(e.t||''))&&(()=>{const c=e.c&&S.c.find(x=>x.id===e.c);return !!(c&&c.email)})();
-function agAlt(id){const e=(S.ev||[]).find(x=>x.id===id);if(!e)return;const c=S.c.find(x=>x.id===e.c);if(!c||!c.email){toast('Pas d’e-mail pour ce contact.');return}
- const b=e.b&&bBy(e.b),bn=(b&&(b.titre||b.adr||b.ref))||((String(e.note||'').match(/Bien\s*:\s*([^|]+)/)||[])[1]||'').trim();
- altOpen({ev:e.id,nom:nom(c),pr:c.prenom||nom(c).split(' ')[0],email:c.email,bien:bn,slot:/^visite/i.test(e.t)&&e.h?{d:e.d,h:e.h}:null})}
 function dvWa(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;const d=r.d,tel=dvTel(d.telephone||d.tel),pr=String(d.name||d.nom||'').split(/\s+/)[0];
  const msg='Bonjour'+(pr?' '+pr:'')+',\n\nMerci pour votre demande de visite'+(d.bien?' ('+d.bien+')':'')+'. Quel jour et quelle heure vous arrangent ? Nous vous confirmerons le créneau.\n\nYES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
  window.open('https://wa.me/'+waN(tel)+'?text='+encodeURIComponent(msg),'_blank')}
@@ -2257,7 +2142,7 @@ function pbUi(b){const P=PBS,fb=P.fb!==false,ig=P.ig!==false,ph=b.ph||[];
 <div style='display:flex;gap:6px;flex-wrap:wrap'>${chip('fb',fb,'Facebook')}${chip('ig',ig,'Instagram')}</div>
 <label style='margin-top:10px'>Photos à publier <span class='m' style='font-weight:400'>(10 maximum, Instagram en demande au moins une)</span></label>
 ${ph.length?`<div style='display:flex;gap:8px;flex-wrap:wrap'>${ph.map(id=>{const on=!P.sel||P.sel[id]!==false;return `<div data-a='pbT' data-id='${id}' style='position:relative;cursor:pointer;width:96px;height:72px;border-radius:8px;overflow:hidden;border:3px solid ${on?'var(--ac,#a4573f)':'transparent'};opacity:${on?1:.45}'><img data-ph='${id}' alt='' style='width:100%;height:100%;object-fit:cover;pointer-events:none'>${on?`<span style='position:absolute;top:2px;right:4px;color:#fff;background:var(--ac,#a4573f);border-radius:50%;width:18px;height:18px;font-size:12px;display:flex;align-items:center;justify-content:center'>✓</span>`:''}</div>`}).join('')}</div>`:`<p class='m'>Aucune photo : ajoutez-en dans l’onglet Fiche.</p>`}
-${pbVisuUi(b)}${pbStoryUi(b)}
+${pbVisuUi(b)}
 <div style='margin-top:10px'><button type='button' class='p' data-a='pbGo' ${P.busy?'disabled':''}>${P.busy?'Publication en cours…':'🚀 Publier maintenant'}</button></div>${P.msg?`<p class='m' style='margin-top:8px;white-space:pre-line'>${esc(P.msg)}</p>`:''}${d}${pbpUi(b)}</div>`}
 async function pbGo(){const b=bCur();if(!b||PBS.busy)return;const fb=PBS.fb!==false,ig=PBS.ig!==false;
  if(!fb&&!ig){toast('Choisissez Facebook et/ou Instagram');return}
@@ -3062,7 +2947,7 @@ ${dTabs(f)}<div class='dwrap' ${DTAB_CUR!=='docs'?'hidden':''}><div class='tabs2
 <div class='cards'><div class='kc k1'>📄 Documents (${f.d.length})</div><div class='kc k2' data-a='contacts'>👥 Contacts (${S.c.length})</div><div class='kc k3' data-a='notes'>📝 Notes${f.notes?' ●':''}</div></div>
 <div class='bar'><button data-a='readStart' title='Relire le compromis et ses annexes en mode lecture (verrouillé). Si vous cochez des documents, seuls ceux-là sont lus.'>📖 Lecture compromis &amp; annexes</button><button data-a='mailF'>✉ Courriels de ce dossier (Gmail)</button><button data-a='impBtn' title='Importez un acte rédigé dans Modelo (PDF ou Word) : il est classé automatiquement selon son nom. Vous pouvez aussi glisser les fichiers sur la page.'>📥 Importer un acte (Modelo…)</button>${V.tab==='m'?`<button data-a='detM'>🔍 Détecter le n° de mandat</button>`:''}</div>
 ${V.notes?`<textarea data-k='notes' rows='4' placeholder='Notes du dossier' style='margin-bottom:12px'>${esc(f.notes)}</textarea>`:''}
-<div class='bar'><label style='display:flex;gap:8px;align-items:center;margin:0;font-size:14px'><input type='checkbox' data-a='all' ${all?'checked':''}> Tout</label><span class='sp'></span><button class='p' data-a='toggleNd'>+ Ajouter</button>${n?`<select id='bmv' style='width:auto'><option value=''>Déplacer vers…</option>${catOpts('')}</select>`:''}<button data-a='syncSel' ${n?'':'disabled'} title='Remplace les vendeurs et acquéreurs des documents cochés par ceux du dossier'>👥 Parties</button><button data-a='prtSel' ${n?'':'disabled'}>🖨️ Imprimer (${n})</button><button data-a='pdfSel' ${n?'':'disabled'}>PDF (${n})</button><button data-a='docxSel' ${n?'':'disabled'}>Word (${n})</button><button data-a='ntsOpen' title='Envoyer les documents cochés à un notaire, depuis votre Gmail'>📨 Envoyer au notaire${n?' ('+n+')':''}</button><button class='d' data-a='delD' ${n?'':'disabled'}>${V.arm==='D'?'Confirmer':'Supprimer'}</button></div>
+<div class='bar'><label style='display:flex;gap:8px;align-items:center;margin:0;font-size:14px'><input type='checkbox' data-a='all' ${all?'checked':''}> Tout</label><span class='sp'></span><button class='p' data-a='toggleNd'>+ Ajouter</button>${n?`<select id='bmv' style='width:auto'><option value=''>Déplacer vers…</option>${catOpts('')}</select>`:''}<button data-a='syncSel' ${n?'':'disabled'} title='Remplace les vendeurs et acquéreurs des documents cochés par ceux du dossier'>👥 Parties</button><button data-a='prtSel' ${n?'':'disabled'}>🖨️ Imprimer (${n})</button><button data-a='pdfSel' ${n?'':'disabled'}>PDF (${n})</button><button data-a='docxSel' ${n?'':'disabled'}>Word (${n})</button><button class='d' data-a='delD' ${n?'':'disabled'}>${V.arm==='D'?'Confirmer':'Supprimer'}</button></div>
 <input type='file' id='imp' multiple accept='.pdf,.docx,.txt,.html,.htm' hidden>${V.msg?`<p class='m'>${esc(V.msg)}</p>`:''}
 ${V.nd?`<div class='card' style='flex-direction:column;gap:10px'>
 <div><label>Catégorie de destination</label><select id='ncat'><option value=''>Selon le modèle (ou « Divers » pour un import)</option>${catOpts(V.lc||(V.tab==='m'?'Mandat':''))}</select></div>
@@ -4509,7 +4394,7 @@ function attDlg(msgId,pv0){
   msg.textContent=L.length+' fichier'+(L.length>1?'s':'')+' trouvé'+(L.length>1?'s':'')+'. Cochez ceux à enregistrer.';
   box.innerHTML=(S.f.length?`<div class="grid" id="adg"><div><label>Dossier</label><select id="adf">${fo}</select></div><div><label>Catégorie</label><select id="adc">${catOpts('Divers')}</select></div></div>`:'<p class="m">Créez d’abord un dossier pour y enregistrer les fichiers.</p>')
    +`<div id="adl" style="max-height:40vh;overflow:auto;margin:8px 0">${L.map((a,i)=>{const ok=ATT_OK.test(extOf(a.name));return `<div class="pkr"><label style="display:flex;gap:8px;align-items:center;margin:0;min-width:0"><input type="checkbox" data-ai="${i}" ${ok?'checked':'disabled'} style="width:auto"><span style="min-width:0;overflow-wrap:anywhere">${esc(a.name)}<span class="m"> · ${fsize(a.bytes.length)}${a.from?' · dans '+esc(a.from):''}${ok?'':' · format non pris en charge'}</span></span></label><div class="bar" style="margin:0;flex:none"><button type="button" data-pv="${i}">Aperçu</button><button type="button" data-dl="${i}">Télécharger</button></div></div>`}).join('')}</div><div id="adp" hidden style="margin:0 0 10px"><div class="bar" style="margin:0 0 6px"><b id="adpt" style="overflow-wrap:anywhere"></b><span class="sp"></span><button type="button" id="adzm">⤢ Agrandir</button><button type="button" id="adpc">Fermer l’aperçu</button></div><div id="adpb" style="max-height:48vh;overflow:auto;border-radius:6px"></div></div>`
-   +`<div class="bar" style="margin:0"><button class="p" id="ads" ${S.f.length?'':'disabled'}>Enregistrer la sélection</button><button id="adx">Fermer</button></div><div class="m" id="adr"></div>`;
+   +`<label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px"><input type="checkbox" id="adi" checked style="width:auto"> Lire le PDF et remplir la fiche du dossier (mandat, compromis, bail)</label><div class="bar" style="margin:0"><button class="p" id="ads" ${S.f.length?'':'disabled'}>Enregistrer la sélection</button><button id="adx">Fermer</button></div><div class="m" id="adr"></div>`;
   box.querySelector('#adx').onclick=end;
   let cur=null;const cb=d.querySelector('.cfb'),zm=box.querySelector('#adzm');
   box.querySelector('#adpc').onclick=()=>{cb.classList.remove('big');zm.textContent='⤢ Agrandir';cur=null;box.querySelector('#adp').hidden=true;box.querySelector('#adpb').innerHTML=''};
@@ -4524,8 +4409,9 @@ function attDlg(msgId,pv0){
    sv.disabled=true;$('#adr',box).textContent='Enregistrement…';
    const files=idx.map(i=>new File([L[i].bytes],L[i].name,{type:L[i].mime||''}));
    const f=S.f.find(x=>x.id===fid),n0=f.d.length,m0=f.mandat||'';
-   try{await importFiles(files,g,fid)}catch(e){}
-   const n=f.d.length-n0;end();toast(n?n+' document'+(n>1?'s':'')+' enregistré'+(n>1?'s':'')+' dans « '+f.name+' » → '+g+'.'+(f.mandat&&f.mandat!==m0?' Mandat n° '+f.mandat+' détecté.':''):'Aucun document enregistré.')}
+   const doImp=!!(box.querySelector('#adi')&&box.querySelector('#adi').checked),pdfs=files.filter(x=>/\.pdf$/i.test(x.name)),pk=pdfs.find(x=>/mandat|compromis|promesse|bail|location|g[ée]rance|acte/i.test(x.name))||pdfs[0];
+   window.__impAuto=1;try{await importFiles(files,g,fid)}catch(e){}window.__impAuto=0;
+   const n=f.d.length-n0;end();if(doImp&&pk)setTimeout(()=>{try{impStart(pk,fid)}catch(e){}},500);toast(n?n+' document'+(n>1?'s':'')+' enregistré'+(n>1?'s':'')+' dans « '+f.name+' » → '+g+'.'+(f.mandat&&f.mandat!==m0?' Mandat n° '+f.mandat+' détecté.':''):'Aucun document enregistré.')}
   if(pv0){const i=L.findIndex(a=>/^(pdf|png|jpe?g|gif|webp|docx|txt|html?)$/i.test(extOf(a.name))),b=box.querySelector('[data-pv="'+(i<0?0:i)+'"]');if(b)b.click()}
  })()}
 function pwDlg(o){return new Promise(res=>{
@@ -4961,79 +4847,6 @@ function exportPreview(blob,fmt){return new Promise(async res=>{
   for(let i=1;i<=n;i++){const pg=await pdf.getPage(i),w=Math.min(box.clientWidth||700,820),v0=pg.getViewport({scale:1}),vp=pg.getViewport({scale:w/v0.width*1.5}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;c.style.cssText='width:100%;border:1px solid var(--bd);margin-bottom:10px;background:#fff';box.appendChild(c);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}
   if(pdf.numPages>n)box.insertAdjacentHTML('beforeend',`<p class='m'>Aperçu limité aux ${n} premières pages.</p>`)}
  catch(e){box.innerHTML=`<p class='m'>Aperçu indisponible (${esc(e.message||'erreur')}). Vous pouvez tout de même enregistrer.</p>`}})}
-/* ===== envoyer des documents du dossier à un notaire (Gmail, depuis le CRM) ===== */
-var NTS=null;
-const NTS_T=f=>f.mode==='l'?[['docs','Envoi de documents du dossier'],['libre','Message libre']]:[['promesse','Documents pour la rédaction de la promesse / du compromis'],['comp','Envoi de pièces complémentaires'],['signe','Envoi du compromis signé'],['acte','Préparation de l’acte authentique'],['libre','Message libre']];
-function ntsOpen(){const f=F();if(!f)return;const docs=(f.d||[]).filter(d=>V.sel&&V.sel.has(d.id));
- NTS={fid:f.id,docs:docs.map(d=>d.id),nid:f.notaire||'',to:{},q:'',tpl:f.mode==='l'?'docs':'promesse',sub:'',body:'',ed:false,busy:false,size:null};ntsDef();ntsGen();ntsPaint();ntsSize()}
-function ntsN(){return (S.not||[]).find(x=>x.id===NTS.nid)||null}
-function ntsDef(){const n=ntsN();NTS.to={};if(!n)return;const ce=String(n.clerce||'').trim(),ee=String(n.email||'').trim();if(okMail(ce))NTS.to[ce]=1;if(okMail(ee)&&!ce)NTS.to[ee]=1;if(okMail(ee)&&ce&&ee!==ce)NTS.to[ee]=0}
-function ntsDocs(){const f=FF(NTS.fid);return f?(f.d||[]).filter(d=>NTS.docs.includes(d.id)):[]}
-function ntsGen(){if(NTS.ed)return;const f=FF(NTS.fid),n=ntsN(),me=((S.set||{}).me||'').trim(),V0=partyC(f,'vids'),A0=partyC(f,'aids'),L=ntsDocs();
- const who=n?(n.clerc&&Object.keys(NTS.to).some(k=>NTS.to[k]&&k===String(n.clerce||'').trim())?'Bonjour '+n.clerc+',':n.nom?'Maître,':'Bonjour,'):'Bonjour,';
- const b=f.bid&&typeof bBy==='function'?bBy(f.bid):null,bien=(b&&b.adr)||f.bien||f.name,prix=num(f.prix);
- const rec=['Dossier : '+f.name,'Bien : '+bien,V0.length?(f.mode==='l'?'Bailleur : ':'Vendeur'+(V0.length>1?'s':'')+' : ')+V0.map(nom).join(', '):'',A0.length?(f.mode==='l'?'Locataire : ':'Acquéreur'+(A0.length>1?'s':'')+' : ')+A0.map(nom).join(', '):'',prix&&f.mode!=='l'?'Prix : '+eur(prix):''].filter(Boolean).map(s=>'- '+s).join('\n');
- const pj=L.length?'\n\nPièces jointes :\n'+L.map(d=>'- '+d.t).join('\n'):'';
- const I={promesse:'Veuillez trouver ci-joint les documents nécessaires à la rédaction de la promesse / du compromis de vente pour le dossier suivant :',comp:'Veuillez trouver ci-joint des pièces complémentaires pour le dossier suivant :',signe:'Veuillez trouver ci-joint le compromis de vente signé par les parties pour le dossier suivant :',acte:'En vue de la préparation de l’acte authentique, veuillez trouver ci-joint les documents du dossier suivant :',docs:'Veuillez trouver ci-joint les documents du dossier suivant :',libre:''}[NTS.tpl];
- const S0={promesse:'Rédaction du compromis',comp:'Pièces complémentaires',signe:'Compromis signé',acte:'Préparation de l’acte authentique',docs:'Documents',libre:'Dossier'}[NTS.tpl];
- NTS.sub=S0+' – '+f.name;
- NTS.body=who+'\n\n'+(I?I+'\n'+rec+pj+'\n\n'+(NTS.tpl==='promesse'?'N’hésitez pas à revenir vers moi pour toute pièce manquante.\n\n':'Je reste à votre disposition pour tout complément.\n\n'):'\n\n'+rec+pj+'\n\n')+'Bien cordialement,\n'+(me?me+'\n':'')+'YES Immobilier – Beauvais '+YT1+' · Béthune '+YT2}
-async function ntsSize(){let t=0;for(const d of ntsDocs()){if(d.pdf){try{const b=await ntsBlob(d);t+=b?b.size:0}catch(e){}}else t+=60000}if(NTS){NTS.size=Math.round(t*1.37);ntsPaint()}}
-const ntsMo=n=>(n/1048576).toLocaleString('fr-FR',{maximumFractionDigits:1})+' Mo';
-function ntsPaint(){let o=document.getElementById('ntsov');if(!NTS){if(o)o.remove();return}
- if(!o){o=document.createElement('div');o.id='ntsov';o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:10000;background:rgba(40,25,20,.5);overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';document.body.appendChild(o)}
- const f=FF(NTS.fid),n=ntsN(),q=norm(NTS.q||''),L=(S.not||[]).filter(x=>!q||norm([x.etude,x.nom,x.clerc,x.ville,x.cp].join(' ')).includes(q)).sort((a,b)=>(b.id===f.notaire)-(a.id===f.notaire)||ntLabel(a).localeCompare(ntLabel(b),'fr')).slice(0,40),D=ntsDocs();
- const ems=n?[[String(n.clerce||'').trim(),'Clerc'+(n.clerc?' ('+n.clerc+')':'')],[String(n.email||'').trim(),'Étude']].filter(x=>okMail(x[0])).filter((x,i,a)=>a.findIndex(y=>y[0]===x[0])===i):[];
- const big=NTS.size!=null&&NTS.size>24*1048576;
- o.innerHTML=`<div style='background:var(--sf);border-radius:14px;max-width:640px;width:100%;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h2 style='margin:0 0 4px'>📨 Envoyer au notaire</h2><p class='m' style='margin:0 0 10px'>${esc(f.name)}</p>
- <label>Notaire</label>${n?`<div class='rw' style='align-items:center;gap:8px;border:1px solid var(--ac);border-radius:10px;padding:8px'><span style='flex:1'><b>${esc(ntLabel(n))}</b>${n.nom&&n.etude?' · '+esc(n.nom):''}<br><span class='m'>${esc([n.ville,n.tel].filter(Boolean).join(' · '))}</span></span><button type='button' data-a='ntsCh'>Changer</button></div>`:`<input data-ntsq placeholder='Rechercher dans l’annuaire (nom, ville…)' value="${esc(NTS.q||'')}"><div style='max-height:220px;overflow:auto;margin-top:6px'>${L.length?L.map(x=>`<div class='rw' data-a='ntsPick' data-id='${x.id}' style='cursor:pointer;align-items:center;gap:8px'><span style='flex:1'><b>${esc(ntLabel(x))}</b>${x.id===f.notaire?' <span class="badge">notaire du dossier</span>':''}<br><span class='m'>${esc([x.nom!==ntLabel(x)?x.nom:'',x.ville,x.clerce||x.email||'pas d’e-mail'].filter(Boolean).join(' · '))}</span></span></div>`).join(''):`<p class='m'>Aucun notaire trouvé. Ajoutez-le dans Notaires.</p>`}</div>`}
- ${n?(ems.length?`<label style='margin-top:8px'>Envoyer à</label>${ems.map(([e,l])=>`<label style='display:flex;gap:6px;align-items:center;margin:2px 0;font-weight:400'><input type='checkbox' data-ntsto="${esc(e)}" ${NTS.to[e]?'checked':''} style='width:auto;margin:0'> ${esc(l)} : ${esc(e)}</label>`).join('')}`:`<p style='color:var(--dn);margin:6px 0'>Pas d’adresse e-mail pour ce notaire : ajoutez-la dans sa fiche (Notaires).</p>`):''}
- <label style='margin-top:10px'>Message type</label><select data-ntst>${NTS_T(f).map(([k,l])=>`<option value='${k}' ${NTS.tpl===k?'selected':''}>${esc(l)}</option>`).join('')}</select>
- <label style='margin-top:8px'>Objet</label><input data-ntss value="${esc(NTS.sub)}">
- <label style='margin-top:8px'>Message <span class='m' style='font-weight:400'>(modifiable)</span></label><textarea data-ntsb rows='13' style='width:100%'>${esc(NTS.body)}</textarea>
- <label style='margin-top:8px'>Pièces jointes · ${D.length}${NTS.size!=null&&D.length?' · environ '+ntsMo(NTS.size):''}</label>${D.length?`<div class='m' style='font-size:13px'>${D.map(d=>'📎 '+esc(d.t)+(d.pdf?'':' <span style="opacity:.7">(converti en PDF)</span>')+(NTS.cmp&&NTS.cmp[d.id]?' <span style="color:#1e7a34">· compressé ('+ntsMo(NTS.cmp[d.id].size)+')</span>':'')).join('<br>')}</div><div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px'><button type='button' data-a='ntsComp' ${NTS.cbusy||NTS.busy?'disabled':''}>${NTS.cbusy?'Compression…':'🗜️ Compresser les pièces jointes'}</button>${NTS.cmp&&Object.keys(NTS.cmp).length&&!NTS.cbusy?`<button type='button' data-a='ntsUncomp'>Revenir aux originaux</button>`:''}<span class='m' style='font-size:12px'>${esc(NTS.cmsg||'')}</span></div><p class='m' style='font-size:11px;margin:4px 0 0'>La compression réduit les PDF de plus de 700 Ko (pages converties en images). Seule la copie envoyée est compressée, l’original reste intact. À éviter pour un document signé électroniquement : la signature ne serait plus vérifiable.</p>`:`<p class='m' style='margin:2px 0'>Aucun document coché : cochez des tuiles dans Documents pour les joindre.</p>`}
- ${big?`<p style='color:var(--dn);margin:6px 0'>Plus de 24 Mo : Gmail refusera l’envoi. Cliquez sur « Compresser les pièces jointes », ou envoyez les documents en deux fois.</p>`:''}
- <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:12px'><button type='button' class='p' data-a='ntsSend' ${NTS.busy||NTS.cbusy||big||!n||!ems.some(x=>NTS.to[x[0]])?'disabled':''}>${NTS.busy?'Envoi…':'📨 Envoyer'}</button><button type='button' data-a='ntsClose'>Annuler</button></div>
- <p class='m' style='margin:6px 0 0;font-size:12px'>Le mail part de votre adresse Gmail ; l’envoi est noté dans l’historique du dossier.</p></div>`}
-document.addEventListener('input',e=>{const t=e.target;if(!NTS||!t||!t.dataset)return;
- if(t.dataset.ntsq!==undefined){NTS.q=t.value;const p=t.selectionStart;ntsPaint();const x=document.querySelector('#ntsov input[data-ntsq]');if(x){x.focus();try{x.setSelectionRange(p,p)}catch(er){}}return}
- if(t.dataset.ntss!==undefined){NTS.sub=t.value;NTS.ed=true;return}
- if(t.dataset.ntsb!==undefined){NTS.body=t.value;NTS.ed=true;return}});
-document.addEventListener('change',e=>{const t=e.target;if(!NTS||!t||!t.dataset)return;
- if(t.dataset.ntst!==undefined){if(NTS.ed){t.value=NTS.tpl;confirmDlg({title:'Remplacer le message ?',text:'Vos modifications du message seront remplacées par le nouveau modèle.',ok:'Remplacer'}).then(ok=>{if(!ok||!NTS)return;NTS.ed=false;NTS.tpl=e.target.value;ntsGen();ntsPaint()});return}NTS.tpl=t.value;ntsGen();ntsPaint()}
- if(t.dataset.ntsto!==undefined){NTS.to[t.dataset.ntsto]=t.checked?1:0;ntsGen();ntsPaint()}});
-/* compression des pièces jointes (copie envoyée seulement, l’original du dossier ne change pas) */
-async function ntsShrinkPdf(bl,q){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
- const pdf=await pdfjsLib.getDocument({data:await bl.arrayBuffer()}).promise;let out=null;
- for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i),v0=pg.getViewport({scale:1}),k=Math.min(q.px/Math.max(v0.width,v0.height),3),vp=pg.getViewport({scale:k}),c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:vp}).promise;
-  const w=v0.width,h=v0.height,o=w>h?'l':'p';if(!out)out=new jspdf.jsPDF({unit:'pt',format:[w,h],orientation:o,compress:true});else out.addPage([w,h],o);out.addImage(c.toDataURL('image/jpeg',q.j),'JPEG',0,0,w,h,undefined,'FAST');c.width=c.height=0}
- return out.output('blob')}
-async function ntsShrinkImg(bl,q){const bm=await createImageBitmap(bl),k=Math.min(1,q.px*1.3/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);return new Promise(ok=>c.toBlob(ok,'image/jpeg',q.j))}
-async function ntsComp(){if(!NTS||NTS.cbusy)return;const N=NTS;N.cbusy=true;N.cmp={};N.cmsg='';ntsPaint();const Q=[{px:1650,j:.72},{px:1240,j:.6},{px:1000,j:.5}];let done=0,ko=0;
- try{for(let lv=0;lv<Q.length;lv++){
-   for(const d of ntsDocs()){if(!d.pdf)continue;const o=await fget(d.id);if(!o||o.size<700*1024)continue;const ty=o.type||'application/pdf';
-    try{N.cmsg='Compression de « '+d.t+' »…';ntsPaint();const src=o,nb=/pdf/.test(ty)||!ty?await ntsShrinkPdf(src,Q[lv]):/image\//.test(ty)?await ntsShrinkImg(src,Q[lv]):null;
-     if(nb&&nb.size<(N.cmp[d.id]?N.cmp[d.id].size:o.size)){N.cmp[d.id]=nb;if(lv===0)done++}}catch(e){if(lv===0)ko++}}
-   await ntsSize();if(N.size<=22*1048576)break}
-  N.cmsg=(done?done+' document'+(done>1?'s':'')+' compressé'+(done>1?'s':''):'Rien à compresser (documents déjà légers)')+(ko?' · '+ko+' non compressible'+(ko>1?'s':''):'')+'.'}
- catch(e){N.cmsg='Compression impossible.'}
- N.cbusy=false;if(NTS===N){await ntsSize();ntsPaint()}}
-async function ntsBlob(d){return (NTS&&NTS.cmp&&NTS.cmp[d.id])||await fget(d.id)}
-const ntsB64=bl=>new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=ko;r.readAsDataURL(bl)});
-const ntsFn=(t,ext)=>String(t||'document').replace(/[\\/:*?"<>|]+/g,'-').slice(0,90)+ext;
-async function ntsSend(){if(!NTS||NTS.busy)return;const N=NTS,f=FF(N.fid),n=ntsN(),to=Object.keys(N.to).filter(k=>N.to[k]);if(!n||!to.length){toast('Choisissez un notaire et une adresse.');return}
- N.busy=true;ntsPaint();
- try{const att=[];for(const d of ntsDocs()){
-   if(d.pdf){const b=await ntsBlob(d);if(!b)throw {msg:'fichier introuvable : '+d.t};const ty=b.type||'application/pdf',ext=/word|docx/.test(ty)?'.docx':/msword/.test(ty)?'.doc':/image\//.test(ty)?'.'+ty.split('/')[1].replace('jpeg','jpg'):'.pdf';att.push({filename:ntsFn(d.t,ext),mimeType:ty,content:await ntsB64(b)})}
-   else{if(!window.jspdf)throw {msg:'outil PDF non chargé, rechargez la page'};att.push({filename:ntsFn(d.t,'.pdf'),mimeType:'application/pdf',content:await ntsB64(await mkPdf([d]))})}}
-  const go=async()=>{const b=await gmBuild({to,subject:N.sub,body:N.body,attachments:att});let s=b.raw.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const raw=atob(s);
-   const r=await fetch('https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send?uploadType=media',{method:'POST',headers:{Authorization:'Bearer '+GMT,'Content-Type':'message/rfc822'},body:raw});
-   if(r.status===401){GMT=null;throw {code:'needs_reauth'}}if(!r.ok)throw {code:'upstream_error',st:r.status};return r.json()};
-  if(!GMT||Date.now()>GMX)await gmConnect();
-  try{await go()}catch(e){if(e&&e.code==='needs_reauth'){await gmConnect();await go()}else throw e}
-  f.hist=f.hist||[];f.hist.unshift({t:new Date().toISOString(),u:((S.set||{}).me||'').trim(),x:'Envoyé au notaire ('+ntLabel(n)+', '+to.join(', ')+') : '+N.sub+(att.length?' · '+att.length+' pièce'+(att.length>1?'s':'')+' jointe'+(att.length>1?'s':''):'')});f.hist=f.hist.slice(0,150);
-  if(!f.notaire&&f.mode!=='l')f.notaire=n.id;save();NTS=null;ntsPaint();try{render()}catch(x){}toast('Mail envoyé à '+to.join(', ')+'.')}
- catch(e){N.busy=false;if(NTS===N)ntsPaint();toast('Envoi impossible'+(e&&e.msg?' : '+e.msg:e&&e.code==='needs_reauth'?' : reconnectez Gmail (autorisez la fenêtre Google).':e&&e.st===413?' : pièces jointes trop lourdes.':'.'))}}
 async function exportDocs(l,fmt){
  const k=l.length;l=l.filter(d=>!d.pdf);if(l.length<k)toast('Les PDF importés ne sont pas inclus dans l’export.');
  if(!l.length)return;
@@ -5299,8 +5112,6 @@ document.addEventListener('click',e=>{
  else if(a==='visAdd'){const f=VO(),d=$('#viD').value;if(!d){toast('Indiquez la date de la visite.');return}const cid=$('#viC').value,nm=$('#viN').value.trim();if(!cid&&!nm){toast('Choisissez ou saisissez le visiteur.');return}f.vis=f.vis||[];f.vis.push({id:uid(),d,h:$('#viH').value,cid,nom:nm,avis:$('#viA').value,note:$('#viT').value.trim(),rel:$('#viR').value});V.pn_vi=true;save();render();toast('Visite enregistrée.')}
  else if(a==='pbVisu'){const b=bCur();if(b&&!PBS.vbusy){PBS.vbusy=true;render();pbVisu(b).then(bl=>{PBS.visu=bl;PBS.visuUrl='';PBS.visuOn=true}).catch(()=>toast('Création du visuel impossible')).finally(()=>{PBS.vbusy=false;render()})}}
  else if(a==='pbVisuT'){PBS.visuOn=PBS.visuOn===false;render()}
- else if(a==='pbStory'){const b=bCur();if(b&&!PBS.sbusy){PBS.sbusy=true;render();pbStory(b).then(bl=>{if(PBS.storyUrl)URL.revokeObjectURL(PBS.storyUrl);PBS.story=bl;PBS.storyUrl=''}).catch(()=>toast('Création de la fiche impossible')).finally(()=>{PBS.sbusy=false;render()})}}
- else if(a==='pbStoryDl'){if(PBS.story)xdl('fiche-story-'+((bCur()||{}).ref||'bien')+'.png',PBS.story)}
  else if(a==='pbVisuDl'){if(PBS.visu)xdl('visuel-'+((bCur()||{}).ref||'bien')+'.jpg',PBS.visu)}
  else if(a==='pbXadd'){const i=document.getElementById('pbXin');if(i)i.click()}
  else if(a==='pbXdel'){(PBS.extra||[]).splice(+el.dataset.i,1);render()}
@@ -5310,18 +5121,6 @@ document.addEventListener('click',e=>{
  else if(a==='dvClose'){DVS.show=false;dvPaint()}
  else if(a==='dvAdd'){dvAdd(id)}
  else if(a==='dvWa'){dvWa(id)}
- else if(a==='dvAlt'){dvAlt(id)}
- else if(a==='agAlt'){agAlt(id)}
- else if(a==='altGo'){altGo()}
- else if(a==='altSend'){altSend()}
- else if(a==='ntsOpen'){ntsOpen()}
- else if(a==='ntsPick'){NTS.nid=id;NTS.q='';ntsDef();ntsGen();ntsPaint()}
- else if(a==='ntsCh'){NTS.nid='';NTS.to={};ntsPaint()}
- else if(a==='ntsSend'){ntsSend()}
- else if(a==='ntsComp'){ntsComp()}
- else if(a==='ntsUncomp'){NTS.cmp={};NTS.cmsg='';ntsSize()}
- else if(a==='ntsClose'){NTS=null;ntsPaint()}
- else if(a==='altClose'){ALT=null;altPaint()}
  else if(a==='dvAll'){DVS.all=!DVS.all;dvPaint()}
  else if(a==='bLock'){const b=bCur();if(b){bLockSet(b,true);toast('Fiche verrouillée.');render()}}
  else if(a==='bUnlock'){const b=bCur();if(b){if(!bCanUnlock(b)){toast('Seuls l’auteur de la fiche et les administrateurs peuvent la déverrouiller.');return}bLockSet(b,false);toast('Fiche déverrouillée : pensez à la verrouiller après vos modifications.');render()}}
@@ -5555,7 +5354,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v173'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v168'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);

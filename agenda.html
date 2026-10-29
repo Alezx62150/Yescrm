@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v167</title>
+<title>YES CRM · v168</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,9 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-29a',v:'v168',t:'Remplir la fiche depuis une pièce jointe de Gmail',l:[
+['📥','Gmail du CRM > **Enregistrer dans un dossier** : la case **Lire le PDF et remplir la fiche** lit le mandat, le compromis ou le bail enregistré et propose de remplir le dossier (vous vérifiez avant de valider).']
+]},
 {id:'2026-10-28b',v:'v167',t:'Carte interactive des secteurs',l:[
 ['🗺️','Réglages > Secteurs : **Ouvrir la carte**. Choisissez un négociateur et passez sur les communes pour les lui attribuer (Pas-de-Calais, Nord, Oise). Zoom à la molette ou à deux doigts.'],
 ['🔎','La recherche du secteur d’une adresse choisit maintenant la correspondance la plus précise (Loos et Loos-en-Gohelle ne sont plus confondus).']
@@ -4391,7 +4394,7 @@ function attDlg(msgId,pv0){
   msg.textContent=L.length+' fichier'+(L.length>1?'s':'')+' trouvé'+(L.length>1?'s':'')+'. Cochez ceux à enregistrer.';
   box.innerHTML=(S.f.length?`<div class="grid" id="adg"><div><label>Dossier</label><select id="adf">${fo}</select></div><div><label>Catégorie</label><select id="adc">${catOpts('Divers')}</select></div></div>`:'<p class="m">Créez d’abord un dossier pour y enregistrer les fichiers.</p>')
    +`<div id="adl" style="max-height:40vh;overflow:auto;margin:8px 0">${L.map((a,i)=>{const ok=ATT_OK.test(extOf(a.name));return `<div class="pkr"><label style="display:flex;gap:8px;align-items:center;margin:0;min-width:0"><input type="checkbox" data-ai="${i}" ${ok?'checked':'disabled'} style="width:auto"><span style="min-width:0;overflow-wrap:anywhere">${esc(a.name)}<span class="m"> · ${fsize(a.bytes.length)}${a.from?' · dans '+esc(a.from):''}${ok?'':' · format non pris en charge'}</span></span></label><div class="bar" style="margin:0;flex:none"><button type="button" data-pv="${i}">Aperçu</button><button type="button" data-dl="${i}">Télécharger</button></div></div>`}).join('')}</div><div id="adp" hidden style="margin:0 0 10px"><div class="bar" style="margin:0 0 6px"><b id="adpt" style="overflow-wrap:anywhere"></b><span class="sp"></span><button type="button" id="adzm">⤢ Agrandir</button><button type="button" id="adpc">Fermer l’aperçu</button></div><div id="adpb" style="max-height:48vh;overflow:auto;border-radius:6px"></div></div>`
-   +`<div class="bar" style="margin:0"><button class="p" id="ads" ${S.f.length?'':'disabled'}>Enregistrer la sélection</button><button id="adx">Fermer</button></div><div class="m" id="adr"></div>`;
+   +`<label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px"><input type="checkbox" id="adi" checked style="width:auto"> Lire le PDF et remplir la fiche du dossier (mandat, compromis, bail)</label><div class="bar" style="margin:0"><button class="p" id="ads" ${S.f.length?'':'disabled'}>Enregistrer la sélection</button><button id="adx">Fermer</button></div><div class="m" id="adr"></div>`;
   box.querySelector('#adx').onclick=end;
   let cur=null;const cb=d.querySelector('.cfb'),zm=box.querySelector('#adzm');
   box.querySelector('#adpc').onclick=()=>{cb.classList.remove('big');zm.textContent='⤢ Agrandir';cur=null;box.querySelector('#adp').hidden=true;box.querySelector('#adpb').innerHTML=''};
@@ -4406,8 +4409,9 @@ function attDlg(msgId,pv0){
    sv.disabled=true;$('#adr',box).textContent='Enregistrement…';
    const files=idx.map(i=>new File([L[i].bytes],L[i].name,{type:L[i].mime||''}));
    const f=S.f.find(x=>x.id===fid),n0=f.d.length,m0=f.mandat||'';
-   try{await importFiles(files,g,fid)}catch(e){}
-   const n=f.d.length-n0;end();toast(n?n+' document'+(n>1?'s':'')+' enregistré'+(n>1?'s':'')+' dans « '+f.name+' » → '+g+'.'+(f.mandat&&f.mandat!==m0?' Mandat n° '+f.mandat+' détecté.':''):'Aucun document enregistré.')}
+   const doImp=!!(box.querySelector('#adi')&&box.querySelector('#adi').checked),pdfs=files.filter(x=>/\.pdf$/i.test(x.name)),pk=pdfs.find(x=>/mandat|compromis|promesse|bail|location|g[ée]rance|acte/i.test(x.name))||pdfs[0];
+   window.__impAuto=1;try{await importFiles(files,g,fid)}catch(e){}window.__impAuto=0;
+   const n=f.d.length-n0;end();if(doImp&&pk)setTimeout(()=>{try{impStart(pk,fid)}catch(e){}},500);toast(n?n+' document'+(n>1?'s':'')+' enregistré'+(n>1?'s':'')+' dans « '+f.name+' » → '+g+'.'+(f.mandat&&f.mandat!==m0?' Mandat n° '+f.mandat+' détecté.':''):'Aucun document enregistré.')}
   if(pv0){const i=L.findIndex(a=>/^(pdf|png|jpe?g|gif|webp|docx|txt|html?)$/i.test(extOf(a.name))),b=box.querySelector('[data-pv="'+(i<0?0:i)+'"]');if(b)b.click()}
  })()}
 function pwDlg(o){return new Promise(res=>{
@@ -5350,7 +5354,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v167'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v168'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
