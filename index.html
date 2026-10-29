@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v169</title>
+<title>YES CRM · v170</title>
 <style>
 :root{--bg:#faf5f2;--sf:#fff;--tx:#2b1d18;--mu:#7a6259;--ac:#a4573f;--on:#fff;--ac2:#f7e8e1;--bd:#e8d5cc;--hd:#5a3328;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1412;--sf:#241b18;--tx:#f3e8e3;--mu:#b9a49b;--ac:#e0a28b;--on:#2a140d;--ac2:#3a2923;--bd:#4a3830;--hd:#3a2118;--dn:#f97066;color-scheme:dark}}
@@ -571,6 +571,9 @@ function modeBox(){const nv=S.f.filter(f=>!f.arch&&f.mode!=='l').length,nl=S.f.f
  return `<style>.mdb{border-width:2px}.mdb.on{border-color:var(--ac);background:var(--ac2);box-shadow:0 0 0 2px var(--ac) inset}.mdb .ht{font-size:19px}</style><div class='hg novoc' style='margin:4px 0 14px'>${B('v','🏠','CRM Transaction',nv+' dossier'+(nv>1?'s':'')+' · '+bv+' bien'+(bv>1?'s':''))}${B('l','🔑','CRM Location',nl+' dossier'+(nl>1?'s':'')+' · '+bl+' bien'+(bl>1?'s':''))}</div>`}
 /* --- mises à jour (nouveautés) affichées sur l'accueil --- */
 const NEWS=[
+{id:'2026-10-29c',v:'v170',t:'Compromis : adresse du bien et n° de mandat',l:[
+['📥','L’adresse du bien est lue dans la désignation du compromis. Le **n° de mandat**, absent des compromis de notaire, est repris de la **fiche du bien** quand l’adresse correspond.']
+]},
 {id:'2026-10-29b',v:'v169',t:'Lecture des compromis rédigés par un notaire',l:[
 ['📥','La lecture d’un compromis reconnaît mieux « Monsieur X et Madame Y, demeurant ensemble… » : noms, dates et lieux de naissance de chaque personne, adresse commune, situation matrimoniale, adresse et nature du bien, date limite de l’acte authentique.']
 ]},
@@ -3448,7 +3451,7 @@ function impPersons(blk){
  return out}
 function impParties(blk){return impIsOrg(blk)?[impOrg(blk)]:impPersons(blk)}
 function impCompromis(T){
- const S=impSp(T.replace(/^\s*\d{1,3}\s*$/gm,'')),r={kind:'compromis',vendeurs:[],acquereurs:[],warn:[]};
+ const S=impSp(T.replace(/^\s*\d{1,3}\s*$/gm,'')).normalize('NFC'),r={kind:'compromis',vendeurs:[],acquereurs:[],warn:[]};
  /* date de l'acte */
  let m=T.match(/L['’]AN\s+(.+?)\s*\n\s*LE\s+(.+?)\s*\n/i);
  if(m){const y=impWords(m[1]),t=impSp(m[2]).toLowerCase().split(' '),mo=IMPMOIS[t[t.length-1]],d=impWords(t.slice(0,-1).join(' '));if(y&&mo&&d)r.dateActe=y+'-'+impP2(mo)+'-'+impP2(d)}
@@ -3465,10 +3468,12 @@ function impCompromis(T){
  if(!r.vendeurs.length)r.warn.push('Vendeurs non reconnus : à saisir à la main.');
  if(!r.acquereurs.length)r.warn.push('Acquéreurs non reconnus : à saisir à la main.');
  /* bien */
- m=S.match(/\b(?:Un|Une|Deux|Les)\s+(.{3,90}?)\s+situ[ée]e?s?\s+[àa]\s+([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,\s*([^.]+?)\./);
- if(m){r.bien=impAddr(m[4],m[3],m[2]);r.nature=impSp(m[1])}
- m=S.match(/D[ÉE]SIGNATION\s+(?:[ÀAa4]\s+)?([A-ZÀ-Ý'’\- ]+?)\s*(?:\([^)]*\)\s*)?\(?(\d{5})\)?\s+(.+?)\s*,\s*(?:Un|Une|Deux|Les)\s+(.{3,260}?)\s+Figurant/i);
+ m=S.match(/(?:^|\s)[ÀA]\s+([A-ZÀ-Ý][A-ZÀ-Ý'’\- ]{1,40}?)\s*(?:\([^)]*\)\s*)?\((\d{5})\)\s+([^,()]{3,90}?),\s*(?:Un|Une|Deux|Les|Ensemble)\s+(.{3,260}?)(?:\s+Figurant|\s+avec\s+toutes|\.|$)/);
  if(m){r.bien=impAddr(m[3],m[2],m[1]);r.nature=impSp(m[4].split(',')[0])}
+ if(!r.bien){m=S.match(/D\S{0,3}SIGNATION\s+(?:[ÀAa4]\s+)?([A-ZÀ-Ý'’\- ]+?)\s*(?:\([^)]*\)\s*)?\(?(\d{5})\)?\s+(.+?)\s*,\s*(?:Un|Une|Deux|Les)\s+(.{3,260}?)\s+Figurant/i);
+  if(m){r.bien=impAddr(m[3],m[2],m[1]);r.nature=impSp(m[4].split(',')[0])}}
+ if(!r.bien){m=S.match(/\b(?:Un|Une|Deux|Les)\s+(.{3,90}?)\s+situ[ée]e?s?\s+[àa]\s+([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,\s*([^.]+?)\./);
+  if(m&&!/risque|constat|diagnostic|plomb|amiante/i.test(m[0])){r.bien=impAddr(m[4],m[3],m[2]);r.nature=impSp(m[1])}}
  m=S.match(/prix\s+principal\s+de[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)/i)||S.match(/moyennant\s+le\s+prix\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.prix=impNum(m[1]);
  /* agence, mandat, honoraires */
  m=S.match(/n[ée]goci[ée]es?\s+par\s+l['’]agence\s+["“«]?([^"”»,]+?)["”»]?\s*,\s*en\s+vertu\s+du\s+mandat\s+qu['’]il\s+lui\s+a\s+donn[ée]\s+le\s+(.+?)\s*,\s*sous\s+le\s+num[ée]ro\s+(\w+)/i);
@@ -3489,8 +3494,12 @@ function impCompromis(T){
  if(!m)m=S.match(/acte\s+authentique\s+de\s+vente\s+aura\s+lieu\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i)||S.match(/aura\s+lieu\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(m)r.dateActeAuth=impIso(m[1]);
  m=S.match(/d[ée]lai\s+de\s+r[ée]tractation\s+de\s+(dix|10)\s+jours/i);if(m)r.retract=10;
+ if(!r.mandat&&r.bien){const kn=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,''),st=kn(String(r.bien).split(',')[0]);
+  const bb=st.length>4?(S_BIENS()||[]).find(b=>b&&b.adr&&kn(b.adr).includes(st)):null;
+  if(bb&&bb.mandat){r.mandat=String(bb.mandat);if(!r.mandatDate&&bb.mdeb)r.mandatDate=bb.mdeb;r.warn.push('N° de mandat repris de la fiche du bien (le compromis ne le mentionne pas).')}}
  if(r.pret)r.fin='pret';else if(/ne\s+recourr|aucun\s+pr[êe]t|sans\s+(?:recours\s+[àa]\s+(?:un\s+)?)?(?:pr[êe]t|emprunt)|fonds\s+propres|financ[ée]e?\s+(?:int[ée]gralement\s+)?comptant/i.test(S))r.fin='comptant';
  return r}
+const S_BIENS=()=>{try{return S.b}catch(e){return []}};
 function impParse(T){const k=impKind(T);return k==='bail'?impBail(T):k==='mg'?impMG(T):k==='mandat'?impMandat(T):k==='compromis'?impCompromis(T):{kind:'',vendeurs:[],acquereurs:[],warn:['Document non reconnu (ni mandat ni compromis).']}}
 
 /* ===== Import mandat / compromis : lecture PDF, écran de vérification, enregistrement ===== */
@@ -5364,7 +5373,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v169'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v170'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
