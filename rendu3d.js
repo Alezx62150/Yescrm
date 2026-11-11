@@ -79,7 +79,7 @@ function build(P,st){const sc=new T.Scene(),root=new T.Group();sc.add(root);cons
     else{seg(o.g0,o.g1,zb,zt,glass,Tk/2-.005,Tk/2+.005);const f=.035;seg(o.g0,o.g0+f,zb,zt,frame,Tk/2-.03,Tk/2+.03);seg(o.g1-f,o.g1,zb,zt,frame,Tk/2-.03,Tk/2+.03);seg(o.g0,o.g1,zt-f,zt,frame,Tk/2-.03,Tk/2+.03);seg(o.g0,o.g1,zb,zb+f,frame,Tk/2-.03,Tk/2+.03);if(len>1){seg(m-f/2,m+f/2,zb,zt,frame,Tk/2-.03,Tk/2+.03)}
      if(o.t==='fen'){const p=pt(m,Tk/2),sill=bx(hz?len+.1:.12,.03,hz?.12:len+.1,wm('#f6f3ee'),p[0],.9,p[1]);grp.add(sill)}}
     cur=Math.max(cur,o.g1)});if(a1>cur)seg(cur,a1,0,H)})});
- (P.walls||[]).forEach(w=>{if(w.t==='demo')return;const L=Math.hypot(w.x2-w.x1,w.y2-w.y1);if(L<.05)return;const m=new T.Mesh(new T.BoxGeometry(L,H,.1),wm('#f2eee8'));m.position.set((w.x1+w.x2)/2,H/2,(w.y1+w.y2)/2);m.rotation.y=-Math.atan2(w.y2-w.y1,w.x2-w.x1);m.castShadow=m.receiveShadow=true;root.add(m)});
+ (P.walls||[]).forEach(w=>{if(w.t==='demo')return;const L=Math.hypot(w.x2-w.x1,w.y2-w.y1);if(L<.05)return;const m=new T.Mesh(new T.BoxGeometry(L+.1,H,.1),wm('#f2eee8'));m.position.set((w.x1+w.x2)/2,H/2,(w.y1+w.y2)/2);m.rotation.y=-Math.atan2(w.y2-w.y1,w.x2-w.x1);m.castShadow=m.receiveShadow=true;root.add(m)});
  P.items.forEach(it=>{const g=model(it);g.position.set(it.x,0,it.y);g.rotation.y=-(it.rot||0)*Math.PI/180;root.add(g)});
  return{scene:sc,root,walls,labels,ceils}}
 function bounds(P){let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9;P.rooms.forEach(r=>{x0=Math.min(x0,r.x);z0=Math.min(z0,r.y);x1=Math.max(x1,r.x+r.w);z1=Math.max(z1,r.y+r.h)});P.items.forEach(i=>{x0=Math.min(x0,i.x-1);z0=Math.min(z0,i.y-1);x1=Math.max(x1,i.x+1);z1=Math.max(z1,i.y+1)});if(x0>x1){x0=z0=0;x1=z1=5}return{x0,z0,x1,z1}}
