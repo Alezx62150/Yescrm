@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v258</title>
+<title>YES CRM · v259</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -5852,6 +5852,7 @@ function askSend(o){return new Promise(res=>{
  d.querySelector('#cfok').addEventListener('click',()=>end(true));
  d.querySelector('#cfno').addEventListener('click',()=>end(false));
  d.querySelector('#cfno').focus()})}
+function mailTos(s){return String(s||'').split(/[;,\n]/).map(x=>{x=x.trim();const m=x.match(/<([^<>]+)>/);return (m?m[1]:x).trim()}).filter(Boolean)}
 
 function gmailCompose(to,su,body){
  let u='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(to||'')+'&su='+encodeURIComponent(su||'');
@@ -5866,13 +5867,15 @@ async function webMail(to,su,body,att){
  return y}
 async function mailSend(){
  const p=M.comp;if(!p||p.busy)return;
- if(!okMail((p.to||'').trim())){p.msg='Saisissez une adresse e-mail valide.';p.url='';render();return}
+ const TOS=mailTos(p.to);
+ if(!TOS.length||!TOS.every(okMail)){p.msg='Saisissez une adresse e-mail valide'+(TOS.length?' (« '+(TOS.find(x=>!okMail(x))||'')+' » est incorrecte).':'.');p.url='';render();return}
+ p.to=TOS.join(', ');
  if(!(p.subject||'').trim()&&!(p.body||'').trim()){p.msg='Le message est vide.';p.url='';render();return}
  if(!MC){webMail(p.to.trim(),p.subject||'',p.body||'');return}
- const ok=await askSend({to:p.to.trim(),subject:(p.subject||'').trim()||'(sans objet)',att:(p.files||[]).map(f=>f.name).join(', ')||undefined,reply:!!p.reply});
+ const ok=await askSend({to:TOS.join(', '),subject:(p.subject||'').trim()||'(sans objet)',att:(p.files||[]).map(f=>f.name).join(', ')||undefined,reply:!!p.reply});
  if(M.comp!==p||!ok)return;
  p.busy=true;p.msg='Envoi en cours…';p.url='';render();
- try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.html&&GMW())inp.html=mailClean(p.html);if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
+ try{const inp={to:TOS,subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=mailTos(p.cc);if(p.bcc&&p.bcc.trim())inp.bcc=mailTos(p.bcc);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.html&&GMW())inp.html=mailClean(p.html);if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
   await MC.callTool('Gmail','send_message',inp,{cache:false});
   const tid=M.cur&&M.cur.tid,comp=M.cur&&M.cur.compose;M.comp=null;if(comp)M.cur=null;
   toast('Message envoyé.');
@@ -5881,10 +5884,12 @@ async function mailSend(){
  p.busy=false;if(V.v==='mail'&&M.comp===p)render()}
 async function mailSave(){
  const p=M.comp;if(!p||p.busy)return;
- if(!okMail((p.to||'').trim())){p.msg='Saisissez une adresse e-mail valide.';p.url='';render();return}
+ const TOS=mailTos(p.to);
+ if(!TOS.length||!TOS.every(okMail)){p.msg='Saisissez une adresse e-mail valide'+(TOS.length?' (« '+(TOS.find(x=>!okMail(x))||'')+' » est incorrecte).':'.');p.url='';render();return}
+ p.to=TOS.join(', ');
  if(!MC){webMail(p.to.trim(),p.subject||'',p.body||'');return}
  p.busy=true;p.msg='Création du brouillon…';p.url='';render();
- try{const inp={to:[p.to.trim()],subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=p.cc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.bcc&&p.bcc.trim())inp.bcc=p.bcc.split(/[;,]/).map(x=>x.trim()).filter(Boolean);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.html&&GMW())inp.html=mailClean(p.html);if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
+ try{const inp={to:TOS,subject:p.subject||'',body:p.body||'',includeSignature:true};if(p.cc&&p.cc.trim())inp.cc=mailTos(p.cc);if(p.bcc&&p.bcc.trim())inp.bcc=mailTos(p.bcc);if(p.draftId)inp.draftId=p.draftId;if(p.from)inp.from=p.from;if(p.html&&GMW())inp.html=mailClean(p.html);if(p.files&&p.files.length)inp.attachments=p.files.map(f=>({content:f.b64,filename:f.name,mimeType:f.type}));if(p.reply)inp.replyToMessageId=p.reply;
   const pl=parse(await MC.callTool('Gmail','create_draft',inp,{cache:false}));
   p.msg='Brouillon créé dans Gmail.';p.url=gmailUrl(pl&&pl.viewUrl)}
  catch(e){p.msg=e&&e.code?mailErr(e):'Impossible de créer le brouillon.'}
@@ -6617,7 +6622,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v258'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v259'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
