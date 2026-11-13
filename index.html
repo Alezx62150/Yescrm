@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v263</title>
+<title>YES CRM · v264</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -4589,7 +4589,7 @@ function impOrg(blk){
  m=S.match(/si[èe]ge(?:\s+social)?\s+(?:est\s+)?(?:situ[ée]\s+)?(?:[àa]\s+)?(.+?)\s*,?\s*(?:identifi|immatricul|repr[ée]sent|prise?\s+en|au\s+capital|inscrit|SIREN|RCS|N°)/i);if(m)o.adr=impAddr2(m[1]);
  m=S.match(/(?:SIREN|RCS[^0-9]{0,80}?(?:n°|num[ée]ro)|sous\s+le\s+(?:n°|num[ée]ro))\s*:?\s*((?:\d[\s.]?){9})/i);
  if(m){const d=m[1].replace(/\D/g,'').slice(0,9);o.siren=d.replace(/(\d{3})(\d{3})(\d{3})/,'$1 $2 $3')}
- m=S.match(/(?:RCS|Registre du Commerce et des Soci[ée]t[ée]s)\s+(?:de\s+|d['’])\s*([A-ZÀ-Ý][A-Za-zÀ-ÿ\- ]+?)(?=\s*(?:sous|,|\.|n°|$))/);if(m)o.rcs=impTitle(m[1]);
+ m=S.match(/(?:RCS|Registre\s+du\s+[Cc]ommerce\s+et\s+des\s+[Ss]oci[ée]t[ée]s)\s+(?:de\s+|d['’])\s*([A-ZÀ-Ý][A-Za-zÀ-ÿ\- ]+?)(?=\s*(?:sous|,|\.|n°|$))/);if(m)o.rcs=impTitle(m[1]);
  m=S.match(/repr[ée]sent[ée]e?\s+par\s+(?:son\s+\w+\s+|sa\s+\w+\s+)?((?:Monsieur|Madame|Mademoiselle)\s.+)/i);
  if(m){const rest=impSp(m[1]),pp=impPersons(rest)[0];
   const mp=impMP(rest);
@@ -4657,7 +4657,7 @@ function impPersons(blk){
   const pacs=!/N['’]étant pas engag[ée]/i.test(seg)&&/pacte civil de solidarit[ée]/i.test(seg);
   const matri=pacs?'Pacsé(e)':/divorc[ée]/i.test(seg)?'Divorcé(e)':/veuf|veuve/i.test(seg)?'Veuf(ve)':/mari[ée]/i.test(seg)?'Marié(e)':/c[ée]libataire/i.test(seg)?'Célibataire':'';
   const mNat=seg.match(/De nationalit[ée]\s+([^\s.,]+)/i);
-  let adr='';if(mA)adr=mA[2]?impAddr(mA[3],mA[2],mA[1]):impSp(mA[1]);
+  let adr='';if(mA)adr=mA[2]?impAddr(String(mA[3]).replace(/[\s,]+$/,''),mA[2],mA[1]):impSp(mA[1]);
   out.push({civ:x.civ==='Monsieur'?'Monsieur':'Madame',prenom:n.prenom,nom:n.nom,naiss:mN?impIso(mN[3]):'',lieu:mN?impTitle(mN[1]):'',nat:mNat?mNat[1].toLowerCase():'',prof,adr,matri,tel:'',email:''})});
  out.forEach(p=>{const w=p.civ==='Monsieur'?'Monsieur':'Madame',mn=S.match(new RegExp(w+'\\s+est\\s+n[ée]e?\\s+[àa]\\s+(.+?)\\s*(?:\\((\\d{5})\\))?\\s*,?\\s*le\\s+(\\d{1,2}(?:er)?\\s+[a-zéèêûô]+\\s+\\d{4})','i')),nt=S.match(new RegExp(w+'\\s+est\\s+de\\s+nationalit[ée]\\s+([^\\s.,]+)','i'));if(mn){p.naiss=impIso(mn[3]);p.lieu=impTitle(mn[1])}if(nt)p.nat=nt[1].toLowerCase()});
  const adE=out.find(p=>p.adr);if(adE&&/demeurant\s+ensemble/i.test(S))out.forEach(p=>{if(!p.adr)p.adr=adE.adr});
@@ -4671,14 +4671,17 @@ function impCompromis(T){
  if(m){const y=impWords(m[1]),t=impSp(m[2]).toLowerCase().split(' '),mo=IMPMOIS[t[t.length-1]],d=impWords(t.slice(0,-1).join(' '));if(y&&mo&&d)r.dateActe=y+'-'+impP2(mo)+'-'+impP2(d)}
  if(!r.dateActe){const fa=[...S.matchAll(/FAIT\s+[àa4]\s+[A-ZÀ-Ý][A-ZÀ-Ý\- ]{1,30}?\s+Le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/gi)];if(fa.length)r.dateActe=impIso(fa[fa.length-1][1])}
  if(!r.dateActe){m=S.match(/(?:fait|sign[ée]|conclu)\s+(?:[àa]\s+\S+\s+)?le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);if(m)r.dateActe=impIso(m[1])}
- m=S.match(/minist[èe]re\s+de\s+Ma[iî]tre\s+([^,.]{3,60}?)\s*,?\s+notaire/i)||S.match(/Ma[iî]tre\s+([^,.]{3,60}?)\s*,?\s+notaire/i);if(m)r.notaire='Maître '+impSp(m[1]);
+ m=S.match(/minist[èe]re\s+de\s+Ma[iî]tre\s+([^,.]{3,60}?)\s*,?\s+notaire/i)||S.match(/Ma[iî]tre\s+([^,.]{3,60}?)\s*,?\s+notaire/i);if(m)r.notaire='Maître '+impSp(m[1]).replace(/\s+soussign[ée]e?s?$/i,'');
  /* parties */
- const reV=/(?:\b1\)|\bI\.)?\s*(?:Le\s+|Les\s+)?(?:Promettants?|Vendeurs?)\s+(?=(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
- const reA=/(?:\b2\)|\bII\.)?\s*(?:Le\s+|Les\s+)?(?:B[ée]n[ée]ficiaires?|Acqu[ée]reurs?)\s+(?=(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
- const eV=/Ci-apr[èe]s\s+d[ée]nomm[ée]s?\s+[«"“]?\s*(?:LE|LES)\s*(?:PROMETTANTS?|VENDEURS?)/i,eA=/Ci-apr[èe]s\s+d[ée]nomm[ée]s?\s+[«"“]?\s*(?:LE|LES)\s*(?:B[ÉE]N[ÉE]FICIAIRES?|ACQU[ÉE]REURS?)/i;
+ const reV=/(?:\b1\)|\bI\.)?\s*(?:Le\s+|Les\s+)?(?:Promettants?|Vendeurs?)\s+(?=(?:\d\)\s*)?(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
+ const reA=/(?:\b2\)|\bII\.)?\s*(?:Le\s+|Les\s+)?(?:B[ée]n[ée]ficiaires?|Acqu[ée]reurs?)\s+(?=(?:\d\)\s*)?(?:La\s+|Les\s+)?(?:Monsieur|Madame|Mademoiselle|Soci[ée]t[ée]|SCI|SARL|SAS|SASU|EURL))/i;
+ const eV=/Ci-apr[èe]s\s+d[ée]nomm[ée]e?s?\s+[«"“]?\s*(?:LE|LES|L['’])\s*[«"“]?\s*(?:PROMETTANTS?|VENDEURS?)/i,eA=/Ci-apr[èe]s\s+d[ée]nomm[ée]e?s?\s+[«"“]?\s*(?:LE|LES|L['’])\s*[«"“]?\s*(?:B[ÉE]N[ÉE]FICIAIRES?|ACQU[ÉE]REURS?)/i;
  const sV=S.search(reV),sA=S.search(reA);
- if(sV>=0){const t=S.slice(sV),L=t.match(reV)[0].length;let e=t.search(eV);if(e<0){const a=t.slice(L).search(reA);e=a>=0?a+L:-1}r.vendeurs=impParties(t.slice(L,e>0?e:2500))}
- if(sA>=0){const t=S.slice(sA),L=t.match(reA)[0].length;let e=t.search(eA);if(e<0){const a=t.slice(L).search(/QUOTIT[ÉE]S|IDENTIFICATION\s+DU\s+BIEN|DESIGNATION|SOLIDARIT[ÉE]\s+En\s+cas/);e=a>=0?a+L:-1}r.acquereurs=impParties(t.slice(L,e>0?e:2500))}
+ if(sV>=0){const t=S.slice(sV),L=t.match(reV)[0].length;let e=t.search(eV);if(e<0){const a=t.slice(L).search(reA);e=a>=0?a+L:-1}r.vendeurs=impParties(t.slice(L,e>0?e:2500).replace(/(^|\s)\d\)\s+/g,'$1'))}
+ if(sA>=0){const t=S.slice(sA),L=t.match(reA)[0].length;let e=t.search(eA);if(e<0){const a=t.slice(L).search(/QUOTIT[ÉE]S|IDENTIFICATION\s+DU\s+BIEN|DESIGNATION|SOLIDARIT[ÉE]\s+En\s+cas/);e=a>=0?a+L:-1}r.acquereurs=impParties(t.slice(L,e>0?e:2500).replace(/(^|\s)\d\)\s+/g,'$1'))}
+ r.vendeurs.forEach(v=>{if(v.pm&&!v.rep){const q=S.match(/repr[ée]sent[ée]e?\s+(?:ici\s+)?par\s+((?:Monsieur|Madame|Mademoiselle)\s+[^.]{0,250})/i);
+  if(q){const rest=q[1],civ=/^Monsieur/i.test(rest)?'Monsieur':'Madame',hd=rest.replace(/^(?:Monsieur|Madame|Mademoiselle)\s+/i,'').split(',')[0],n=impSplitName(hd),ql=(rest.match(/,\s*([^,]*?(?:g[ée]rant|pr[ée]sident|directeur|mandataire|liquidateur)[^,]*?)\s*(?:,|$)/i)||[])[1];
+   v.rep={civ,prenom:n.prenom,nom:n.nom,naiss:'',lieu:'',nat:'',prof:'',adr:'',matri:'',tel:'',email:'',qual:ql?impSp(ql).replace(/\s+de\s+la\s+soci[ée]t[ée]$/i,''):'gérant'}}}});
  if(!r.vendeurs.length)r.warn.push('Vendeurs non reconnus : à saisir à la main.');
  if(!r.acquereurs.length)r.warn.push('Acquéreurs non reconnus : à saisir à la main.');
  /* bien */
@@ -4686,6 +4689,8 @@ function impCompromis(T){
  if(m){r.bien=impAddr(m[3],m[2],m[1]);r.nature=impSp(m[4].split(',')[0])}
  if(!r.bien){m=S.match(/D\S{0,3}SIGNATION\s+(?:[ÀAa4]\s+)?([A-ZÀ-Ý'’\- ]+?)\s*(?:\([^)]*\)\s*)?\(?(\d{5})\)?\s+(.+?)\s*,\s*(?:Un|Une|Deux|Les)\s+(.{3,260}?)\s+Figurant/i);
   if(m){r.bien=impAddr(m[3],m[2],m[1]);r.nature=impSp(m[4].split(',')[0])}}
+ if(!r.bien){m=S.match(/Sur\s+la\s+commune\s+de\s+([A-ZÀ-Ý][A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,\s*(.+?)\s*,\s*(?:Un|Une|Deux|Les|Ensemble)\s+(.{3,200}?)\s*(?::|\.|Figurant)/i);
+  if(m){r.bien=impAddr(m[3].replace(/^(\d+\s*(?:bis|ter)?)\s*,\s*/i,'$1 '),m[2],impTitle(m[1]));r.nature=impSp(m[4]).split(/\s+comprenant/i)[0]}}
  if(!r.bien){m=S.match(/\b(?:Un|Une|Deux|Les)\s+(.{3,90}?)\s+situ[ée]e?s?\s+[àa]\s+([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,\s*([^.]+?)\./);
   if(m&&!/risque|constat|diagnostic|plomb|amiante/i.test(m[0])){r.bien=impAddr(m[4],m[3],m[2]);r.nature=impSp(m[1])}}
  m=S.match(/prix\s+principal\s+de[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)/i)||S.match(/moyennant\s+le\s+prix\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.prix=impNum(m[1]);
@@ -4693,18 +4698,22 @@ function impCompromis(T){
  m=S.match(/n[ée]goci[ée]es?\s+par\s+l['’]agence\s+["“«]?([^"”»,]+?)["”»]?\s*,\s*en\s+vertu\s+du\s+mandat\s+qu['’]il\s+lui\s+a\s+donn[ée]\s+le\s+(.+?)\s*,\s*sous\s+le\s+num[ée]ro\s+(\w+)/i);
  if(m){r.agence=impSp(m[1]);r.mandatDate=impIso(m[2]);r.mandat=m[3]}
  if(!r.mandat){m=S.match(/n[ée]goci[ée]\s+par\s+l['’]agence\s+(.{2,60}?)\s+titulaire\s+d['’]un\s+mandat[^.]{0,60}?sous\s+le\s+num[ée]ro\s+(\w+)\s+en\s+date\s+du\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);if(m){r.agence=impSp(m[1]);r.mandat=m[2];r.mandatDate=impIso(m[3])}}
- m=S.match(/(ACQU[ÉE]REURS?|VENDEURS?|B[ÉE]N[ÉE]FICIAIRES?|PROMETTANTS?)\s+qui\s+en\s+a\s+seule?\s+la\s+charge/i);if(m)r.honPay=/PROMETT|VENDEUR/i.test(m[1])?'ven':'acq';
+ if(!r.mandat){m=S.match(/n[ée]goci[ée]es?\s+par\s+(.{2,60}?)\s*,\s*\d[^]{0,120}?titulaire\s+d['’]un\s+mandat[^.]{0,80}?sous\s+le\s+num[ée]ro\s+(\w+)\s+en\s+date\s+(?:du|des)\s+([^.]{4,60})\./i);if(m){r.agence=impSp(m[1]);r.mandat=m[2];const ds=[...m[3].matchAll(/(\d{1,2}(?:er)?\s+[a-zéèêûô]+(?:\s+\d{4})?)/gi)].map(x=>x[1]);if(ds.length){let d=ds[ds.length-1];if(!/\d{4}$/.test(d)){const y=m[3].match(/\d{4}/);d+=' '+(y?y[0]:'')}r.mandatDate=impIso(d)}}}
+ m=S.match(/(ACQU[ÉE]REURS?|VENDEURS?|B[ÉE]N[ÉE]FICIAIRES?|PROMETTANTS?)\s+qui\s+en\s+a(?:ura)?\s+seule?\s+la\s+charge/i);if(m)r.honPay=/PROMETT|VENDEUR/i.test(m[1])?'ven':'acq';
  m=S.match(/REMUN[ÉE]RATION DU MANDATAIRE\s+[ÀA] LA CHARGE (?:DU|DES|DE L['’]?)\s*(PROMETTANTS?|B[ÉE]N[ÉE]FICIAIRES?|VENDEURS?|ACQU[ÉE]REURS?)/i);
  if(m)r.honPay=/PROMETT|VENDEUR/i.test(m[1])?'ven':'acq';
- m=S.match(/TVA\s+incluse,?\s*de[^()]*\(\s*([\d\s.,]+)\s*€/i)||S.match(/r[ée]mun[ée]ration\s+de[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)[^)]*\)\s*,?\s*taxe\s+sur\s+la\s+valeur\s+ajout[ée]e\s+incluse/i);if(m)r.honTTC=impNum(m[1]);
+ m=S.match(/r[ée]mun[ée]ration\s+toutes\s+taxes\s+comprises\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i)||S.match(/TVA\s+incluse,?\s*de[^()]*\(\s*([\d\s.,]+)\s*€/i)||S.match(/r[ée]mun[ée]ration\s+de[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)[^)]*\)\s*,?\s*taxe\s+sur\s+la\s+valeur\s+ajout[ée]e\s+incluse/i);if(m)r.honTTC=impNum(m[1]);
  /* conditions et dates */
  m=S.match(/\(\s*([\d\s.,]+)\s*€\s*\)\s*,?\s*[àa]\s+titre\s+d['’]indemnit[ée]\s+d['’]immobilisation/i);if(m)r.indemnite=impNum(m[1]);
- m=S.match(/(?:d[ée]p[ôo]t\s+de\s+garantie|s[ée]questre)[^()]{0,120}\(\s*([\d\s.,]+)\s*€/i);if(m&&!r.indemnite)r.depot=impNum(m[1]);
- m=S.match(/Montant\s+du\s+pr[êe]t\s*:\s*([\d\s.,]+)\s*€/i)||S.match(/Montant\s+maximal\s+de\s+la\s+somme\s+emprunt[ée]e\s*:[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)/i);if(m)r.pret=impNum(m[1]);
+ if(!r.indemnite){m=S.match(/indemnit[ée]\s+d['’]immobilisation\s+[àa]\s+[\d,.]+\s*%\s+du\s+prix\s*,?\s*soit\s+la\s+somme\s+de[^()]*\(\s*([\d\s.,]+)\s*€/i);if(m)r.indemnite=impNum(m[1])}
+ {const rd=/(?:d[ée]p[ôo]t\s+de\s+garantie|s[ée]questre)[^()]{0,120}\(\s*([\d\s.,]+)\s*€/ig;let q;while(!r.indemnite&&!r.depot&&(q=rd.exec(S))){if(!/locataire|loyer|bail/i.test(S.slice(Math.max(0,q.index-350),q.index+q[0].length+60)))r.depot=impNum(q[1])}}
+ m=S.match(/montant\s+global\s+maximum\s+du\s+ou\s+des\s+pr[êe]ts[^()]*\(\s*([\d\s.,]+)\s*€/i)||S.match(/Montant\s+du\s+pr[êe]t\s*:\s*([\d\s.,]+)\s*€/i)||S.match(/Montant\s+maximal\s+de\s+la\s+somme\s+emprunt[ée]e\s*:[^()]*\(\s*([\d\s.,]+)\s*(?:€|EUR)/i);if(m)r.pret=impNum(m[1]);
  m=S.match(/obtention\s+de\s+ces\s+pr[êe]ts[^.]{0,160}?au\s+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4})/i)||S.match(/obtention\s+(?:du|d['’]un|des)\s+pr[êe]ts?[^.]{0,200}?(?:jusqu['’]au|au\s+plus\s+tard\s+le|avant\s+le)\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
+ if(!m)m=S.match(/obtention\s+du\s+ou\s+des\s+pr[êe]ts\s+devra[^.]{0,120}?intervenir\s+au\s+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(!m)m=S.match(/r[ée]ception\s+de\s+cette\s+offre\s+devra\s+intervenir\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(m)r.datePret=impIso(m[1]);
  m=S.match(/r[ée]alisation\s+de\s+la\s+pr[ée]sente\s+promesse\s+pourra\s+[êe]tre\s+demand[ée]e\s+par\s+le\s+B[ÉE]N[ÉE]FICIAIRE\s+au\s+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4})/i)||S.match(/(?:signature|r[ée]it[ée]ration)\s+de\s+l['’]acte\s+(?:authentique\s+)?(?:de\s+vente\s+)?(?:devra\s+(?:intervenir|avoir\s+lieu)\s+)?(?:au\s+plus\s+tard|avant)\s+le\s+(\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4}|\d{2}\/\d{2}\/\d{4})/i);
+ if(!m)m=S.match(/promesse\s+de\s+vente\s+est\s+consentie\s+pour\s+une\s+dur[ée]e\s+expirant\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(!m)m=S.match(/acte\s+authentique\s+de\s+vente\s+aura\s+lieu\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i)||S.match(/aura\s+lieu\s+au[\s_]+plus\s+tard\s+le\s+(\d{1,2}(?:er)?\s+[a-zéèêûô]+\s+\d{4})/i);
  if(m)r.dateActeAuth=impIso(m[1]);
  m=S.match(/d[ée]lai\s+de\s+r[ée]tractation\s+de\s+(dix|10)\s+jours/i);if(m)r.retract=10;
@@ -4712,6 +4721,8 @@ function impCompromis(T){
   const bb=st.length>4?(S_BIENS()||[]).find(b=>b&&b.adr&&kn(b.adr).includes(st)):null;
   if(bb&&bb.mandat){r.mandat=String(bb.mandat);if(!r.mandatDate&&bb.mdeb)r.mandatDate=bb.mdeb;r.warn.push('N° de mandat repris de la fiche du bien (le compromis ne le mentionne pas).')}}
  if(!r.dateActe)r.warn.push('Date du compromis non indiquée dans le PDF (« Fait à … le … » est vide) : saisissez-la ci-dessous. Sans cette date, le dossier reste « sans date de compromis » et n’apparaît pas dans les honoraires à encaisser.');
+ {const mq=[];if(!r.bien)mq.push('adresse du bien');if(!r.prix)mq.push('prix');if(!r.mandat)mq.push('n° de mandat');if(!r.honTTC)mq.push('honoraires');if(!r.dateActe)mq.push('date du compromis');if(r.pret&&!r.datePret)mq.push('date limite du prêt');
+  if(mq.length)r.warn.push('Non trouvé dans ce PDF : '+mq.join(', ')+'. Complétez ces champs à la main.')}
  if(r.pret)r.fin='pret';else if(/ne\s+recourr|aucun\s+pr[êe]t|sans\s+(?:recours\s+[àa]\s+(?:un\s+)?)?(?:pr[êe]t|emprunt)|fonds\s+propres|financ[ée]e?\s+(?:int[ée]gralement\s+)?comptant/i.test(S))r.fin='comptant';
  return r}
 const S_BIENS=()=>{try{return S.b}catch(e){return []}};
@@ -6681,7 +6692,7 @@ let booted=false,recovering=false;
 const SSg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 function login(msg,info){
  const pm=SSg('yescrm-msg');if(pm){try{sessionStorage.removeItem('yescrm-msg')}catch(e){}info=(info?info+' ':'')+pm}
- put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v263'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
+ put('<div class="m">Connectez-vous pour ouvrir vos dossiers.</div><div class="m" style="font-size:11px;opacity:.6">v264'+(window.__APPAG?' · agenda':'')+'</div><input type="email" id="lke" placeholder="Adresse e-mail" autocomplete="email"><input type="password" id="lkp" placeholder="Mot de passe" autocomplete="current-password"><label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;text-align:left;color:#555"><input type="checkbox" id="lkr" style="margin-top:2px"><span>Mémoriser mes identifiants sur cet appareil : le mot de passe sera redemandé après 6 connexions. À utiliser seulement sur votre appareil personnel.</span></label><div class="e" id="lkm">'+(msg||'')+'</div>'+(info?'<div class="i">'+info+'</div>':'')+'<button id="lkb">Se connecter</button><button class="s" id="lkg" style="display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuer avec Google</button><button class="s" id="lkc">Créer un compte</button><a id="lkf" style="text-align:center">Mot de passe oublié ?</a>');
  const em=o.querySelector('#lke'),pw=o.querySelector('#lkp'),er=o.querySelector('#lkm'),rk=o.querySelector('#lkr');if(window.__APPAG)rk.checked=true;em.focus();
  try{const sv=localStorage.getItem(EMK);if(sv){em.value=sv;rk.checked=true;pw.focus()}}catch(e){}
  const busy=v=>o.querySelectorAll('button').forEach(b=>b.disabled=v);
