@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v284</title>
+<title>YES CRM · v285</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -4707,7 +4707,8 @@ function panelEdl(f){const E=edlGet(f),k=V.edlk==='out'?'out':'in',X=E[k],P=E.in
 <div style='display:flex;gap:6px;margin-top:8px;flex-wrap:wrap'><select data-edsel>${Object.keys(EDL_R).map(n=>`<option>${n}</option>`).join('')}</select><button type='button' class='p' data-a='edRA'>+ Ajouter la pièce</button></div>
 <div style='margin-top:10px'><label>Commentaires finaux</label><textarea data-edf='${k}.com' rows='3' style='width:100%'>${esc(X.com)}</textarea></div>
 ${D.length?`<div class='card' style='flex-direction:column;align-items:stretch;gap:3px;margin-top:10px;border-color:var(--dn)'><b>⚠ Différences entre l’entrée et la sortie (${D.length})</b>${D.map(d=>`<span>${esc(d.r)} – ${esc(d.e)} : ${esc(d.a)} → <b>${esc(d.b)}</b>${d.o?' · '+esc(d.o):''}</span>`).join('')}<span class='m'>À comparer avec la vétusté et à chiffrer avant de retenir une somme sur le dépôt de garantie.</span></div>`:''}
-<p class='m' style='margin-top:8px'>L’état des lieux signé reste celui de Modelo. Cet onglet sert à le conserver dans le dossier, à préparer la sortie et à repérer les dégradations. Les photos ne sont pas stockées ici.</p></details>`}
+<div class='card' style='flex-direction:column;align-items:stretch;gap:6px;margin-top:10px'><b>📎 État des lieux signé (PDF Modelo)</b><p class='m' style='margin:0'>Importez ici le PDF de l’état des lieux ${k==='in'?'d’entrée':'de sortie'} signé sur Modelo : il reste consultable dans le CRM, sans ressaisie.</p>${((F()||{}).d||[]).filter(d=>d.grp==='État des lieux'&&(d.edk||'in')===k).map(d=>`<div class='dr' data-a='openD' data-id='${d.id}'><span class='t'>📄 ${esc(d.t)}</span></div>`).join('')}<div><button type='button' class='p' data-a='edImp'>＋ Importer le PDF de l’état des lieux ${k==='in'?'d’entrée':'de sortie'}</button></div><input type='file' id='edimp' data-edk='${k}' accept='.pdf,.docx,.txt,.html,.htm' multiple hidden></div>
+<p class='m' style='margin-top:8px'>Le PDF signé reste celui de Modelo. Cet onglet sert à le conserver dans le dossier, à préparer la sortie et à repérer les dégradations. Les photos ne sont pas stockées ici.</p></details>`}
 function edlHtml(f,k){const E=edlGet(f),X=E[k],P=E.in,b=(f.bid&&bBy(f.bid))||{},adr=b.adr||f.bien||'';
  let h=`<h2>État des lieux d’${k==='in'?'entrée':'sortie'}</h2><p><b>Dossier :</b> ${esc(f.name||'')}<br><b>Logement :</b> ${esc(adr)}<br><b>Date :</b> ${X.date?esc(fDate(X.date)):'…'}${X.pres?'<br><b>Présents :</b> '+esc(X.pres):''}</p>`;
  const cp=EDL_CPT.filter(([c])=>X.cpt[c]).map(([c,l])=>l+' : '+X.cpt[c]);if(cp.length)h+=`<h3>Compteurs</h3><p>${cp.map(esc).join('<br>')}</p>`;
@@ -6801,6 +6802,7 @@ document.addEventListener('click',e=>{
  else if(a==='backC'){refreshDocs(V.cid);const b=V.back;if(b)go(b.v,b.fid,b.did);else go('contacts')}
  else if(a==='delC'){if(V.arm!=='C'){V.arm='C';render()}else{const k=V.cid,c0=S.c.find(x=>x.id===k);if(c0)trashPut({k:'c',c:JSON.parse(JSON.stringify(c0)),lk:S.f.map(f=>({id:f.id,v:(f.vids||[]).includes(k),a:(f.aids||[]).includes(k)})).filter(x=>x.v||x.a)});S.c=S.c.filter(x=>x.id!==k);S.f.forEach(f=>{f.vids=(f.vids||[]).filter(x=>x!==k);f.aids=(f.aids||[]).filter(x=>x!==k);if(f.vid===k)f.vid='';if(f.aid===k)f.aid=''});save();V.back=null;go('contacts')}}
  else if(a==='impBtn')$('#imp').click();
+ else if(a==='edImp'){const i=$('#edimp');if(i)i.click()}
  else if(a==='pdfDl'){const d=D();fget(d.id).then(b=>{if(!b)throw 0;if(!DL){toast('Le téléchargement n’est pas disponible dans cette vue.');return}return DL.save({filename:d.t.replace(/[\\/:*?"<>|]+/g,'-')+'.pdf',data:b})}).catch(e=>{if(!e||e.code!=='declined')toast('Téléchargement impossible')})}
  else if(a==='pdfTxt')pdfText();
  else if(a==='newCat'){const n=$('#nc').value.trim(),t=$('#nct').value;if(!n){toast('Saisissez un nom de catégorie.');return}if(S.cats.some(c=>c.n.toLowerCase()===n.toLowerCase())){toast('Cette catégorie existe déjà.');return}S.cats.push({n,t});V.tab=t;V.lc=n;save();render()}
@@ -6809,6 +6811,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
  const t=e.target,a=t.dataset.a;
  if(t.id==='limp'){const fl=[...t.files],g=($('#lcat')||{}).value||'Divers',bf=new Set(lib().d.map(d=>d.id)),lm=MD()==='l';t.value='';importFiles(fl,g,'__lib');if(lm){const st=()=>{let n=0;lib().d.forEach(d=>{if(!bf.has(d.id)&&!d.mode){d.mode='l';n++}});if(n){save();if(V.v==='docs')render()}};[1500,4000,9000].forEach(x=>setTimeout(st,x))}return}
+ if(t.id==='edimp'){const fl=[...t.files],k=t.dataset.edk||'in',f=F();t.value='';if(!f||!fl.length)return;if(!S.cats.some(c=>c.n==='État des lieux'))S.cats.push({n:'État des lieux',t:'p'});const bf=new Set(f.d.map(d=>d.id));importFiles(fl,'État des lieux').then(()=>{f.d.forEach(d=>{if(!bf.has(d.id))d.edk=k});save();render()});return}
  if(t.id==='imp'){const fl=[...t.files];let g=$('#ncat')?$('#ncat').value:'';if(!g&&V.tab==='m')g='Mandat';t.value='';impAuto(fl,g);return}
  if(t.id==='imgf'){const fl=t.files[0];t.value='';if(fl)addImage(fl);return}
  if(t.id==='ncat'){V.lc=t.value;return}
