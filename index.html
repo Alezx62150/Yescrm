@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v283</title>
+<title>YES CRM · v284</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -2432,6 +2432,7 @@ function bSec(b){const s=secOf(b.adr),me=String((S.set||{}).me||'').trim();let h
  if(adm&&!b.secval&&b.adr&&b.neg&&(!s||scN(scName(s))!==scN(b.neg)))h+=`<div style='background:#fff4e0;border:1px solid #b26a00;border-radius:8px;padding:10px 12px;margin:8px 0'><b style='color:#b26a00'>⚠️ Bien hors du secteur de ${esc(b.neg)}</b><div class='m' style='margin:4px 0'>${s?'Cette adresse est dans le secteur de '+esc(scName(s))+'.':'Cette adresse ne figure dans aucun secteur.'}</div><button type='button' data-a='secVal'>✅ Valider ce bien hors secteur</button></div>`;
  if(s)h+=`<div class='m' style='margin:6px 0'>📍 Secteur de <b>${esc(scName(s))}</b>${s.ag?' ('+esc(s.ag)+')':''}${scN(s.n)!==scN(me)?` · <a data-a='scWarn' style='cursor:pointer;text-decoration:underline'>Prévenir ${esc(String(s.n).split(/\s+/)[0])}</a>`:''}</div>`;
  return h}
+document.addEventListener('change',e=>{const s=e.target&&e.target.closest?e.target.closest('select[data-tenet]'):null;if(s&&s.value){const f=S.f.find(x=>x.id===s.dataset.tenet);if(f){f.etape=s.value;save();render()}}},true);
 document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target.closest('[data-a="secVal"]'):null;if(!t)return;e.stopPropagation();const b=bCur();if(b){b.secval=isoT();save();render();toast('Bien validé hors secteur.')}},true);
 
 /* ===== v167 : carte interactive des secteurs ===== */
@@ -3694,8 +3695,8 @@ function bTenTab(b){const L=bTenDos(b),cur=bTenCur(b),oth=L.filter(f=>f!==cur),m
   <div style='display:flex;gap:6px;flex-wrap:wrap;margin-top:10px'><button type='button' class='p' data-a='openF' data-id='${cur.id}'>📁 Ouvrir le dossier de location</button><button type='button' data-a='bTab' data-id='z'>🩺 Conformité (assurance, Visale)</button></div>`}
  else h+=`<p class='m' style='margin:0 0 6px'>Aucun locataire en place pour ce bien (aucun dossier au stade « Bail signé », « Entrée dans les lieux », « En gestion » ou « Préavis »).</p>`;
  h+=`</div>`;
- if(oth.length)h+=`<div class='bsec'><h3>Autres dossiers de ce bien · ${oth.length}</h3>${oth.map(f=>{const T=partyC(f,'aids');return `<div class='card click' data-a='openF' data-id='${f.id}'><div><div class='t'>${esc(T.length?T.map(nom).join(', '):'Sans candidat')}</div><div class='m'>${esc(f.etape||'')}${num(f.prix)?' · '+esc(eur(num(f.prix)))+'/mois':''}</div></div></div>`}).join('')}</div>`;
- else if(!cur)h+=`<div class='bsec'><p class='m'>Pour ajouter un locataire, créez un dossier de location pour ce bien (bouton « + Dossier » en haut de la fiche), puis rattachez le contact.</p></div>`;
+ if(oth.length)h+=`<div class='bsec'><h3>Dossiers de location de ce bien · ${oth.length}</h3><p class='m' style='margin:0 0 6px'>Choisissez l’étape de chaque dossier ou cliquez sur « Bail signé » pour le locataire retenu.</p>${oth.map(f=>{const T=partyC(f,'aids');return `<div class='card' style='flex-wrap:wrap;gap:8px;align-items:center'><div class='click' data-a='openF' data-id='${f.id}' style='flex:1;min-width:200px;cursor:pointer'><div class='t'>${esc(T.length?T.map(nom).join(', '):'Sans candidat')}</div><div class='m'>${esc(f.etape||'Étape non renseignée')}${num(f.prix)?' · '+esc(eur(num(f.prix)))+'/mois':''}</div></div><select data-tenet='${f.id}' style='width:auto' aria-label='Étape du dossier'><option value=''>Changer l’étape…</option>${ETAPES_L.map(e=>`<option${f.etape===e?' selected':''}>${e}</option>`).join('')}</select><button type='button' class='p' data-a='tenBs' data-id='${f.id}'>✅ Bail signé</button></div>`}).join('')}</div>`;
+ else if(!cur)h+=`<div class='bsec'><p class='m'>Pour ajouter un locataire, créez un dossier de location pour ce bien (bouton « + Dossier » en haut de la fiche), puis rattachez le contact. Quand le bail est signé, passez le dossier en « Bail signé » : il apparaîtra ici comme locataire en place.</p></div>`;
  return h}
 function bDocsTab(b){const v=V.bdoc=V.bdoc||{date:isoT()},seen=new Set(),grp=(l,a)=>{a=a.filter(c=>c&&!seen.has(c.id));a.forEach(c=>seen.add(c.id));return a.length?`<optgroup label='${l}'>${a.map(c=>`<option value='${c.id}'>${esc(nom(c))}</option>`).join('')}</optgroup>`:''},cl=id=>S.c.find(c=>c.id===id),
   selOpts=grp('Acquéreurs de vos dossiers',[...new Set(S.f.flatMap(f=>f.aids||[]))].map(cl))+grp('Visiteurs de ce bien',(b.vis||[]).map(x=>cl(x.c)))+grp('Contacts « acquéreur »',S.c.filter(c=>c.role==='acquereur'))+grp('Tous les autres contacts',S.c.slice().sort((a,b2)=>nom(a).localeCompare(nom(b2)))),inp=(k,l,ty)=>`<div><label>${l}</label><input data-bd='${k}' ${ty?`type='${ty}'`:''} value="${esc(v[k]||'')}"></div>`;
@@ -6754,6 +6755,7 @@ document.addEventListener('click',e=>{
  else if(a==='mailD'){V.mp=!V.mp;V.mmsg='';render0Panel()}
  else if(a==='mailDraft')mailDraft();
  else if(a==='newF'){const f={id:uid(),name:MD()==='l'?'Nouvelle location':'Nouveau dossier',vids:[],aids:[],bien:'',prix:'',notes:'',d:[]};if(MD()==='l')f.mode='l';S.f.unshift(f);save();go('folder',f.id);V.det=true;render()}
+ else if(a==='tenBs'){const f=S.f.find(x=>x.id===id);if(f){f.etape='Bail signé';save();render()}}
  else if(a==='openF')go('folder',id);
  else if(a==='sim')go('sim');
  else if(a==='simPdf'){const h=simDoc();if(!h){toast('Renseignez d’abord le prix d’achat.');return}exportDocs([{t:'Simulation investissement locatif - '+new Date().toISOString().slice(0,10),h}],'pdf')}
