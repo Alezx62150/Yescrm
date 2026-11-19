@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v288</title>
+<title>YES CRM · v289</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -1103,7 +1103,7 @@ function agCol(e){if(e.src==='ag')return AGEC;if(e.src==='mn')return AGMN;if(e.s
 function agAll(){const L=[];(S.ev||[]).filter(e=>!e.ann&&(!e.f||!S.f.find(x=>x.id===e.f)||inM(S.f.find(x=>x.id===e.f)))&&(!e.b||!bBy(e.b)||inM(bBy(e.b)))).forEach(e=>L.push(Object.assign({},e,{src:'ev'})));
  (S.b||[]).filter(b=>!b.arch&&inM(b)).forEach(b=>{{const n=rlBien(b);if(n!==null)L.push({id:'b'+b.id+'~sv',d:isoT(),h:'',h2:'',t:'Bien sans visite depuis '+n+' jours – faire le point avec le vendeur',f:'',b:b.id,c:'',lieu:b.adr||'',note:'',ok:false,src:'rel'})}(b.vis||[]).forEach(v=>{if(v.d&&!v.ann)L.push({id:'b'+b.id+'~v'+v.id,d:v.d,h:v.h||'',h2:'',t:'Visite – '+(visNom(v)||'visiteur'),f:'',b:b.id,c:v.cid||'',lieu:b.adr||'',note:v.note||'',ok:v.d<isoT(),src:'vis'})});if(b.mfin&&bSt(b)==='Mandat'&&!S.f.some(f=>f.bid===b.id&&!f.arch))L.push({id:'b'+b.id+'~mn',d:b.mfin,h:'',h2:'',t:'Fin de mandat – '+(b.adr||b.ref),f:'',b:b.id,c:'',lieu:b.adr||'',note:'',ok:false,src:'mn'})});
  S.f.filter(f=>!f.arch&&inM(f)).forEach(f=>{(f.ag||[]).forEach(e=>L.push({id:e.id,d:e.d,h:'',h2:'',t:e.t,f:f.id,c:'',lieu:'',note:'',ok:!!e.ok,src:'ag'}));
-  if(f.mode==='l'){lxAl(f).forEach(e=>L.push(e))}if(f.mode==='l'&&LYG.includes(f.etape)&&num(f.prix)>0){const dd=lrDue(f);if(dd){const a=isoD(new Date(new Date(dd+'T12:00').getTime()-LRAL*864e5));L.push({id:f.id+'~lr',d:a,h:'',h2:'',t:'Révision de loyer à préparer (effet le '+lrFr(dd)+')',f:f.id,c:'',lieu:'',note:'',ok:false,src:'rel'})}}
+  if(f.mode==='l'){lxAl(f).forEach(e=>L.push(e))}if(f.mode==='l'&&lyOn(f)&&LYG.includes(f.etape)&&num(f.prix)>0){const dd=lrDue(f);if(dd){const a=isoD(new Date(new Date(dd+'T12:00').getTime()-LRAL*864e5));L.push({id:f.id+'~lr',d:a,h:'',h2:'',t:'Révision de loyer à préparer (effet le '+lrFr(dd)+')',f:f.id,c:'',lieu:'',note:'',ok:false,src:'rel'})}}
   {const n=rlDossier(f);if(n!==null)L.push({id:f.id+'~in',d:isoT(),h:'',h2:'',t:'Dossier sans nouvelles depuis '+n+' jours – à relancer',f:f.id,c:'',lieu:'',note:'',ok:false,src:'rel'})}
   if(f.mfin&&preCmp(f))L.push({id:f.id+'~mn',d:f.mfin,h:'',h2:'',t:'Fin de mandat',f:f.id,c:'',lieu:'',note:'',ok:false,src:'mn'});
   visOf(f).forEach(v=>{if(v.d)L.push({id:f.id+'~v'+v.id,d:v.d,h:v.h||'',h2:'',t:'Visite – '+(visNom(v)||'visiteur'),f:f.id,c:v.cid||'',lieu:f.bien||'',note:v.note||'',ok:v.d<isoT(),src:'vis'});
@@ -1393,6 +1393,7 @@ function bkBox(){const d=S.bkAt?new Date(S.bkAt):null,old=!d||(Date.now()-d)>14*
  return `<div class='card' style='flex-direction:column;align-items:flex-start;gap:6px;margin:0 0 10px;${old?'border-color:var(--dn)':''}'><b>💾 Sauvegarde complète</b><span class='m'>Un seul fichier avec tous vos dossiers, biens, contacts, agenda et réglages. ${d?'Dernière sauvegarde : '+esc(d.toLocaleDateString('fr-FR'))+'.':'Aucune sauvegarde faite.'}${old?' <b style="color:var(--dn)">À refaire.</b>':''} Les photos et les PDF ne sont pas inclus.</span><div class='bar' style='margin:0'><button class='p' data-a='bkSave'>⬇ Télécharger la sauvegarde</button><button data-a='bkLoad'>⬆ Restaurer une sauvegarde</button></div></div>`}
 /* --- suivi des loyers --- */
 const LYG=['Entrée dans les lieux','En gestion','Préavis'];
+const lyOn=f=>{const b=f&&f.bid?(S.b||[]).find(x=>x.id===f.bid):null;return !(b&&b.lgest==='loc')};
 const lyDue=f=>num(f.prix)+num(f.lchg);
 const lyYM=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 const lyLbl=ym=>{const[y,m]=ym.split('-').map(Number);return AGMOIS[m-1]+' '+y};
@@ -1401,7 +1402,7 @@ const lySolde=(f,ym)=>Math.round((lyDue(f)-lyPaid(f,ym))*100)/100;
 function lyStart(f){const s=f.lent||'';return /^\d{4}-\d\d/.test(s)?s.slice(0,7):''}
 function lyMonths(f){const cur=lyYM(new Date()),fr=S.lyFrom||cur,r=new Set(Object.keys(f.loy||{}));let [y,m]=fr.split('-').map(Number),g=0;while((y+'-'+String(m).padStart(2,'0'))<=cur&&g++<240){r.add(y+'-'+String(m).padStart(2,'0'));m++;if(m>12){m=1;y++}}const st=lyStart(f);return [...r].filter(x=>!st||x>=st||(f.loy||{})[x]).sort()}
 function lyArr(f,ym){return lyMonths(f).filter(x=>x<ym).reduce((s,x)=>s+Math.max(0,lySolde(f,x)),0)}
-function lyRows(ym){return S.f.filter(f=>f.mode==='l'&&!f.arch&&LYG.includes(f.etape)&&lyDue(f)>0&&(!lyStart(f)||lyStart(f)<=ym))}
+function lyRows(ym){return S.f.filter(f=>f.mode==='l'&&!f.arch&&lyOn(f)&&LYG.includes(f.etape)&&lyDue(f)>0&&(!lyStart(f)||lyStart(f)<=ym))}
 function lyStat(f,ym){const s=lySolde(f,ym),p=lyPaid(f,ym),cur=lyYM(new Date());if(s<=0)return['ok','Payé'];if(p>0)return['part','Partiel'];if(ym<cur||(ym===cur&&new Date().getDate()>5))return['no','Impayé'];return['wait','À encaisser']}
 function lyHomeSub(){const ym=lyYM(new Date()),r=lyRows(ym),n=r.filter(f=>lyStat(f,ym)[0]!=='ok').length,rv=lrList().length;if(rv&&!n)return rv+' révision'+(rv>1?'s':'')+' de loyer à faire';return r.length?(n?n+' loyer'+(n>1?'s':'')+' à encaisser ce mois':'Tout est encaissé ce mois'):'Suivi mensuel des loyers'}
 /* --- révision annuelle des loyers (IRL) --- */
@@ -1409,7 +1410,7 @@ const LRAL=30;
 function lrAnn(f,y){const b=f.lrev||f.leff;if(!/^\d{4}-\d\d-\d\d$/.test(b||''))return '';return y+b.slice(4)}
 function lrDue(f){const b=f.lrev||f.leff;if(!/^\d{4}-\d\d-\d\d$/.test(b||'')||!f.vdate&&!f.leff&&!f.lrev)return '';const t=isoT(),y0=+b.slice(0,4),from=f.lrevd&&f.lrevd>b?f.lrevd:b;let y=y0+1,d=lrAnn(f,y),g=0;while(d&&d<=from&&g++<80){y++;d=lrAnn(f,y)}const lim=isoD(new Date(Date.now()-365*864e5));g=0;while(d&&d<lim&&g++<80){y++;d=lrAnn(f,y)}return d}
 function lrDpe(f){const b=(f.bid&&bBy(f.bid))||{};return String(b.dpe||'').trim().toUpperCase().charAt(0)}
-function lrList(){const lim=isoD(new Date(Date.now()+LRAL*864e5));return S.f.filter(f=>f.mode==='l'&&!f.arch&&LYG.includes(f.etape)&&num(f.prix)>0).map(f=>({f,d:lrDue(f)})).filter(x=>x.d&&x.d<=lim).sort((a,b)=>a.d.localeCompare(b.d))}
+function lrList(){const lim=isoD(new Date(Date.now()+LRAL*864e5));return S.f.filter(f=>f.mode==='l'&&!f.arch&&lyOn(f)&&LYG.includes(f.etape)&&num(f.prix)>0).map(f=>({f,d:lrDue(f)})).filter(x=>x.d&&x.d<=lim).sort((a,b)=>a.d.localeCompare(b.d))}
 const lrFr=d=>d.split('-').reverse().join('/');
 function lrNew(f){const o=num(f.lirl),n=num(S.irlNew);return o>0&&n>0?Math.round(num(f.prix)*n/o*100)/100:0}
 function lrBox(){const L=lrList(),t=isoT(),irl=S.irlNew||'';
@@ -1438,7 +1439,7 @@ const lxDays=iso=>Math.round((new Date(iso+'T12:00')-new Date(isoT()+'T12:00'))/
 const lxAdd=(iso,n)=>isoD(new Date(new Date(iso+'T12:00').getTime()+n*864e5));
 function lxUnpaid(f){const cur=lyYM(new Date()),late=new Date().getDate()>5;return lyMonths(f).filter(x=>lySolde(f,x)>0&&(x<cur||(x===cur&&late)))}
 function lxAl(f){const L=[],mk=(k,d,t)=>L.push({id:f.id+'~'+k,d:d,h:'',h2:'',t:t,f:f.id,c:'',lieu:'',note:'',ok:false,src:'rel'});
- if(LYG.includes(f.etape)&&lyDue(f)>0){const u=lxUnpaid(f);if(u.length){const s=u.reduce((a,x)=>a+lySolde(f,x),0);mk('ly',u[0]+'-06','Loyer impayé – '+(f.name||'locataire')+' ('+eur(s)+') : relancer')}}
+ if(lyOn(f)&&LYG.includes(f.etape)&&lyDue(f)>0){const u=lxUnpaid(f);if(u.length){const s=u.reduce((a,x)=>a+lySolde(f,x),0);mk('ly',u[0]+'-06','Loyer impayé – '+(f.name||'locataire')+' ('+eur(s)+') : relancer')}}
  const e=lxIso(f.lsor);if(e&&LYG.includes(f.etape)){const n=lxDays(e);
   if(n<0)mk('lf',e,'Bail terminé le '+lrFr(e)+' – '+(f.name||'')+' : acter la sortie');
   else if(n<=30)mk('lf',lxAdd(e,-30),'Fin de bail le '+lrFr(e)+' – '+(f.name||'')+' : planifier l’état des lieux de sortie');
