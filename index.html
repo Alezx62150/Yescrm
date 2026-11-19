@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v287</title>
+<title>YES CRM · v288</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -2294,15 +2294,23 @@ function dvAdd(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;if(((S
  S.set=S.set||{};S.set.dvimp=(S.set.dvimp||[]).concat([id]).slice(-300);save();toast((neu?'Contact créé':'Contact déjà existant')+(sl?' + visite ajoutée dans l’agenda ('+sl.d.split('-').reverse().join('/')+' à '+sl.h.replace(':','h')+').':' + tâche ajoutée dans l’agenda.'));dvPaint();try{scAlert(b,nm,sl)}catch(e){}}
 /* ===== v280 : demandes de visite — proposer un autre créneau ===== */
 function dvSlTxt(r,sl){const d=r.d,pr=String(d.name||d.nom||'').trim().split(/\s+/)[0],jf=x=>new Date(x.d+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+' à '+x.h.replace(':','h'),L=sl.filter(x=>x.d&&x.h);
+ if(r.mv)return 'Bonjour'+(pr?' '+pr:'')+',\n\nNous vous confirmons votre visite'+(d.bien?' ('+d.bien+')':'')+' le '+jf(r.mv)+'.\n\nÀ très bientôt,\nYES Immobilier – Beauvais '+YT1+' · Béthune '+YT2;
  return 'Bonjour'+(pr?' '+pr:'')+',\n\nMerci pour votre demande de visite'+(d.bien?' ('+d.bien+')':'')+'. '+(r.slot&&r.slot.d?'Le créneau du '+jf(r.slot)+' n’est malheureusement pas possible. ':'')+(L.length?'Nous pouvons vous proposer :\n'+L.map(x=>'• '+jf(x)).join('\n')+'\n\nMerci de nous répondre pour confirmer le créneau qui vous convient.':'Quel jour et quelle heure vous arrangent ? Nous vous confirmerons le créneau.')+'\n\nYES Immobilier – Beauvais '+YT1+' · Béthune '+YT2}
 function dvSlOpen(id){const r=(DVS.rows||[]).find(x=>x.id===id);if(!r)return;const d=r.d,tel=dvTel(d.telephone||d.tel),mail=d.email||'',sl=[{d:'',h:'10:00'},{d:'',h:'14:00'},{d:'',h:'16:00'}];
  const o=document.createElement('div');o.id='dvslo';o.style.cssText='position:fixed;inset:0;background:rgba(40,25,20,.5);z-index:10000;overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';
  o.innerHTML=`<div style='background:var(--sf);border-radius:14px;max-width:640px;width:100%;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)'><h2 style='margin:0 0 4px'>🕐 Proposer un autre créneau</h2><p class='m' style='margin:0 0 8px'>${esc(String(d.name||d.nom||'Le candidat'))}${d.bien?' · '+esc(d.bien):''}${r.slot&&r.slot.d?' · créneau demandé : '+esc(r.slot.d.split('-').reverse().join('/')+' à '+r.slot.h.replace(':','h')):''}</p>
- ${sl.map((x,i)=>`<div class='cgrid' style='margin-bottom:4px'><div><label>Jour ${i+1}</label><input type='date' data-ds='${i}d'></div><div><label>Heure</label><input type='time' data-ds='${i}h' value='${x.h}'></div></div>`).join('')}
+ ${sl.map((x,i)=>`<div class='cgrid' style='margin-bottom:4px'><div><label>Jour ${i+1}</label><input type='date' data-ds='${i}d'></div><div><label>Heure</label><input type='time' data-ds='${i}h' value='${x.h}'></div><div style='align-self:end'><button type='button' data-mv='${i}' title='Déplace le RDV déjà enregistré dans l’agenda vers ce créneau'>📅 Déplacer le RDV ici</button></div></div>`).join('')}
  <label style='margin-top:6px'>Message (modifiable)</label><textarea id='dvslt' rows='9' style='width:100%'></textarea>
  <div style='display:flex;gap:8px;flex-wrap:wrap;margin-top:10px'>${tel?`<button class='p' id='dvslw'>💬 WhatsApp</button><button id='dvsls'>📱 SMS</button>`:''}${mail?`<button class='p' id='dvslm'>✉️ E-mail</button>`:''}<button id='dvslc'>📋 Copier</button><button id='dvslx'>Fermer</button></div>${tel||mail?'':`<p class='m'>Aucun téléphone ni e-mail sur cette demande : copiez le message.</p>`}</div>`;
  document.body.appendChild(o);const q=s=>o.querySelector(s),t=q('#dvslt'),upd=()=>{sl.forEach((x,i)=>{x.d=q(`[data-ds='${i}d']`).value;x.h=q(`[data-ds='${i}h']`).value});t.value=dvSlTxt(r,sl)};
  o.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.ds!==undefined)upd()});upd();
+ o.addEventListener('click',e=>{const bt=e.target&&e.target.closest?e.target.closest('[data-mv]'):null;if(!bt)return;const x=sl[+bt.dataset.mv];if(!x||!x.d||!x.h){toast('Choisissez le jour et l’heure.');return}
+  const em=String(d.email||'').trim().toLowerCase(),tl=dvTel(d.telephone||d.tel),dg=s=>String(s||'').replace(/\D/g,'').slice(-9),c=S.c.find(y=>(em&&String(y.email||'').toLowerCase()===em)||(dg(tl).length===9&&dg(y.tel)===dg(tl)));
+  const od=r.slot&&r.slot.d,oh=r.slot&&String(r.slot.h||'').replace(':','h');let ok=false;
+  if(c){(S.b||[]).forEach(b=>(b.vis||[]).forEach(v=>{if(!ok&&v.cid===c.id&&v.d===od&&(!oh||String(v.h).replace(':','h')===oh)){v.d=x.d;v.h=x.h.replace(':','h');ok=true}}));
+   if(!ok)(S.ev||[]).forEach(v=>{if(!ok&&v.c===c.id&&v.d===od&&(!oh||String(v.h).replace('h',':')===String(r.slot.h))){v.d=x.d;v.h=x.h;ok=true}})}
+  if(!ok){toast('Aucun RDV trouvé dans l’agenda pour cette demande : ajoutez-la d’abord à l’agenda.');return}
+  r.mv={d:x.d,h:x.h};r.slot={d:x.d,h:x.h};save();upd();toast('RDV déplacé au '+x.d.split('-').reverse().join('/')+' à '+x.h.replace(':','h')+'. Le message de confirmation est prêt à envoyer.');try{dvPaint()}catch(er){}});
  q('#dvslx').onclick=()=>o.remove();q('#dvslc').onclick=()=>{try{navigator.clipboard.writeText(t.value);toast('Message copié.')}catch(e){toast('Copie impossible : sélectionnez le texte.')}};
  const w=q('#dvslw');if(w)w.onclick=()=>window.open('https://wa.me/'+waN(tel)+'?text='+encodeURIComponent(t.value),'_blank');
  const s2=q('#dvsls');if(s2)s2.onclick=()=>{location.href='sms:'+tel+'?&body='+encodeURIComponent(t.value)};
