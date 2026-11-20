@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v295</title>
+<title>YES CRM · v296</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -2807,10 +2807,10 @@ async function dcSlide(A,files){const W=1920,H=1080,c=document.createElement('ca
  const ti=A.t||'Immeuble de rapport';fit(ti,RW,66,'700',SF);x.fillStyle='#5a362a';x.fillText(ti,RX,170);
  x.font='400 32px '+SS;x.fillStyle='#8a5a49';x.fillText([A.s?A.s+' m²':'',A.n?A.n+' lot'+(num(A.n)>1?'s':''):''].filter(Boolean).join(' · '),RX,216);
  /* chiffre clé */
- x.fillStyle='#8a5a49';x.font='700 26px '+SS;x.fillText(M?'MARGE BRUTE ESTIMÉE':'RENDEMENT BRUT',RX,276);
- const hero=M?(K.R&&K.P?eur(Math.round(K.mg)):'—'):(K.brut?pfN(K.brut)+' %':eur(K.P));
+ x.fillStyle='#8a5a49';x.font='700 26px '+SS;const tt=!M&&K.w>0&&K.brutT;x.fillText(M?'MARGE BRUTE ESTIMÉE':tt?'RENDEMENT BRUT · FRAIS ET TRAVAUX INCLUS':'RENDEMENT BRUT',RX,276);
+ const hero=M?(K.R&&K.P?eur(Math.round(K.mg)):'—'):(K.brut?pfN(tt?K.brutT:K.brut)+' %':eur(K.P));
  x.fillStyle=M&&K.mg<0?'#c0392b':'#a4573f';const hs=fit(hero,RW*.6,112,'700',SF),hy=276+hs*.92;x.fillText(hero,RX,hy);
- const sub=M?(K.R&&K.T?[pfN(K.mp)+' % sur le coût de revient',K.d?pfN(K.ann)+' % annualisé · '+K.d+' mois':''].filter(Boolean).join('  ·  '):''):(K.brut?[K.brutT&&(K.w||K.fn)?pfN(K.brutT)+' % frais et travaux inclus':'',K.net&&K.ch?'net de charges '+pfN(K.net)+' %':''].filter(Boolean).join('  ·  '):'');
+ const sub=M?(K.R&&K.T?[pfN(K.mp)+' % sur le coût de revient',K.d?pfN(K.ann)+' % annualisé · '+K.d+' mois':''].filter(Boolean).join('  ·  '):''):(K.brut?[tt?pfN(K.brut)+' % sur le prix d’achat seul':(K.brutT&&K.fn?pfN(K.brutT)+' % frais d’acquisition inclus':''),K.net&&K.ch?'net de charges '+pfN(K.net)+' % (frais et travaux inclus)':''].filter(Boolean).join('  ·  '):'');
  x.fillStyle='#5a362a';fit(sub,RW,28,'600',SS);x.fillText(sub,RX,hy+46);
  /* cartes */
  const cards=M?[['PRIX D’ACHAT',eur(K.P)],['FRAIS D’ACQUISITION',eur(K.fn),pfN(K.pc)+' %'],[K.an?'TRAVAUX + FRAIS ANNEXES':'TRAVAUX',K.w||K.an?eur(K.w+K.an):'—'],['COÛT DE REVIENT',eur(K.T)],['PRIX DE REVENTE',K.R?eur(K.R):'—'],['DURÉE',K.d?K.d+' mois':'—']]
