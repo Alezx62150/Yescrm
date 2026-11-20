@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v290</title>
+<title>YES CRM · v291</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -2828,6 +2828,20 @@ async function dcSlide(A,files){const W=1920,H=1080,c=document.createElement('ca
  fit('Béthune '+YT2+'  ·  Beauvais '+YT1,W-60-RX-(tx-RX)-24+RX-RX,30,'700',SS);x.fillText('Béthune '+YT2+'  ·  Beauvais '+YT1,tx,fy+78);
  x.fillStyle='#8a5a49';x.font='400 17px '+SS;x.fillText('Chiffres indicatifs, avant fiscalité'+(M?' et frais de revente':'')+' — document non contractuel.',RX,H-26);
  return new Promise(rs=>c.toBlob(rs,'image/png'))}
+/* ===== v292 : estimation des travaux (marchand de biens) — base de prix indicative ===== */
+const DCTR=[
+ ['Division et raccordements',[['geo','Géomètre-expert : bornage + plan de division','forfait',2500],['edd','État descriptif de division + règlement (notaire)','forfait',1500],['dp','Déclaration préalable / dossier d’urbanisme','forfait',800],['via','Viabilisation par lot (eau, assainissement, électricité)','lot',4500],['cel','Compteur électrique individuel + branchement','lot',1200],['cea','Compteur d’eau individuel','lot',600],['cgz','Compteur gaz individuel','lot',800]]],
+ ['Gros œuvre',[['dem','Démolition / curage','m²',40],['ipn','Ouverture dans mur porteur (IPN + reprise)','unité',3500],['mac','Maçonnerie, reprise de structure, cloisons','m²',110],['dal','Dalle, plancher, reprise de sol','m²',90],['toi','Toiture : charpente + couverture','m² toiture',150],['fac','Façade : ravalement / enduit','m²',80]]],
+ ['Menuiseries',[['fen','Fenêtre PVC double vitrage, pose comprise','unité',650],['pfe','Porte-fenêtre','unité',950],['pen','Porte d’entrée sécurisée','unité',1800],['pin','Porte intérieure','unité',350],['vol','Volet roulant','unité',450]]],
+ ['Second œuvre et équipements',[['iso','Isolation + plaques de plâtre','m²',70],['ele','Électricité : mise aux normes','m²',100],['sde','Salle d’eau complète (plomberie, sanitaires, faïence)','unité',5500],['cui','Cuisine équipée','unité',4000],['cha','Chauffage : chaudière gaz condensation','unité',4500],['rad','Radiateurs électriques','lot',1200],['vmc','VMC','lot',900],['pei','Peinture et revêtements de sol','m²',85],['dia','Diagnostics (DPE, amiante, électricité…)','lot',450]]]];
+function dcTrTot(TR){let s=0;DCTR.forEach(g=>g[1].forEach(r=>{const t=(TR||{})[r[0]]||{},q=num(t.q);if(q>0)s+=q*(t.p===undefined||t.p===''?r[3]:num(t.p))}));return s}
+function dcTrPanel(host,TR,use){TR=TR||{};const tot=()=>{const s=dcTrTot(TR),al=TR._al===undefined||TR._al===''?10:num(TR._al),mo=num(TR._mo);return{s,al,mo,a:Math.round(s*al/100),m:Math.round(s*mo/100),t:Math.round(s+s*al/100+s*mo/100)}};
+ host.innerHTML=`<div class='card' style='flex-direction:column;align-items:stretch;gap:8px;margin:10px 0'><b>🧮 Estimation des travaux</b><span class='m'>Base de prix <b>indicative</b> (Hauts-de-France, à ajuster) : saisissez les quantités, modifiez un prix si besoin. À confirmer par devis (Works ML ou artisans) avant tout engagement.</span>${DCTR.map(g=>`<div><div style='font-weight:700;margin:6px 0 2px'>${g[0]}</div>${g[1].map(r=>`<div style='display:grid;grid-template-columns:minmax(150px,1fr) 70px 58px 84px 90px;gap:6px;align-items:center;margin:2px 0'><span style='font-size:13px'>${esc(r[1])}</span><input data-trq='${r[0]}' inputmode='decimal' placeholder='Qté' style='width:100%' value="${esc((TR[r[0]]||{}).q||'')}"><span class='m'>${esc(r[2])}</span><input data-trp='${r[0]}' inputmode='decimal' style='width:100%' value="${esc((TR[r[0]]||{}).p===undefined?r[3]:(TR[r[0]]||{}).p)}" aria-label='Prix unitaire (€)'><span data-trl='${r[0]}' style='text-align:right;font-weight:600'></span></div>`).join('')}</div>`).join('')}
+ <div style='display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--bd);padding-top:8px'><label style='margin:0'>Aléas (%)</label><input data-tral inputmode='decimal' style='width:70px' value="${esc(TR._al===undefined||TR._al===''?'10':TR._al)}"><label style='margin:0'>Maîtrise d’œuvre (%)</label><input data-tramo inputmode='decimal' style='width:70px' value="${esc(TR._mo||'')}"><span class='sp'></span><span data-trt style='font-weight:700;font-size:16px'></span></div>
+ <div class='bar' style='margin:0'><button class='p' type='button' data-truse>✅ Utiliser ce montant comme travaux</button><button type='button' data-trx>Fermer l’estimation</button></div></div>`;
+ const upd=()=>{DCTR.forEach(g=>g[1].forEach(r=>{const t=TR[r[0]]||{},q=num(t.q),p=t.p===undefined||t.p===''?r[3]:num(t.p),e=host.querySelector(`[data-trl='${r[0]}']`);if(e)e.textContent=q>0?eur(Math.round(q*p)):''}));const T=tot();host.querySelector('[data-trt]').textContent='Total : '+eur(T.t)+(T.s?' (dont aléas '+eur(T.a)+(T.m?' et maîtrise d’œuvre '+eur(T.m):'')+')':'')};
+ host.oninput=e=>{const t=e.target;if(t.dataset.trq!==undefined){(TR[t.dataset.trq]=TR[t.dataset.trq]||{}).q=t.value}else if(t.dataset.trp!==undefined){(TR[t.dataset.trp]=TR[t.dataset.trp]||{}).p=t.value}else if(t.dataset.tral!==undefined)TR._al=t.value;else if(t.dataset.tramo!==undefined)TR._mo=t.value;upd()};
+ host.onclick=e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.trx!==undefined)host.innerHTML='';else if(t.dataset.truse!==undefined){use(tot().t)}};upd()}
 function dcDlg(){const old=document.getElementById('dcov');if(old)old.remove();let AX={k:'l'};try{AX=Object.assign({k:'l'},JSON.parse(localStorage.getItem('yes-dc')||'{}'))}catch(e){}
  const o=document.createElement('div');o.id='dcov';o.style.cssText='position:fixed;inset:0;background:rgba(40,25,20,.5);z-index:9999;overflow:auto;padding:16px 10px;display:flex;justify-content:center;align-items:flex-start';
  const inp=(id,l,ph,cls)=>`<div class='${cls||''}'><label>${l}</label><input id='${id}' value="${esc(AX[id.slice(2)]||'')}" placeholder="${esc(ph||'')}"></div>`;
@@ -2837,17 +2851,17 @@ function dcDlg(){const old=document.getElementById('dcov');if(old)old.remove();l
  ${inp('dct','Type de bien / titre','Immeuble de rapport 4 lots')}${inp('dcv','Code postal et ville (pas de rue)','62400 Béthune')}${inp('dcs','Surface totale (m²)','250')}${inp('dcn','Nombre de lots','4')}
  ${inp('dcp','Prix d’acquisition (€)','250000')}${inp('dcfn','Frais d’acquisition (%) — vide = 7,5 %','7,5')}${inp('dcw','Travaux (€)','20000')}
  ${inp('dcl','Loyers totaux (€ / mois)','2400','dcl')}${inp('dcc','Taxe foncière + charges (€ / an)','1500','dcl')}
- ${inp('dcan','Frais annexes : portage, taxes… (€)','5000','dcm')}${inp('dcr','Prix de revente estimé (€)','390000','dcm')}${inp('dcd','Durée de l’opération (mois)','9','dcm')}
+ <div class='dcm' style='grid-column:1/-1'><button type='button' id='dctr'>🧮 Estimer les travaux (division, gros œuvre, menuiseries, compteurs…)</button> <span class='m' id='dctrs'></span></div>${inp('dcan','Frais annexes : portage, taxes… (€)','5000','dcm')}${inp('dcr','Prix de revente estimé (€)','390000','dcm')}${inp('dcd','Durée de l’opération (mois)','9','dcm')}
  ${inp('dcct','Contact affiché (facultatif)','Alexandre Desfontaines')}
  <div style='grid-column:1/-1'><label>Points forts (un par ligne, 4 maximum)</label><textarea id='dcf' rows='4' placeholder='Emplacement n°1 à 5 min de la gare&#10;Pas de gros œuvre&#10;Loyers sécurisés'>${esc(AX.f||'')}</textarea></div>
  <div style='grid-column:1/-1'><label>Photos (3 maximum : la première en grand)</label><input type='file' id='dcph' accept='image/*' multiple></div></div>
- <p class='m' id='dcm' style='margin:8px 0'></p><div id='dcr'></div>
+ <div id='dctrp'></div><p class='m' id='dcm' style='margin:8px 0'></p><div id='dcr'></div>
  <div class='bar' style='margin:8px 0 0'><button class='p' id='dcg'>🎨 Créer le visuel</button><button id='dcx'>Fermer</button></div></div>`;
  document.body.appendChild(o);const q=id=>o.querySelector('#'+id);q('dcx').onclick=()=>o.remove();
- const FLD=['dct','dcv','dcs','dcn','dcp','dcfn','dcw','dcl','dcc','dcan','dcr','dcd','dcct'];
- const tg=()=>{const m=q('dck').value==='m';o.querySelectorAll('.dcl').forEach(e=>e.style.display=m?'none':'');o.querySelectorAll('.dcm').forEach(e=>e.style.display=m?'':'none')};q('dck').onchange=tg;tg();
- const get=()=>{const A={k:q('dck').value,f:q('dcf').value};FLD.forEach(id=>A[id.slice(2)]=(q(id).value||'').trim());return A};
- const fill=A=>{q('dck').value=A.k==='m'?'m':'l';FLD.forEach(id=>q(id).value=A[id.slice(2)]||'');q('dcf').value=A.f||'';tg()};
+ let TR=AX.tr||{};const FLD=['dct','dcv','dcs','dcn','dcp','dcfn','dcw','dcl','dcc','dcan','dcr','dcd','dcct'];
+ const tg=()=>{const m=q('dck').value==='m';o.querySelectorAll('.dcl').forEach(e=>e.style.display=m?'none':'');o.querySelectorAll('.dcm').forEach(e=>e.style.display=m?'':'none')};q('dck').onchange=tg;tg();q('dctr').onclick=()=>{dcTrPanel(q('dctrp'),TR,v=>{q('dcw').value=String(v);q('dctrs').textContent='Travaux : '+eur(v)+' repris dans le deal.';q('dcm').textContent='Montant des travaux mis à jour : '+eur(v)+'.'});q('dctrp').scrollIntoView({block:'nearest'})};
+ const get=()=>{const A={k:q('dck').value,f:q('dcf').value,tr:TR};FLD.forEach(id=>A[id.slice(2)]=(q(id).value||'').trim());return A};
+ const fill=A=>{q('dck').value=A.k==='m'?'m':'l';FLD.forEach(id=>q(id).value=A[id.slice(2)]||'');q('dcf').value=A.f||'';TR=A.tr?JSON.parse(JSON.stringify(A.tr)):{};q('dctrp').innerHTML='';tg()};
  const lst=()=>{const l=dcLoad(),s=q('dcsl');s.innerHTML="<option value=''>Deals enregistrés…</option>"+l.map((a,i)=>`<option value='${i}'>${esc((a.k==='m'?'MdB · ':'Locatif · ')+(a.t||'Sans titre')+(a.v?' – '+a.v:''))}</option>`).join('')};lst();
  q('dcsv').onclick=()=>{const A=get();if(!A.p){q('dcm').textContent='Indiquez au moins le prix d’acquisition.';return}const l=dcLoad(),k=(A.k+'|'+A.t+'|'+A.v),i=l.findIndex(a=>(a.k+'|'+a.t+'|'+a.v)===k);if(i>=0)l[i]=A;else l.unshift(A);dcSv(l);lst();q('dcm').textContent='Deal enregistré sur cet ordinateur.'};
  q('dcld').onclick=()=>{const i=q('dcsl').value;if(i==='')return;const a=dcLoad()[+i];if(a){fill(a);q('dcm').textContent='Deal chargé : cliquez sur « Créer le visuel ».'}};
