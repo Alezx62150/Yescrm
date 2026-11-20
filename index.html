@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v293</title>
+<title>YES CRM · v294</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -2891,7 +2891,7 @@ function dcDlg(){const old=document.getElementById('dcov');if(old)old.remove();l
  const fill=A=>{q('dck').value=A.k==='m'?'m':'l';FLD.forEach(id=>q(id).value=A[id.slice(2)]||'');q('dcf').value=A.f||'';TR=A.tr?JSON.parse(JSON.stringify(A.tr)):{};q('dctrp').innerHTML='';tg()};
  const lst=()=>{const l=dcLoad(),s=q('dcsl');s.innerHTML="<option value=''>Deals enregistrés…</option>"+l.map((a,i)=>`<option value='${i}'>${esc((a.k==='m'?'MdB · ':'Locatif · ')+(a.t||'Sans titre')+(a.v?' – '+a.v:''))}</option>`).join('')};lst();
  q('dcsv').onclick=()=>{const A=get();if(!A.p){q('dcm').textContent='Indiquez au moins le prix d’acquisition.';return}const l=dcLoad(),k=(A.k+'|'+A.t+'|'+A.v),i=l.findIndex(a=>(a.k+'|'+a.t+'|'+a.v)===k);if(i>=0)l[i]=A;else l.unshift(A);dcSv(l);lst();q('dcm').textContent='Deal enregistré sur cet ordinateur.'};
- q('dcld').onclick=()=>{const i=q('dcsl').value;if(i==='')return;const a=dcLoad()[+i];if(a){fill(a);q('dcm').textContent='Deal chargé : cliquez sur « Créer le visuel ».'}};
+ q('dcld').onclick=()=>{const i=q('dcsl').value;if(i==='')return;const a=dcLoad()[+i];if(a){fill(a);CUR='';q('dcm').textContent='Deal chargé : cliquez sur « Créer le visuel ».'}};
  q('dcdl').onclick=()=>{const i=q('dcsl').value;if(i==='')return;const l=dcLoad();l.splice(+i,1);dcSv(l);lst()};
  const gb=()=>{const n=(S.dcv||[]).length,g=q('dcgal');q('dcgb').textContent='📁 Mes visuels ('+n+')'+(g.dataset.on==='1'?' ▲':' ▼')};
  const gOpen=on=>{const g=q('dcgal');g.dataset.on=on?'1':'';g.style.display=on?'':'none';if(on)dcGalPaint(g,en=>{fill(en.A||{k:en.k});CUR=en.id;q('dcm').textContent='Visuel chargé : modifiez puis « Créer le visuel » pour le mettre à jour.';o.scrollTop=0});gb()};
@@ -2902,7 +2902,7 @@ function dcDlg(){const old=document.getElementById('dcov');if(old)old.remove();l
   if(A.k!=='m'&&!num(A.l)){q('dcm').style.color='#c0392b';q('dcm').textContent='Sans loyers, le visuel n’aura pas de rendement. Indiquez les loyers mensuels.';if(!q('dcg').dataset.skip){q('dcg').dataset.skip='1';return}}q('dcm').style.color='';
   try{localStorage.setItem('yes-dc',JSON.stringify(A))}catch(e){}
   q('dcg').disabled=true;q('dcm').textContent='Création en cours…';
-  try{const bl=await dcSlide(A,[...(q('dcph').files||[])]);if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(bl);const nm=dcNm(A);S.dcv=S.dcv||[];let en=S.dcv.find(x=>x.id===CUR);if(!en){CUR=uid();en={id:CUR};S.dcv.unshift(en)}Object.assign(en,{t:A.t,v:A.v,k:A.k,d:isoT(),A:JSON.parse(JSON.stringify(A))});await fput('dcv_'+en.id,bl);save();gOpen(true);
+  try{const bl=await dcSlide(A,[...(q('dcph').files||[])]);if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(bl);const nm=dcNm(A);S.dcv=S.dcv||[];let en=S.dcv.find(x=>x.id===CUR&&x.k===A.k&&x.t===A.t&&x.v===A.v);if(!en){CUR=uid();en={id:CUR};S.dcv.unshift(en)}Object.assign(en,{t:A.t,v:A.v,k:A.k,d:isoT(),A:JSON.parse(JSON.stringify(A))});await fput('dcv_'+en.id,bl);save();gOpen(true);
    q('dcr').innerHTML=`<div style='display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start'><img id='dcpv' src="${url}" alt='' title='Cliquer pour agrandir' style='width:100%;max-width:520px;border-radius:10px;cursor:zoom-in;box-shadow:0 2px 12px #0003'><div><button class='p' id='dcd2'>⬇ Télécharger le visuel (PNG)</button> <button type='button' id='dcz'>🔍 Aperçu plein écran</button><p class='m' style='margin:8px 0 0;max-width:300px'>Modifiez les champs puis recliquez sur « Créer le visuel » pour le refaire.</p></div></div>`;
    q('dcd2').onclick=()=>xdl(nm,bl);
    const big=()=>{const b=document.createElement('div');b.style.cssText='position:fixed;inset:0;z-index:100000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:10px';b.innerHTML=`<div style='display:flex;gap:10px'><button class='p' id='dcbd'>⬇ Télécharger</button><button id='dcbc'>✕ Fermer</button></div><img src="${url}" alt='' style='max-height:calc(100vh - 70px);max-width:100%;object-fit:contain'>`;document.body.appendChild(b);b.querySelector('#dcbc').onclick=()=>b.remove();b.querySelector('#dcbd').onclick=()=>xdl(nm,bl)};
