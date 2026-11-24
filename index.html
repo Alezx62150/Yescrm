@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v297</title>
+<title>YES CRM · v298</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -5122,6 +5122,56 @@ const IMPAT=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;')
 const impDays=(a,b)=>{if(!a||!b)return 0;const d=Math.round((new Date(b+'T12:00')-new Date(a+'T12:00'))/864e5);return d>0?d:0};
 const impPlusM=(iso,n)=>{if(!iso||!n)return '';const d=new Date(iso+'T12:00');d.setMonth(d.getMonth()+(+n));return d.getFullYear()+'-'+impP2(d.getMonth()+1)+'-'+impP2(d.getDate())};
 const impNorm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');
+
+/* --- Fiche de renseignements vendeur (PDF remplissable YES Immobilier) --- */
+async function impFicheRead(file){
+ if(!window.pdfjsLib)return null;
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,F={};
+ for(let i=1;i<=pdf.numPages;i++){const an=await (await pdf.getPage(i)).getAnnotations();
+  an.forEach(a=>{if(a.subtype!=='Widget'||!a.fieldName)return;let v=a.fieldValue;if(Array.isArray(v))v=v.join(' ');
+   if(a.checkBox||a.radioButton){v=!(v==null||v===''||/^(off|false|0)$/i.test(String(v)))}else v=impSp(v);
+   F[a.fieldName]=v;if(a.alternativeText)F['~'+a.fieldName]=a.alternativeText})}
+ return (F.v1_nom!==undefined&&F.bien_adr!==undefined)?F:null}
+function impFiche(F){
+ const t=k=>impSp(F[k]||''),on=p=>Object.keys(F).filter(k=>k[0]!=='~'&&k.startsWith(p)&&F[k]===true),
+  opt=p=>on(p).map(k=>(F['~'+k]||'').split(' : ').slice(1).join(' : ')||k).join(', '),
+  r={kind:'mandat',fiche:true,vendeurs:[],warn:[],notes:[]};
+ const MA={celibataire:'Célibataire',mariee:'Marié(e)',pacsee:'Pacsé(e)',divorcee:'Divorcé(e)',veufve:'Veuf(ve)'};
+ const dt=(s,w)=>{s=impSp(s);if(!s)return '';let z=impIso(s);if(!z){const m=s.match(/^(\d{1,2})[.\-\s](\d{1,2})[.\-\s](\d{2}|\d{4})$/);if(m){const y=m[3].length===2?(+m[3]>30?'19':'20')+m[3]:m[3];z=y+'-'+impP2(m[2])+'-'+impP2(m[1])}}
+  if(!z)r.warn.push(w+' : date « '+s+' » non comprise, à saisir.');return z};
+ const ln=(l,v)=>{v=impSp(v);if(v)r.notes.push(l+' : '+v)};
+ const pers=n=>{const p='v'+n+'_',nom=t(p+'nom'),pre=t(p+'prenoms');if(!nom&&!pre)return null;
+  const ci=on(p+'civ_')[0]||'',sit=(on(p+'sit_')[0]||'').replace(p+'sit_','');
+  if(!ci)r.warn.push('Vendeur '+n+' : civilité non cochée (Monsieur par défaut).');
+  ln('Vendeur '+n+' · nom d’usage',t(p+'nomusage'));ln('Vendeur '+n+' · mariage',t(p+'mar'));ln('Vendeur '+n+' · régime matrimonial',t(p+'regime'));ln('Vendeur '+n+' · résident fiscal français',t(p+'resfisc'));
+  return {civ:/madame$/.test(ci)?'Madame':'Monsieur',prenom:impTitle(pre),nom:nom.toUpperCase(),naiss:dt(t(p+'naiss'),'Vendeur '+n+' · naissance'),lieu:impTitle(t(p+'lieu')),nat:t(p+'nat').toLowerCase(),prof:t(p+'prof'),adr:t(p+'adr'),matri:MA[sit]||'',tel:t(p+'tel'),email:t(p+'mail')}};
+ const p1=pers(1),p2=pers(2);
+ if(t('soc_denom')){
+  const fm=t('soc_forme').toUpperCase().replace(/[^A-Z]/g,''),sr=t('soc_siren').replace(/\D/g,'').slice(0,9),ct=t('soc_contact'),
+   mail=(ct.match(/\S+@\S+/)||[''])[0],tel=impSp(ct.replace(mail,'').replace(/[\/;]/g,' ')),nn=t('soc_rep')?impNameAny(t('soc_rep')):null,
+   civ=p1&&nn&&impNorm(p1.nom)===impNorm(nn.nom)?p1.civ:'Monsieur';
+  r.vendeurs=[{pm:true,forme:IMPFORME.split('|').includes(fm)?fm:'Autre',denom:t('soc_denom'),capital:t('soc_capital'),siren:sr.replace(/(\d{3})(\d{3})(\d{3})/,'$1 $2 $3'),rcs:impTitle(t('soc_rcs')),adr:t('soc_siege'),tel:tel,email:mail,
+   rep:nn?{civ,prenom:impTitle(nn.prenom),nom:String(nn.nom).toUpperCase(),naiss:p1&&impNorm(p1.nom)===impNorm(nn.nom)?p1.naiss:'',lieu:p1&&impNorm(p1.nom)===impNorm(nn.nom)?p1.lieu:'',nat:'',prof:'',adr:'',matri:'',tel:'',email:'',qual:t('soc_qualite')||'gérant'}:null}];
+ }else r.vendeurs=[p1,p2].filter(Boolean);
+ if(!r.vendeurs.length)r.warn.push('Aucun vendeur renseigné dans la fiche.');
+ r.bien=t('bien_adr');if(!r.bien)r.warn.push('Adresse du bien non renseignée.');
+ const px=impNum(t('prix'));if(px)r.prix=px;
+ const mt=on('mtype_')[0]||'';r.mtype=/exclusif$/.test(mt)?'exclusif':/simple/.test(mt)?'simple':'';
+ /* informations reportées dans les notes du dossier */
+ ln('Résidence / lieu-dit',t('bien_residence'));ln('Nature',opt('nat_'));ln('Surface habitable',t('surf_hab')&&t('surf_hab')+' m²');ln('Terrain',t('surf_terrain')&&t('surf_terrain')+' m²');
+ ln('Pièces',t('nb_pieces'));ln('Chambres',t('nb_ch'));ln('Année de construction',t('annee'));ln('Nombre de lots',t('nb_lots'));ln('Étage',t('etage'));ln('Annexes',t('annexes'));
+ ln('Cadastre',t('cadastre'));ln('Chauffage',t('chauffage'));ln('DPE',t('dpe'));ln('Copropriété',opt('copro_'));ln('Syndic',t('syndic'));ln('Charges de copropriété / an',t('charges_copro'));ln('Travaux de copropriété',t('travaux_copro'));
+ ln('Taxe foncière / an',t('taxe_fonc'));ln('Travaux réalisés',t('travaux_realises'));ln('À savoir',t('commentaires'));
+ ln('Occupation',opt('occ_'));
+ for(let i=1;i<=8;i++){const g=k=>t('loc'+i+'_'+k);if(!(g('lot')||g('loc')||g('bail')||g('loyer')||g('charges')||g('depot')))continue;
+  r.notes.push('Logement '+(g('lot')||i)+' : '+[g('loc')&&'locataire '+g('loc'),g('bail')&&'bail du '+g('bail'),g('loyer')&&'loyer '+g('loyer')+' €/mois',g('charges')&&'charges '+g('charges')+' €/mois',g('depot')&&'dépôt de garantie '+g('depot')+' €'].filter(Boolean).join(' · '))}
+ ln('Loyers annuels totaux',t('loyers_tot'));ln('Impayés / litiges',t('impayes'));ln('Gestion actuelle',t('gestion'));
+ ln('Origine de propriété',opt('origine_'));ln('Acquisition',[t('acq_date'),t('acq_prix')&&t('acq_prix')+' €',t('acq_notaire')].filter(Boolean).join(' · '));
+ ln('Estimation du vendeur',t('estim')&&t('estim')+' €');ln('Date souhaitée de vente',t('delai'));ln('Crédit sur le bien',opt('credit_'));ln('Banque',t('credit_banque'));ln('Capital restant dû',t('credit_crd')&&t('credit_crd')+' €');ln('Indemnités de remboursement anticipé',t('credit_ira')&&t('credit_ira')+' €');
+ ln('Raison de la vente',opt('raison_'));ln('Visites',opt('visites_'));ln('Disponibilités',t('dispo'));ln('Autres mandats',t('autres_mandats'));ln('Questions du vendeur',t('questions'));
+ const dj=Object.keys(F).filter(k=>/^doc_\d+$/.test(k));if(dj.length){const ok=dj.filter(k=>F[k]===true).map(k=>(F['~'+k]||k));ln('Pièces annoncées par le vendeur',ok.join(', ')||'aucune cochée')}
+ return r}
 async function impPdfLines(file){
  if(!window.pdfjsLib)return '';
  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -5159,6 +5209,8 @@ async function impOcrText(file,st){
  return out}
 async function impStart(file,fid){
  toast('Lecture du PDF…');let T='',ocr=false;
+ let FI=null;try{FI=await impFicheRead(file)}catch(e){}
+ if(FI){impDlg(impFiche(FI),file,fid);return}
  try{T=await impPdfLines(file)}catch(e){}
  if(!T||T.length<300){
   const o=impOcrBox(),st={cancel:false,set(t,p){const a=o.querySelector('#ocr_t'),b=o.querySelector('#ocr_b');if(a)a.textContent=t;if(b)b.style.width=Math.round(Math.max(0,Math.min(1,p||0))*100)+'%'}};
@@ -5166,7 +5218,8 @@ async function impStart(file,fid){
   try{T=impOcrFix(await impOcrText(file,st));ocr=true}catch(e){o.remove();if(!st.cancel)toast('Ce PDF est un scan et la lecture automatique a échoué ('+(e&&e.message||e)+') : saisissez les informations à la main.');return}
   o.remove();if(st.cancel)return;
   if(!T||T.length<300){toast('Le scan n’est pas assez lisible : saisissez les informations à la main.');return}}
- window.__impRaw=T;const r=impParse(T);try{r.sigDate=await impSigDate(file);if(r.kind==='compromis'&&!r.dateActe&&r.sigDate)r.dateActe=r.sigDate}catch(e){}
+ window.__impRaw=T;if(/FICHE\s+DE\s+RENSEIGNEMENTS\s+VENDEUR/i.test(T.slice(0,900))){toast('Cette fiche ne contient plus de champs remplissables (PDF imprimé ou aplati). Demandez au vendeur de l’enregistrer directement depuis Acrobat Reader, sans « Imprimer en PDF ».');return}
+ const r=impParse(T);try{r.sigDate=await impSigDate(file);if(r.kind==='compromis'&&!r.dateActe&&r.sigDate)r.dateActe=r.sigDate}catch(e){}
  if(!r.kind){toast('Document non reconnu : le CRM lit les mandats, compromis, baux et mandats de gérance. (Un état des lieux se remplit dans l’onglet « État des lieux » du dossier.)');return}
  if(ocr){r.warn=r.warn||[];r.warn.unshift('Document scanné lu par reconnaissance de texte (OCR) : vérifiez attentivement chaque champ (noms, dates, montants) avant d’enregistrer.')}
  if(r.kind==='bail'||r.kind==='mg'){impDlgL(r,file,fid);return}
@@ -5186,7 +5239,7 @@ function impDlg(r,file,fid){
  const MT=[['','—'],['simple','Simple'],['exclusif','Exclusif']],PY=[['ven','Vendeur'],['acq','Acquéreur']],FN=[['pret','Prêt bancaire'],['comptant','Paiement comptant (sans prêt)']];
  const mdeb=isM?(r.sigDate||cur.mdeb||''):(cur.mdeb||r.mandatDate||''),dur=r.duree||'';
  let h=`<div style='background:var(--sf);border-radius:14px;max-width:860px;width:100%;padding:16px 16px 12px;box-shadow:0 10px 40px rgba(0,0,0,.35)'>
- <h2 style='margin:0 0 4px'>📥 ${isM?'Mandat de vente'+(r.mandat?' n° '+IMPAT(r.mandat):''):'Compromis / promesse de vente'} lu</h2>
+ <h2 style='margin:0 0 4px'>📥 ${r.fiche?'Fiche de renseignements vendeur':isM?'Mandat de vente'+(r.mandat?' n° '+IMPAT(r.mandat):''):'Compromis / promesse de vente'} lu${r.fiche?'e':''}</h2>
  <p class='m' style='margin:0 0 8px'>Vérifiez et corrigez si besoin : rien n’est enregistré tant que vous n’avez pas cliqué sur « Enregistrer ».</p>
  ${(r.warn||[]).map(w=>`<p style='color:var(--dn);margin:4px 0'>⚠ ${IMPAT(w)}</p>`).join('')}${(r.warn||[]).length?`<p style='margin:4px 0'><button type='button' data-a='impRaw'>📋 Copier le texte lu dans le PDF (pour dépannage)</button> <span class='m'>à coller dans la conversation avec Claude si un champ n’est pas reconnu</span></p>`:''}
  ${isM&&f&&(f.vdate||f.cprix)?`<p class='m' style='margin:4px 0'>Ce dossier a déjà un compromis : le prix du mandat sera noté à part, le prix de vente ne sera pas modifié.</p>`:''}
@@ -5197,15 +5250,16 @@ function impDlg(r,file,fid){
  ${O('hpay','Honoraires à la charge de',r.honPay||'ven',PY)}${L('hon','Honoraires TTC (€)',r.honTTC||'','text',f&&f.calc?f.calc.hon:'')}
  ${isM?O('mtype','Type de mandat',r.mtype||'',MT)+L('mdeb','Début du mandat (date de signature)',mdeb,'date')+L('duree','Durée (mois)',dur,'number')+L('mfin','Fin du mandat',cur.mfin||impPlusM(mdeb,dur),'date'):''}
  ${isM?'':L('vdate','Date du compromis',r.dateActe||'','date',cur.vdate)+L('mdeb2','Mandat donné le',mdeb,'date')+O('fin','Financement',r.fin||'pret',FN)+L('cpret','Montant du prêt (€)',r.pret||'','text')+L('dpret','Date limite d’obtention du prêt',r.datePret||'','date')+L('dacte','Date limite de l’acte authentique',r.dateActeAuth||'','date')}
- </div>${isM&&r.sigDate?`<p class='m' style='margin:6px 0 0'>✅ Date de signature lue dans la signature électronique (dernier signataire) : ${fDate(r.sigDate)}.</p>`:''}${isM&&!mdeb?`<p class='m' style='margin:6px 0 0'>La date de signature n’est pas lisible dans le PDF : saisissez le début du mandat, la fin sera calculée.</p>`:''}
+ </div>${isM&&r.sigDate?`<p class='m' style='margin:6px 0 0'>✅ Date de signature lue dans la signature électronique (dernier signataire) : ${fDate(r.sigDate)}.</p>`:''}${isM&&!r.fiche&&!mdeb?`<p class='m' style='margin:6px 0 0'>La date de signature n’est pas lisible dans le PDF : saisissez le début du mandat, la fin sera calculée.</p>`:''}
  ${isM?'':`<p class='m' style='margin:6px 0 0'>${[r.notaire?'Notaire : '+IMPAT(r.notaire):'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',r.pret?'Prêt : '+impEur(r.pret):'',r.nature?'Nature : '+IMPAT(r.nature):''].filter(Boolean).join(' · ')} (reporté dans les notes du dossier)</p>`}</div>`;
+ if(r.fiche&&r.notes&&r.notes.length)h+=`<details class='agf'><summary><b>Autres informations de la fiche</b> <span class='m'>(${r.notes.length} lignes, reportées dans les notes du dossier)</span></summary><div class='m' style='margin-top:6px;white-space:pre-wrap;font-size:12.5px'>${r.notes.map(IMPAT).join('\n')}</div></details>`;
  people.forEach((p,i)=>{const ex=impFindC(p),pre='p'+i+'_';
   if(p.pm){const rp=p.rep||{};h+=`<div class='agf' data-ip='${i}'><div style='display:flex;gap:10px;align-items:center;font-weight:600'><input type='checkbox' id='imp_${pre}on' checked style='width:20px;height:20px;flex:none;margin:0'><span>${p.w==='v'?'Vendeur':'Acquéreur'} (société) : ${IMPAT(impPn(p))} <span class='m' style='font-weight:400'>${ex?'· fiche existante, elle sera liée au dossier':'· nouvelle fiche société'}</span></span></div>
    <div class='cgrid' style='margin-top:6px'>${O(pre+'forme','Forme juridique',p.forme||'Autre',['SCI','SARL','SAS','SASU','EURL','SA','Autre'].map(x=>[x,x]))}${L(pre+'denom','Dénomination',p.denom)}${L(pre+'capital','Capital',p.capital)}${L(pre+'siren','SIREN',p.siren)}${L(pre+'rcs','Ville du RCS',p.rcs)}${L(pre+'adr','Siège social',p.adr)}${L(pre+'tel','Téléphone',p.tel)}${L(pre+'email','E-mail',p.email)}</div>
    <b style='display:block;margin:10px 0 4px'>Gérant / représentant</b><div class='cgrid'>${O(pre+'rciv','Civilité',rp.civ||'Monsieur',[['Monsieur','Monsieur'],['Madame','Madame']])}${L(pre+'rprenom','Prénom(s)',rp.prenom||'')}${L(pre+'rnom','Nom',rp.nom||'')}${L(pre+'rqual','Qualité',rp.qual||'gérant')}${L(pre+'rnaiss','Date de naissance',rp.naiss||'','date')}${L(pre+'rlieu','Lieu de naissance',rp.lieu||'')}${L(pre+'rnat','Nationalité',rp.nat||'')}${L(pre+'radr','Adresse',rp.adr||'')}</div></div>`;return}
   h+=`<div class='agf' data-ip='${i}'><div style='display:flex;gap:10px;align-items:center;font-weight:600'><input type='checkbox' id='imp_${pre}on' checked style='width:20px;height:20px;flex:none;margin:0'><span>${p.w==='v'?'Vendeur':'Acquéreur'} : ${IMPAT([p.prenom,p.nom].filter(Boolean).join(' '))} <span class='m' style='font-weight:400'>${ex?'· fiche existante, elle sera liée au dossier':'· nouvelle fiche contact'}</span></span></div>
   <div class='cgrid' style='margin-top:6px'>${O(pre+'civ','Civilité',p.civ,[['Monsieur','Monsieur'],['Madame','Madame']])}${L(pre+'prenom','Prénom(s)',p.prenom)}${L(pre+'nom','Nom',p.nom)}${L(pre+'naiss','Date de naissance',p.naiss,'date')}${L(pre+'lieu','Lieu de naissance',p.lieu)}${L(pre+'nat','Nationalité',p.nat)}${O(pre+'matri','Statut matrimonial',p.matri||'',[['','—']].concat(['Célibataire','Marié(e)','Pacsé(e)','Divorcé(e)','Veuf(ve)'].map(x=>[x,x])))}${L(pre+'prof','Profession',p.prof)}${L(pre+'adr','Adresse',p.adr)}${L(pre+'tel','Téléphone',p.tel)}${L(pre+'email','E-mail',p.email)}</div></div>`});
- h+=`<div style='display:flex;gap:10px;align-items:center;margin:8px 0'><input type='checkbox' id='imp_att' checked style='width:20px;height:20px;flex:none;margin:0'><span>Joindre le PDF au dossier (dans « ${isM?'Mandat':'Compromis'} »)</span></div>
+ h+=`<div style='display:flex;gap:10px;align-items:center;margin:8px 0'><input type='checkbox' id='imp_att' checked style='width:20px;height:20px;flex:none;margin:0'><span>Joindre le PDF au dossier (dans « ${r.fiche?'Divers':isM?'Mandat':'Compromis'} »)</span></div>
  <div style='display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap'><button id='imp_pv' title='Afficher le PDF lu pour comparer'>👁 Voir le PDF</button><button id='imp_no'>Annuler</button><button class='p' id='imp_ok'>Enregistrer</button></div></div>`;
  ov.innerHTML=h;document.body.appendChild(ov);
  const q=id=>ov.querySelector('#imp_'+id);
@@ -5253,10 +5307,11 @@ async function impApply(r,file,fid,ov,people){
   if(g('mdeb2')){if(b){if(!b.mdeb)b.mdeb=g('mdeb2')}else if(!f.mdeb)f.mdeb=g('mdeb2')}
   const nt=['Compromis du '+(g('vdate')?fDate(g('vdate')):'…')+' (importé du PDF)',r.notaire?'Notaire : '+r.notaire:'',r.indemnite?'Indemnité d’immobilisation : '+impEur(r.indemnite):'',r.depot?'Dépôt de garantie : '+impEur(r.depot):'',cash?'Paiement comptant (sans prêt)':r.pret?'Prêt : '+impEur(r.pret):'',!cash&&g('dpret')?'Prêt à obtenir avant le '+fDate(g('dpret')):'',g('dacte')?'Acte authentique avant le '+fDate(g('dacte')):''].filter(Boolean).join(' · ');
   if(!(f.notes||'').includes('(importé du PDF)'))f.notes=((f.notes||'')+((f.notes||'').trim()?'\n':'')+nt).trim()}
+ if(r.fiche&&r.notes&&r.notes.length){const nt='Fiche vendeur du '+fDate(today())+' (importée du PDF)\n'+r.notes.join('\n');if(!(f.notes||'').includes(nt))f.notes=((f.notes||'')+((f.notes||'').trim()?'\n\n':'')+nt).trim()}
  if(b)bSync(b);
- if(q('att')&&q('att').checked){const gr=isM?'Mandat':'Compromis',id=uid();if(!S.cats.some(x=>x.n===gr))S.cats.push({n:gr,t:isM?'m':'a'});await fput(id,file);f.d=f.d||[];f.d.push({id,t:file.name.replace(/\.[^.]+$/,''),pdf:1,size:file.size,h:'',u:today(),cat:catTab(gr),grp:gr,code:'PDF',st:'Brouillon'})}
+ if(q('att')&&q('att').checked){const gr=r.fiche?'Divers':isM?'Mandat':'Compromis',id=uid();if(!S.cats.some(x=>x.n===gr))S.cats.push({n:gr,t:r.fiche?'p':isM?'m':'a'});await fput(id,file);f.d=f.d||[];f.d.push({id,t:file.name.replace(/\.[^.]+$/,''),pdf:1,size:file.size,h:'',u:today(),cat:catTab(gr),grp:gr,code:'PDF',st:'Brouillon'})}
  save();
- V.msg='PDF lu : '+(isM?'mandat':'compromis')+' · '+nbNew+' fiche'+(nbNew>1?'s':'')+' créée'+(nbNew>1?'s':'')+', '+nbLink+' liée'+(nbLink>1?'s':'')+'.';
+ V.msg='PDF lu : '+(r.fiche?'fiche vendeur':isM?'mandat':'compromis')+' · '+nbNew+' fiche'+(nbNew>1?'s':'')+' créée'+(nbNew>1?'s':'')+', '+nbLink+' liée'+(nbLink>1?'s':'')+'.';
  if(isNew)go('folder',f.id);else render()}
 function impFixDocs(f){(f&&f.d||[]).forEach(d=>{if(d.code==='PDF'&&d.grp==='Mandats'){d.grp='Mandat';d.cat='m'}else if(d.code==='PDF'&&d.grp==='Compromis / Promesses'){d.grp='Compromis';d.cat='a'}})}
 function panelImp(f){impFixDocs(f);return `<details class='pnl' data-pn='imp'${V['pn_imp']?' open':''}><summary>📥 Importer un mandat ou un compromis (PDF)</summary><p class='m' style='margin:6px 0'>Déposez le PDF : le CRM lit les vendeurs et acquéreurs, le bien, le prix, les honoraires et les dates, puis vous les montre pour vérification avant d’enregistrer. Ça marche avec les PDF contenant du texte (pas les scans).</p><button data-imp='${f.id}'>📥 Choisir un PDF</button></details>`}
