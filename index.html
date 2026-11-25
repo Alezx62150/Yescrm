@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v306</title>
+<title>YES CRM · v307</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -314,6 +314,13 @@ S.f.forEach(f=>[['vendeur','vid'],['acquereur','aid']].forEach(([k,i])=>{if(!f[i
 S.c.forEach(c=>{if(c.type==='succ'&&!Array.isArray(c.heritiers)){const h={civ:c.civ,prenom:c.prenom,nom:c.nom,naiss:c.naiss,lieu:c.lieu,nat:c.nat,matri:c.matri,prof:c.prof,email:c.email,tel:c.tel,adr:c.adr,qual:c.qual||'héritier'};
  c.heritiers=(h.prenom||h.nom)?[h]:[];const d=c.defunt||c.denom||'';c.civ='';c.prenom='';c.nom=d;c.naiss='';c.lieu='';c.nat='';c.matri='';c.prof='';c.email='';c.tel='';c.adr='';c.qual=''}
  if(c.type==='pm'&&!Array.isArray(c.gerants))c.gerants=[]});
+/* v307 : nettoyage des fiches parasites créées par d'anciens imports (phrases entières prises pour des noms) */
+{const bad=c=>{const t=[c.prenom,c.nom,c.denom].filter(Boolean).join(' ');return c.type!=='pm'&&c.type!=='succ'&&(String(c.nom||'').length>45||/\b(?:sont|est)\s+(?:pr[ée]sents?|repr[ée]sent\w*)|CAPACIT|contractants|\brepr[ée]sent[ée]e?s?\s+par\b/i.test(t))},ids=new Set(S.c.filter(bad).map(c=>c.id));
+ if(ids.size){const cap=x=>String(x||'').charAt(0).toUpperCase()+String(x||'').slice(1).toLowerCase();
+  S.c=S.c.filter(c=>!ids.has(c.id));
+  S.f.forEach(f=>{let ch=false;['vids','aids'].forEach(k=>{if(Array.isArray(f[k])&&f[k].some(i=>ids.has(i))){f[k]=f[k].filter(i=>!ids.has(i));ch=true}});
+   if(ch&&/^Vente\s/.test(f.name||'')){const nm=k=>[...new Set((f[k]||[]).map(i=>S.c.find(c=>c.id===i)).filter(Boolean).map(c=>c.type==='pm'?nom(c):cap(c.nom)))].join(' et ');const v=nm('vids'),q=nm('aids');if(v)f.name='Vente '+v+(q?' à '+q:'')}});
+  try{window.__cleanN=ids.size;setTimeout(()=>{try{save()}catch(e){}},3000)}catch(e){}}}
 S.f.forEach(f=>{if(!Array.isArray(f.vids))f.vids=f.vid?[f.vid]:[];if(!Array.isArray(f.aids))f.aids=f.aid?[f.aid]:[]});
 const DC=[['État civil','p'],['Diagnostics','p'],['Urbanisme','p'],['Courrier vendeurs','p'],['Courrier acquéreurs','p'],['Convocation','p'],['Attestation','p'],['Compromis','a'],['Acte de vente','a'],['Annexes','a'],['Courriers postérieurs','s'],['Divers','p']];
 if(!Array.isArray(S.cats))S.cats=DC.map(([n,t])=>({n,t}));
