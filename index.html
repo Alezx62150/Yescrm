@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v305</title>
+<title>YES CRM · v306</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -5217,7 +5217,7 @@ function impPersons(blk){
  while((m=re.exec(S))){if(/^[A-ZÀ-Ý'’\-]+\s+mari[ée]s?\s/.test(S.slice(re.lastIndex))&&/Monsieur$/.test(S.slice(0,m.index)))continue;idx.push({i:m.index+m[0].indexOf(m[1]),civ:m[1],e:re.lastIndex})}
  idx.forEach((x,k)=>{
   const seg=S.slice(x.e,k+1<idx.length?idx[k+1].i:S.length),c=seg.indexOf(',');
-  const head=(c>0?seg.slice(0,c):seg.slice(0,60)).replace(/\s+et\s*$/i,''),n=impSplitName(head);
+  let head=(c>0?seg.slice(0,c):seg.slice(0,60)).replace(/\s+et\s*$/i,'');head=head.replace(/\s+(?:sont|est|ont|pr[ée]sents?|repr[ée]sent\w*|ci-apr[èe]s|d[ée]nomm\w*|agissant|demeurant|n[ée]e?s?|mari[ée]\w*|de\s+nationalit\w*)\b[\s\S]*$/i,'').replace(/[\s.\-–:;]+$/,'');if(!head||head.length>60||head.split(/\s+/).length>6)return;const n=impSplitName(head);
   const rest=c>0?seg.slice(c+1):'';
   const mD=rest.match(/^\s*([^,]*?)\s*,\s*demeurant/i),mP=rest.match(/^\s*([^,.\d]{3,60}?)\s*,\s*(?:et\s*$|et\s+(?:Monsieur|Madame)|$)/i),prof=mD&&!/^demeurant/i.test(mD[1])?impSp(mD[1]):(mP&&!/^(demeurant|n[ée]e?\b|mari|de nationalit)/i.test(mP[1])?impSp(mP[1]):'');
   const mA=seg.match(/demeurant\s+(?:ensemble\s+)?(?:[àaA4]\s+)?([A-ZÀ-Ý'’\- ]+?)\s*\((\d{5})\)\s*,?\s*([^.]*?)\s*(?:\.|(?=\bN[ée]e?\s+[àa4]\s))/)||seg.match(/demeurant\s+(?:ensemble\s+)?(?:[àaA4]\s+)?(.+?)\./i);
@@ -5226,6 +5226,7 @@ function impPersons(blk){
   const matri=pacs?'Pacsé(e)':/divorc[ée]/i.test(seg)?'Divorcé(e)':/veuf|veuve/i.test(seg)?'Veuf(ve)':/mari[ée]/i.test(seg)?'Marié(e)':/c[ée]libataire/i.test(seg)?'Célibataire':'';
   const mNat=seg.match(/De nationalit[ée]\s+([^\s.,]+)/i);
   let adr='';if(mA)adr=mA[2]?impAddr(String(mA[3]).replace(/[\s,]+$/,''),mA[2],mA[1]):impSp(mA[1]);
+  if(!n.nom||/\d/.test(head))return;if(out.some(o=>o.nom===n.nom&&o.prenom===n.prenom))return;
   out.push({civ:x.civ==='Monsieur'?'Monsieur':'Madame',prenom:n.prenom,nom:n.nom,naiss:mN?impIso(mN[3]):'',lieu:mN?impTitle(mN[1]):'',nat:mNat?mNat[1].toLowerCase():'',prof,adr,matri,tel:'',email:''})});
  out.forEach(p=>{const w=p.civ==='Monsieur'?'Monsieur':'Madame',mn=S.match(new RegExp(w+'\\s+est\\s+n[ée]e?\\s+[àa]\\s+(.+?)\\s*(?:\\((\\d{5})\\))?\\s*,?\\s*le\\s+(\\d{1,2}(?:er)?\\s+[a-zéèêûô]+\\s+\\d{4})','i')),nt=S.match(new RegExp(w+'\\s+est\\s+de\\s+nationalit[ée]\\s+([^\\s.,]+)','i'));if(mn){p.naiss=impIso(mn[3]);p.lieu=impTitle(mn[1])}if(nt)p.nat=nt[1].toLowerCase()});
  out.forEach(p=>{if(p.naiss)return;const w=p.civ==='Monsieur'?'Monsieur':'Madame',mm=S.match(new RegExp('\\b'+w+'\\s+[àa]\\s+([A-ZÀ-Ý][A-ZÀ-Ý\'’\\- ]+?)\\s*(?:\\(([^)]*)\\))?\\s*,\\s*le\\s+(\\d{1,2}(?:er)?\\s+[a-zéèêûô]+\\s+\\d{4})'));if(mm){p.naiss=impIso(mm[3]);p.lieu=impTitle(mm[1])+(mm[2]&&!/^\d+$/.test(mm[2])?' ('+impTitle(mm[2])+')':'')}});
