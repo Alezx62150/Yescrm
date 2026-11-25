@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v304</title>
+<title>YES CRM · v305</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -5059,7 +5059,7 @@ function bevScan(){if(!S.b)return;if(!S.evInit){S.b.forEach(b=>{b.ev=1});S.evIni
 async function evLoad(){if(!window.SB||!window.__UID||Date.now()-EV.t<60000)return;EV.t=Date.now();try{const since=new Date(Date.now()-30*864e5).toISOString(),r=await window.SB.from('crm_events').select('id,created_at,user_id,author,mode,title,detail').gte('created_at',since).order('created_at',{ascending:false}).limit(30);if(r.error||!r.data)return;const sig=r.data.map(x=>x.id).join(',');if(sig!==EV.sig){EV.sig=sig;EV.rows=r.data;if(V.v==='home')render()}}catch(e){}}
 function evList(){const me=window.__UID;return (EV.rows||[]).filter(r=>r.user_id!==me&&!(S.evSeen||[]).includes(r.id))}
 function evBox(){evLoad();const L=evList().slice(0,6);if(!L.length)return '';
- return `<div class='card novoc' style='flex-direction:column;align-items:stretch;gap:6px;margin:0 0 12px;border-color:var(--ac)'><b>🔔 ${L.length>1?'Nouveaux biens enregistrés':'Nouveau bien enregistré'}</b>${L.map(r=>`<div class='rw' data-a='evOpen' data-id='${r.id}' style='cursor:pointer;gap:8px;align-items:center'><span style='flex:1'><b>${esc(r.author||'Un collaborateur')}</b> a enregistré un nouveau bien ${r.mode==='l'?'en location':'en vente'} : ${esc(r.title||'')}</span><span class='m' style='white-space:nowrap'>cliquez ici</span></div>`).join('')}</div>`}
+ return `<div class='card novoc' style='flex-direction:column;align-items:stretch;gap:6px;margin:0 0 12px;border-color:var(--ac)'><div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap'><b style='flex:1'>🔔 ${L.length>1?'Nouveaux biens enregistrés':'Nouveau bien enregistré'}</b>${L.length>1?`<button data-a='evRdAll' style='font-size:12px;padding:4px 10px'>✓ Tout marquer comme lu</button>`:''}</div>${L.map(r=>`<div class='rw' data-a='evOpen' data-id='${r.id}' style='cursor:pointer;gap:8px;align-items:center'><span style='flex:1'><b>${esc(r.author||'Un collaborateur')}</b> a enregistré un nouveau bien ${r.mode==='l'?'en location':'en vente'} : ${esc(r.title||'')}</span><span class='m' style='white-space:nowrap'>cliquez ici</span><button data-a='evRd' data-id='${r.id}' title='Marquer comme lu' style='font-size:12px;padding:4px 10px;white-space:nowrap'>✓ Marquer comme lu</button></div>`).join('')}</div>`}
 
 const mpWeb=()=>!!(window.SB&&window.__UID);
 const MPX={req:undefined,adm:undefined};
@@ -7034,6 +7034,8 @@ document.addEventListener('click',e=>{
  else if(a==='edCP'){const f=F(),E=edlGet(f);if(E.out.r.length&&!V.edcf){V.edcf=1;render();return}E.out.r=E.in.r.map(r=>({n:r.n,els:r.els.map(e=>({n:e.n,m:e.m,e:'',o:''}))}));E.out.chauf=E.out.chauf||E.in.chauf;E.out.ecs=E.out.ecs||E.in.ecs;V.edcf=0;save();V['pn_ed']=true;render();toast('Pièces reprises de l’entrée : indiquez maintenant l’état de chaque élément.')}
  else if(a==='edPdf'){const f=F(),k=V.edlk==='out'?'out':'in';exportDocs([{t:'État des lieux '+(k==='in'?'d’entrée':'de sortie')+' - '+(f.name||'dossier'),h:edlHtml(f,k)}],'pdf')}
  else if(a==='evOpen')evDlg(id)
+ else if(a==='evRd'){S.evSeen=(S.evSeen||[]).concat(id).slice(-200);save();render()}
+ else if(a==='evRdAll'){S.evSeen=(S.evSeen||[]).concat(evList().map(r=>r.id)).slice(-200);save();render()}
  else if(a==='msg'){as();MSG.tab='in';MSG.sel=null;MSG.compose=null;MSG.t=0;go('msg')}
  else if(a==='msgTab'){MSG.tab=id==='out'?'out':'in';MSG.sel=null;render()}
  else if(a==='msgNew'){MSG.compose={to:'',sub:'',body:'',imp:false,reply:''};render()}
