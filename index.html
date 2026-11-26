@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v311</title>
+<title>YES CRM · v312</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -5562,12 +5562,14 @@ async function sealF(b,key){const o=await CR.encB(key,await bufOf(b));o.enc=1;o.
 async function openF(o,key){const ab=await CR.decB(key,o);return o.k==='a'?ab:new Blob([ab],{type:o.type||''})}
 async function rawPut(id,v){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('f','readwrite');t.objectStore('f').put(v,id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
 const stPath=id=>window.__UID+'/'+String(id).replace(/[^\w.-]/g,'_');
-async function fput(id,b){await rawPut(id,b);
+async function fput(id,b){if(b instanceof Blob&&!b.enc){try{b=new Blob([await b.arrayBuffer()],{type:b.type||'application/pdf'})}catch(e){toast('Ce fichier n’a pas pu être lu par le navigateur (déplacé, en cours de synchronisation iCloud ou droits d’accès). Copiez-le sur le Bureau, puis réimportez-le.');throw e}}
+ await rawPut(id,b);
  const bl=b instanceof Blob?b:new Blob([b],{type:'application/pdf'});
  for(let t=0;t<3;t++){try{const r=await SB.storage.from('pdfs').upload(stPath(id),bl,{upsert:true,contentType:bl.type||'application/pdf'});if(!r.error)return;throw r.error}catch(e){await new Promise(z=>setTimeout(z,1500*(t+1)))}}
  toast('Le fichier n’a pas pu être envoyé en ligne : vérifiez votre connexion et réimportez-le.')}
 async function fget(id){const db=await idb();let r=await new Promise((res,rej)=>{const q=db.transaction('f').objectStore('f').get(id);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
  if(r&&r.enc===1){if(!window.CK)return null;r=await openF(r,window.CK)}
+ if(r&&r instanceof Blob){try{await r.slice(0,1).arrayBuffer()}catch(e){r=null}}
  if(!r){try{const d=await SB.storage.from('pdfs').download(stPath(id));if(d.data){r=d.data;await rawPut(id,r)}}catch(e){}}
  return r}
 async function idbAll(){const db=await idb();return new Promise((res,rej)=>{const out=[];const q=db.transaction('f').objectStore('f').openCursor();q.onsuccess=()=>{const c=q.result;if(c){out.push([c.key,c.value]);c.continue()}else res(out)};q.onerror=()=>rej(q.error)})}
