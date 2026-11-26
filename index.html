@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v313</title>
+<title>YES CRM · v314</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -1416,11 +1416,18 @@ async function vaRun(){const f=F();if(!f)return;const say=t=>{const e=document.g
  if(!ds.length){toast('Ajoutez d’abord les pièces du dossier (bouton « Ajouter des pièces »).');return}
  const docs=[];let i=0;for(const d of ds){i++;say('Lecture '+i+'/'+ds.length+' : '+(d.t||'document')+'… (un scan peut prendre 1 minute)');try{docs.push(await vaRead(d))}catch(e){docs.push({id:d.id,t:d.t,type:'illisible',fields:{},flags:[{c:'coh',s:'warn',x:'Fichier illisible : '+(e.message||e)}],txt:''})}}
  f.va=vaEval(f,docs);f.va.at=Date.now();f.va.filled=vaFill(f,docs);save();render();toast('Analyse terminée : indice '+f.va.score+' %.'+(f.va.filled.length?' Fiche pré-remplie : '+f.va.filled.length+' champ'+(f.va.filled.length>1?'s':'')+'.':''))}
-function vaFill(f,docs){const out=[],ty=t=>docs.filter(d=>d.type===t),nets=ty('bulletin').map(d=>d.fields.net).filter(x=>x>300&&x<30000);
+function vaFill(f,docs){const out=[],isG=d=>{const x=(f.d||[]).find(z=>z.id===d.id);return !!x&&/garant/i.test(x.grp||'')},DL=docs.filter(d=>!isG(d)),DG=docs.filter(isG),tyOf=(A,t)=>A.filter(d=>d.type===t),eNet=A=>tyOf(A,'bulletin').map(d=>d.fields.net).filter(x=>x>300&&x<30000),sitOf=ct=>{const C=ct.fields;let v=C.typeC==='cdi'?'cdi':'cdd';if(v==='cdi'&&C.essai&&C.deb){const e=new Date(C.deb+'T12:00:00');e.setDate(e.getDate()+C.essai);if(e>new Date())v='cdie'}return v},lb=v=>(VA_SIT.find(x=>x[0]===v)||[])[1]||v;
+ const nets=eNet(DL);
  if(!f.vrev&&nets.length){f.vrev=String(Math.round(nets.reduce((a,b)=>a+b,0)/nets.length));out.push('Revenus nets mensuels : '+eur(+f.vrev)+' (moyenne de '+nets.length+' bulletin'+(nets.length>1?'s':'')+')')}
- const ct=ty('contrat').find(d=>d.fields.typeC||d.fields.deb);
- if(!f.vsit&&ct&&ct.fields.typeC){const C=ct.fields;let v=C.typeC==='cdi'?'cdi':'cdd';if(v==='cdi'&&C.essai&&C.deb){const e=new Date(C.deb+'T12:00:00');e.setDate(e.getDate()+C.essai);if(e>new Date())v='cdie'}f.vsit=v;out.push('Situation professionnelle : '+((VA_SIT.find(x=>x[0]===v)||[])[1]||v))}
- if(!f.vanc){const ds=[ct&&ct.fields.deb].concat(ty('bulletin').map(d=>d.fields.entree)).filter(Boolean).sort();if(ds.length){f.vanc=ds[0];out.push('Contrat en cours depuis le '+fDate(ds[0]))}}
+ const ct=tyOf(DL,'contrat').find(d=>d.fields.typeC||d.fields.deb);
+ if(!f.vsit&&ct&&ct.fields.typeC){const v=sitOf(ct);f.vsit=v;out.push('Situation professionnelle : '+lb(v))}
+ if(!f.vanc){const ds=[ct&&ct.fields.deb].concat(tyOf(DL,'bulletin').map(d=>d.fields.entree)).filter(Boolean).sort();if(ds.length){f.vanc=ds[0];out.push('Contrat en cours depuis le '+fDate(ds[0]))}}
+ if(DG.length){
+  if(!f.vgt){if(tyOf(DG,'visale').length){f.vgt='visale';out.push('Garant : garantie Visale (pièce Visale reçue)')}else if(tyOf(DG,'identite').length||eNet(DG).length||tyOf(DG,'avis').length||tyOf(DG,'contrat').length){f.vgt='phys';out.push('Garant : personne physique (pièces du garant reçues)')}}
+  const gn=eNet(DG);
+  if(!f.vg1rev&&gn.length){f.vg1rev=String(Math.round(gn.reduce((a,b)=>a+b,0)/gn.length));out.push('Garant · revenus nets mensuels : '+eur(+f.vg1rev)+' (moyenne de '+gn.length+' bulletin'+(gn.length>1?'s':'')+')')}
+  const gc=tyOf(DG,'contrat').find(d=>d.fields.typeC);
+  if(!f.vg1sit&&gc){const v=sitOf(gc);f.vg1sit=v;out.push('Garant · situation professionnelle : '+lb(v))}}
  return out}
 
 function panelVerif(f){const op=V['pn_va']?' open':'',a=f.va,col=s=>s>=80?'#2e8b57':s>=60?'#d98a00':'#c0392b',lab=s=>s>=80?'Dossier fiable':s>=60?'À vérifier':'Risque élevé';
