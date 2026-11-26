@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v312</title>
+<title>YES CRM · v313</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -1415,7 +1415,14 @@ async function vaRead(d){let text='',meta=null,scan=false;
 async function vaRun(){const f=F();if(!f)return;const say=t=>{const e=document.getElementById('vaP');if(e)e.textContent=t},ds=(f.d||[]).filter(d=>/locataire/i.test(d.grp||''));
  if(!ds.length){toast('Ajoutez d’abord les pièces du dossier (bouton « Ajouter des pièces »).');return}
  const docs=[];let i=0;for(const d of ds){i++;say('Lecture '+i+'/'+ds.length+' : '+(d.t||'document')+'… (un scan peut prendre 1 minute)');try{docs.push(await vaRead(d))}catch(e){docs.push({id:d.id,t:d.t,type:'illisible',fields:{},flags:[{c:'coh',s:'warn',x:'Fichier illisible : '+(e.message||e)}],txt:''})}}
- f.va=vaEval(f,docs);f.va.at=Date.now();save();render();toast('Analyse terminée : indice '+f.va.score+' %.')}
+ f.va=vaEval(f,docs);f.va.at=Date.now();f.va.filled=vaFill(f,docs);save();render();toast('Analyse terminée : indice '+f.va.score+' %.'+(f.va.filled.length?' Fiche pré-remplie : '+f.va.filled.length+' champ'+(f.va.filled.length>1?'s':'')+'.':''))}
+function vaFill(f,docs){const out=[],ty=t=>docs.filter(d=>d.type===t),nets=ty('bulletin').map(d=>d.fields.net).filter(x=>x>300&&x<30000);
+ if(!f.vrev&&nets.length){f.vrev=String(Math.round(nets.reduce((a,b)=>a+b,0)/nets.length));out.push('Revenus nets mensuels : '+eur(+f.vrev)+' (moyenne de '+nets.length+' bulletin'+(nets.length>1?'s':'')+')')}
+ const ct=ty('contrat').find(d=>d.fields.typeC||d.fields.deb);
+ if(!f.vsit&&ct&&ct.fields.typeC){const C=ct.fields;let v=C.typeC==='cdi'?'cdi':'cdd';if(v==='cdi'&&C.essai&&C.deb){const e=new Date(C.deb+'T12:00:00');e.setDate(e.getDate()+C.essai);if(e>new Date())v='cdie'}f.vsit=v;out.push('Situation professionnelle : '+((VA_SIT.find(x=>x[0]===v)||[])[1]||v))}
+ if(!f.vanc){const ds=[ct&&ct.fields.deb].concat(ty('bulletin').map(d=>d.fields.entree)).filter(Boolean).sort();if(ds.length){f.vanc=ds[0];out.push('Contrat en cours depuis le '+fDate(ds[0]))}}
+ return out}
+
 function panelVerif(f){const op=V['pn_va']?' open':'',a=f.va,col=s=>s>=80?'#2e8b57':s>=60?'#d98a00':'#c0392b',lab=s=>s>=80?'Dossier fiable':s>=60?'À vérifier':'Risque élevé';
  const inp=(k,l,p,t)=>`<div><label>${l}</label><input data-xf='${k}' ${t?`type='${t}'`:`inputmode='decimal'`} placeholder="${p||''}" value="${esc(f[k]||'')}"></div>`,sel=(k,l,o)=>`<div><label>${l}</label><select data-xf='${k}'>${o.map(x=>`<option value="${x[0]}"${f[k]===x[0]?' selected':''}>${esc(x[1])}</option>`).join('')}</select></div>`;
  const n=(f.d||[]).filter(d=>/locataire/i.test(d.grp||'')).length;
@@ -1431,7 +1438,7 @@ function panelVerif(f){const op=V['pn_va']?' open':'',a=f.va,col=s=>s>=80?'#2e8b
  <p class='m' style='margin:0 0 8px'>Contrôle la cohérence des pièces reçues (revenus, noms, dates, clés SIRET/IBAN, signaux techniques des fichiers) et le rapport loyer / revenus / garant. <b>C’est une aide à la décision</b> : un indice élevé ne prouve pas qu’un dossier est authentique, un indice bas ne prouve pas une fraude. Les avis d’imposition se vérifient aussi à la source (lien ci-dessous).</p>
  <div class='cgrid'>${inp('vrev','Revenus nets mensuels du candidat (€)','ex. 2400')}${inp('vrev2','Revenus nets mensuels du co-locataire (€)','facultatif')}${sel('vsit','Situation professionnelle',VA_SIT)}${inp('vanc','Contrat en cours depuis le','','date')}${sel('vgt','Garantie',VA_GT)}${inp('vg1n','Garant : nom','facultatif','text')}${inp('vg1rev','Garant : revenus nets mensuels (€)','ex. 3500')}${sel('vg1sit','Garant : situation',VA_SIT)}${inp('vg2rev','2e garant : revenus nets mensuels (€)','facultatif')}</div>
  <div style='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0'><button type='button' data-a='vaAdd'>➕ Ajouter des pièces (PDF, photos)</button><input type='file' id='vaF' multiple accept='application/pdf,image/*' style='display:none'><button type='button' class='p' data-a='vaRun'${n?'':' disabled'}>🔍 Analyser le dossier (${n} pièce${n>1?'s':''})</button><a href='https://www.economie.gouv.fr/particuliers/authenticite-avis-impot-svair' target='_blank' rel='noopener'><button type='button'>🔗 Vérifier un avis d’imposition (impots.gouv)</button></a></div>
- <div id='vaP' class='m' style='min-height:18px'></div>${res}
+ <div id='vaP' class='m' style='min-height:18px'></div>${a&&a.filled&&a.filled.length?`<div class='card' style='flex-direction:column;align-items:stretch;gap:2px;margin:8px 0;border-left:6px solid #2e8b57'><b>✍️ Pré-rempli d’après les pièces (champs vides uniquement)</b>${a.filled.map(x=>`<span style='font-size:14px'>• ${esc(x)}</span>`).join('')}<span class='m'>Vérifiez ces valeurs dans les champs ci-dessus : la lecture automatique peut se tromper.</span></div>`:''}${res}
  <p class='m' style='font-size:12px;margin:6px 0 0'>L’analyse se fait entièrement dans votre navigateur (aucun service payant, rien n’est envoyé à un tiers). Les scans sont lus par reconnaissance de texte, moins fiable : confirmez toujours à l’œil. Conformité : ne conservez que les pièces prévues par le décret n° 2015-1437.</p></details>`}
 document.addEventListener('change',async e=>{const t=e.target;if(!t||t.id!=='vaF')return;const f=F();if(!f||!t.files.length)return;const fl=[...t.files];t.value='';if(!S.cats.some(x=>x.n==='Dossier locataire'))S.cats.push({n:'Dossier locataire',t:'p'});window.__impAuto=1;try{await importFiles(fl,'Dossier locataire',f.id)}catch(er){}window.__impAuto=0;V['pn_va']=1;render()});
 function extraPanels(f){if(f.mode==='l')return panelBail(f)+panelImpL(f)+panelEdl(f)+panelPieces(f)+panelVerif(f)+panelBien(f)+panelMandatL(f)+(f.bid?'':panelVis(f))+panelHist(f)+panelArc(f)+panelMdl(f)+panelSg(f);
