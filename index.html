@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v308</title>
+<title>YES CRM · v309</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -2204,10 +2204,15 @@ const FBTH_L=[['new','Nouveau bien à louer'],['excl','Exclusivité'],['baisse',
 function bFbTxt(b){const l=b.mode==='l',th=b.fbth||'new',ville=(String(b.adr||'').match(/\b\d{5}\s+(.+)$/)||[])[1]||'',typ=b.type||'Bien';
  const H={new:l?'🔑 NOUVEAU À LOUER':'🏡 NOUVEAU BIEN EN VENTE',excl:'⭐ EXCLUSIVITÉ YES IMMOBILIER',baisse:l?'📉 BAISSE DE LOYER':'📉 BAISSE DE PRIX',visite:'📅 VISITES',coeur:'😍 COUP DE CŒUR',vendu:l?'🎉 LOUÉ !':'🎉 VENDU !'}[th];
  const L=[H+(ville?' · '+ville:''),''];
- const car=[typ,b.surf?b.surf+' m²':'',b.nbp?b.nbp+' pièces':'',b.nbch?b.nbch+' chambre'+(+b.nbch>1?'s':''):''].filter(Boolean).join(' · ');L.push((b.titre?b.titre+'\n':'')+'📍 '+car);
+ const nL=(b.lt||[]).length||num(b.lots),car=[typ,b.surf?b.surf+' m²':'',b.terr?'terrain '+b.terr+' m²':'',b.nbp?b.nbp+' pièces':'',b.nbch?b.nbch+' chambre'+(+b.nbch>1?'s':''):'',b.netg&&/immeuble/i.test(typ)?b.netg+' étage'+(num(b.netg)>1?'s':''):''].filter(Boolean).join(' · ');L.push((b.titre?b.titre+'\n':'')+'📍 '+car);
  if((b.tags||[]).length)L.push('✅ '+b.tags.slice(0,5).join(' · '));
  if(th==='vendu'){L.push('','Merci à nos clients pour leur confiance ! Vous avez un projet ? Parlons-en.')}
  else{if(b.prix){if(l){const C=num(b.lchg);L.push('💶 Loyer : '+bPrix(b)+(C?' + '+eur(C)+' de charges':'')+(b.ldg?' · dépôt de garantie '+eur(num(b.ldg)):'')+(b.lmeu==='meuble'?' · meublé':b.lmeu==='vide'?' · non meublé':''));if(b.ldispo)L.push('🗓️ Disponible le '+fDate(b.ldispo))}else L.push('💶 Prix : '+bPrix(b)+(b.honc?' (honoraires à la charge '+(b.honc==='vendeur'?'du vendeur':'de l’acquéreur')+')':''))}
+  if(!l){let r={};try{r=bRent(b)}catch(e){}
+   if(nL){const lg=num(b.nlog),cm=num(b.ncom);L.push('🏢 '+nL+' lot'+(nL>1?'s':'')+(lg||cm?' : '+[lg?lg+' logement'+(lg>1?'s':''):'',cm?cm+' commerce'+(cm>1?'s':'')+' / local'+(cm>1?'aux':''):''].filter(Boolean).join(' et '):''))}
+   if((b.lt||[]).length&&(b.lt||[]).length<=10)b.lt.forEach(x=>{const d=[x.n,num(x.s)?x.s+' m²':'',num(x.loyer)?eur(num(x.loyer))+'/mois':'',x.occ].filter(Boolean).join(' · ');if(d)L.push('   • '+d)});
+   if(r.m)L.push('📈 Loyers : '+eur(r.m)+'/mois ('+eur(r.a)+'/an)'+(r.brut?' · rentabilité brute '+r.brut:'')+(r.net&&num(b.tf)+num(b.chg)?' · nette '+r.net:''));
+   if(num(b.tf))L.push('🧾 Taxe foncière : '+eur(num(b.tf))+'/an');}
   if(b.dpe)L.push('⚡ DPE '+b.dpe+(b.ges?' · GES '+b.ges:''))}
  const ins=(b.fbins||'').trim();if(ins)L.push('',ins);
  if(th!=='vendu')L.push('','📞 Contactez YES Immobilier pour organiser une visite.'+(b.ref?' Réf. '+b.ref:''));
