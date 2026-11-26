@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v316</title>
+<title>YES CRM · v317</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -1303,7 +1303,14 @@ function vaMrz(text){const L=String(text).split('\n').map(l=>l.replace(/\s/g,'')
  else if(L.length>=3&&L[0].length===30&&L[1].length===30){const a=L[0],b=L[1];if(!vaMcd(a.slice(5,14),a[14]))bad.push('n° de document');if(!vaMcd(b.slice(0,6),b[6]))bad.push('date de naissance');if(!vaMcd(b.slice(8,14),b[14]))bad.push('date d’expiration');exp=b.slice(8,14)}
  else return null;
  let ex='';if(/^\d{6}$/.test(exp)){ex='20'+exp.slice(0,2)+'-'+exp.slice(2,4)+'-'+exp.slice(4,6)}
- return{bad,exp:ex}}
+ let nom='',prenom='',naiss='',sex='';try{let nl='',dn='',sx='';
+  if(last.length===44||last.length===36){nl=L[L.length-2].slice(5);dn=last.slice(13,19);sx=last[20]}
+  else{nl=L[2];dn=L[1].slice(0,6);sx=L[1][7]}
+  const p=String(nl||'').split('<<'),cp=w=>w.toLowerCase().replace(/(^|[\s'-])([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
+  nom=(p[0]||'').replace(/</g,' ').replace(/\s+/g,' ').trim();prenom=cp((p.slice(1).join(' ')||'').replace(/</g,' ').replace(/\s+/g,' ').trim());
+  if(/^\d{6}$/.test(dn)){const yy=+dn.slice(0,2);naiss=(yy>new Date().getFullYear()%100?'19':'20')+dn.slice(0,2)+'-'+dn.slice(2,4)+'-'+dn.slice(4,6)}
+  sex=sx==='F'?'F':sx==='M'?'M':'';if(!/^[A-Z' -]{2,}$/.test(nom))nom=''}catch(e){}
+ return{bad,exp:ex,nom,prenom,naiss,sex}}
 function vaPdfDate(s){const m=String(s||'').match(/D:(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?/);return m?Date.UTC(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0),+(m[6]||0)):0}
 const VA_MOIS=['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
 function vaPeriod(S){const N=norm(S);let m=N.match(/(?:periode|mois)[^\d\n]{0,25}(?:du\s*)?(\d{1,2})\s*[\/\.\-]\s*(\d{1,2})\s*[\/\.\-]\s*(\d{4})/);if(m)return m[3]+'-'+String(m[2]).padStart(2,'0');
@@ -1346,7 +1353,7 @@ function vaExtract(text,name,meta,scan,id){const T=String(text||''),S1=T.replace
   const en=S1.match(/(?:soci[ée]t[ée]|entreprise)\s+([A-Z][A-Za-z0-9&'\-\. ]{2,40}?)(?=\s*[,\(]|\s+(?:SAS|SARL|SA|SASU|au\s+capital|dont))/);if(en)F.emp=en[1].trim();
   if(!F.typeC&&!F.brut&&!F.deb)fl.push({c:'coh',s:'info',x:'Contrat / attestation : type, date d’embauche et salaire non lus.'})}
  if(type==='rib'){const m=S1.match(/\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){3,7}\s?[A-Z0-9]{1,4}\b/);if(m){F.iban=m[0].replace(/\s/g,'');if(!vaIban(F.iban))fl.push({c:'auth',s:scan?'warn':'crit',x:'IBAN invalide (clé de contrôle fausse) : '+F.iban.replace(/(.{4})/g,'$1 ').trim()+'.'+noteScan})}else fl.push({c:'coh',s:'info',x:'IBAN non lu.'})}
- if(type==='identite'&&mrz){if(mrz.bad.length)fl.push({c:'auth',s:sv,x:'Zone de lecture automatique (MRZ) incohérente : '+mrz.bad.join(', ')+'.'+noteScan});else fl.push({c:'auth',s:'ok',x:'Zone MRZ de la pièce d’identité cohérente.'});if(mrz.exp){F.exp=mrz.exp;if(mrz.exp<isoT())fl.push({c:'coh',s:'warn',x:'Pièce d’identité périmée depuis le '+fDate(mrz.exp)+'.'})}}
+ if(type==='identite'&&mrz){if(mrz.bad.length)fl.push({c:'auth',s:sv,x:'Zone de lecture automatique (MRZ) incohérente : '+mrz.bad.join(', ')+'.'+noteScan});else fl.push({c:'auth',s:'ok',x:'Zone MRZ de la pièce d’identité cohérente.'});if(mrz.nom){F.nom=mrz.nom;F.prenom=mrz.prenom;F.naiss=mrz.naiss;F.sex=mrz.sex}if(mrz.exp){F.exp=mrz.exp;if(mrz.exp<isoT())fl.push({c:'coh',s:'warn',x:'Pièce d’identité périmée depuis le '+fDate(mrz.exp)+'.'})}}
  else if(type==='identite')fl.push({c:'auth',s:'info',x:'Pièce d’identité lue sans zone MRZ : contrôle visuel nécessaire.'});
  if(meta){const prod=((meta.producer||'')+' '+(meta.creator||'')).toLowerCase();
   if(/photoshop|gimp|canva|ilovepdf|smallpdf|pdfescape|sejda|pdf24|online2pdf|pdfcandy|inkscape|pixlr/.test(prod))fl.push({c:'auth',s:'warn',x:'Fichier passé par un outil d’édition ou de conversion ('+(meta.producer||meta.creator).trim()+').'});
@@ -1426,6 +1433,8 @@ function vaFill(f,docs){const out=[],isG=d=>{const x=(f.d||[]).find(z=>z.id===d.
   if(!f.vgt){if(tyOf(DG,'visale').length){f.vgt='visale';out.push('Garant : garantie Visale (pièce Visale reçue)')}else if(tyOf(DG,'identite').length||eNet(DG).length||tyOf(DG,'avis').length||tyOf(DG,'contrat').length){f.vgt='phys';out.push('Garant : personne physique (pièces du garant reçues)')}}
   const gn=eNet(DG);
   if(!f.vg1rev&&gn.length){f.vg1rev=String(Math.round(gn.reduce((a,b)=>a+b,0)/gn.length));out.push('Garant · revenus nets mensuels : '+eur(+f.vg1rev)+' (moyenne de '+gn.length+' bulletin'+(gn.length>1?'s':'')+')')}
+  const gi=tyOf(DG,'identite').find(d=>d.fields.nom);
+  if(!f.vg1n&&gi){f.vg1n=((gi.fields.prenom||'')+' '+gi.fields.nom).trim();out.push('Garant · nom : '+f.vg1n)}
   const gc=tyOf(DG,'contrat').find(d=>d.fields.typeC);
   if(!f.vg1sit&&gc){const v=sitOf(gc);f.vg1sit=v;out.push('Garant · situation professionnelle : '+lb(v))}}
  return out}
@@ -1445,7 +1454,7 @@ function panelVerif(f){const op=V['pn_va']?' open':'',a=f.va,col=s=>s>=80?'#2e8b
  <p class='m' style='margin:0 0 8px'>Contrôle la cohérence des pièces reçues (revenus, noms, dates, clés SIRET/IBAN, signaux techniques des fichiers) et le rapport loyer / revenus / garant. <b>C’est une aide à la décision</b> : un indice élevé ne prouve pas qu’un dossier est authentique, un indice bas ne prouve pas une fraude. Les avis d’imposition se vérifient aussi à la source (lien ci-dessous).</p>
  <div class='cgrid'>${inp('vrev','Revenus nets mensuels du candidat (€)','ex. 2400')}${inp('vrev2','Revenus nets mensuels du co-locataire (€)','facultatif')}${sel('vsit','Situation professionnelle',VA_SIT)}${inp('vanc','Contrat en cours depuis le','','date')}${sel('vgt','Garantie',VA_GT)}${inp('vg1n','Garant : nom','facultatif','text')}${inp('vg1rev','Garant : revenus nets mensuels (€)','ex. 3500')}${sel('vg1sit','Garant : situation',VA_SIT)}${inp('vg2rev','2e garant : revenus nets mensuels (€)','facultatif')}</div>
  <div style='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0'><button type='button' data-a='vaAdd'>➕ Ajouter des pièces (PDF, photos)</button><input type='file' id='vaF' multiple accept='application/pdf,image/*' style='display:none'><button type='button' class='p' data-a='vaRun'${n?'':' disabled'}>🔍 Analyser le dossier (${n} pièce${n>1?'s':''})</button><a href='https://www.economie.gouv.fr/particuliers/authenticite-avis-impot-svair' target='_blank' rel='noopener'><button type='button'>🔗 Vérifier un avis d’imposition (impots.gouv)</button></a></div>
- <div id='vaP' class='m' style='min-height:18px'></div>${a&&a.filled&&a.filled.length?`<div class='card' style='flex-direction:column;align-items:stretch;gap:2px;margin:8px 0;border-left:6px solid #2e8b57'><b>✍️ Pré-rempli d’après les pièces (champs vides uniquement)</b>${a.filled.map(x=>`<span style='font-size:14px'>• ${esc(x)}</span>`).join('')}<span class='m'>Vérifiez ces valeurs dans les champs ci-dessus : la lecture automatique peut se tromper.</span></div>`:''}${res}
+ <div id='vaP' class='m' style='min-height:18px'></div>${(()=>{if(!a)return '';const isG=d=>{const x=(f.d||[]).find(z=>z.id===d.id);return !!x&&/garant/i.test(x.grp||'')},have=new Set((typeof partyC==='function'?partyC(f,'aids'):[]).map(c=>norm((c.prenom||'')+' '+(c.nom||'')))),L=a.docs.filter(d=>d.type==='identite'&&d.fields&&d.fields.nom&&!isG(d));if(!L.length)return '';return `<div class='card' style='flex-direction:column;align-items:stretch;gap:6px;margin:8px 0;border-left:6px solid #2f6fa8'><b>🪪 Identité lue sur la pièce d’identité</b>${L.map(d=>{const F=d.fields,nm=((F.prenom||'')+' '+F.nom).trim(),ex=have.has(norm(nm))||have.has(norm(F.nom+' '+(F.prenom||'')));return `<div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap'><span style='flex:1;min-width:200px'>${esc(F.sex==='F'?'Madame':F.sex==='M'?'Monsieur':'')} <b>${esc(nm)}</b>${F.naiss?` · né(e) le ${esc(fDate(F.naiss))}`:''}</span>${ex?`<span class='m'>✅ déjà rattaché au dossier</span>`:`<button type='button' class='p' data-a='vaMk' data-id='${esc(d.id)}'>👤 Créer le locataire</button>`}</div>`}).join('')}<span class='m'>Lecture de la zone MRZ en bas de la carte : vérifiez l’orthographe dans la fiche avant d’enregistrer.</span></div>`})()}${a&&a.filled&&a.filled.length?`<div class='card' style='flex-direction:column;align-items:stretch;gap:2px;margin:8px 0;border-left:6px solid #2e8b57'><b>✍️ Pré-rempli d’après les pièces (champs vides uniquement)</b>${a.filled.map(x=>`<span style='font-size:14px'>• ${esc(x)}</span>`).join('')}<span class='m'>Vérifiez ces valeurs dans les champs ci-dessus : la lecture automatique peut se tromper.</span></div>`:''}${res}
  <p class='m' style='font-size:12px;margin:6px 0 0'>L’analyse se fait entièrement dans votre navigateur (aucun service payant, rien n’est envoyé à un tiers). Les scans sont lus par reconnaissance de texte, moins fiable : confirmez toujours à l’œil. Conformité : ne conservez que les pièces prévues par le décret n° 2015-1437.</p></details>`}
 document.addEventListener('change',async e=>{const t=e.target;if(!t||t.id!=='vaF')return;const f=F();if(!f||!t.files.length)return;const fl=[...t.files];t.value='';if(!S.cats.some(x=>x.n==='Dossier locataire'))S.cats.push({n:'Dossier locataire',t:'p'});window.__impAuto=1;try{await importFiles(fl,'Dossier locataire',f.id)}catch(er){}window.__impAuto=0;V['pn_va']=1;render()});
 function extraPanels(f){if(f.mode==='l')return panelBail(f)+panelImpL(f)+panelEdl(f)+panelPieces(f)+panelVerif(f)+panelBien(f)+panelMandatL(f)+(f.bid?'':panelVis(f))+panelHist(f)+panelArc(f)+panelMdl(f)+panelSg(f);
@@ -7152,7 +7161,7 @@ document.addEventListener('click',e=>{
   else if(s==='rel'&&x.indexOf('~r')>0){S.f.forEach(f=>(f.vis||[]).forEach(v=>{if(f.id+'~r'+v.id===x)v.relOk=true}))}
   else S.tdis[k]=dd(30);
   save();render();if(typeof toast==='function')toast(a==='tdOk'?'Tâche validée ✓':'Reportée à demain.')}
- else if(a==='vaRun'){vaRun()}else if(a==='vaAdd'){const i=document.getElementById('vaF');if(i)i.click()}
+ else if(a==='vaMk'){const f=F(),d=f&&((f.va||{}).docs||[]).find(x=>x.id===id);if(!d||!d.fields||!d.fields.nom)return;const Fd=d.fields;let c=(S.c||[]).find(x=>norm(x.nom||'')===norm(Fd.nom)&&norm(x.prenom||'')===norm(Fd.prenom||''));if(!c){c=Object.assign(blankC(),{nom:Fd.nom,prenom:Fd.prenom||'',naiss:Fd.naiss||'',civ:Fd.sex==='F'?'Madame':'Monsieur',role:'locataire'});S.c.push(c)}f.aids=f.aids||[];if(!f.aids.includes(c.id))f.aids.push(c.id);save();openContact(c.id,{v:'folder',fid:V.fid})}else if(a==='vaRun'){vaRun()}else if(a==='vaAdd'){const i=document.getElementById('vaF');if(i)i.click()}
  else if(a==='mcAdd'){mcDlg(id)}else if(a==='mcAll'){mcDlg()}else if(a==='mcOpen'){const c=(S.c||[]).find(x=>String(x.email||'').toLowerCase()===String(id).toLowerCase());if(c)openContact(c.id,{v:'mail'})}
  else if(a==='bselMail'){bselMail()}else if(a==='bselAll'){const b=bCur();if(b){const all=bpdAll(b).filter(x=>x.d.pdf),on=all.some(x=>!bsSel()[x.d.id]);all.forEach(x=>bsSel()[x.d.id]=on);render()}}
  else if(a==='spPhotos'){spPhotos()}else if(a==='spDocs'){spDocs(F())}
