@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v321</title>
+<title>YES CRM · v322</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -1781,18 +1781,39 @@ const dchList=()=>(S.dch=S.dch||[]);
 const dchCur=()=>dchList().find(x=>x.id===DCH.id);
 const dchDt=iso=>{try{return new Date(iso).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
 function dchNew(){const me=String((S.set||{}).me||'').trim();return {id:uid(),cre:new Date().toISOString(),bid:'',v:{agent:me},c:{},t:DCH_TH.length?Array.from({length:6},()=>({})):[],to:DCH_TO.map(x=>x[1]),toX:'',hist:[]}}
-function dchFromB(d,b){if(!b)return;const v=d.v=d.v||{},c=d.c=d.c||{},set=(k,x)=>{if(x!==undefined&&x!==null&&String(x).trim()!==''&&!String(v[k]||'').trim())v[k]=String(x)};
- set('adr',[b.adr,b.adr2].filter(Boolean).join(' – '));set('refa',b.ref);set('surf',b.surf);set('terr',b.terr);set('dpe',b.dpe);set('prix',b.prix);set('hon',b.hon);set('tf',b.tf);set('chg',b.chg);set('lots',b.lots);
- if(!(c.bien||[]).length&&b.type){const t=String(b.type);c.bien=[/immeuble/i.test(t)?'Immeuble de rapport':/appart/i.test(t)?'Appartement':/maison/i.test(t)?'Maison':/local|commerc/i.test(t)?'Local commercial':'Autre']}
- if(!(c.prop||[]).length&&b.cop)c.prop=[b.cop==='o'?'Copropriété':'Monopropriété']}
-function dchFromM(d,p){if(!p)return;const v=d.v=d.v||{},c=d.c=d.c||{},set=(k,x)=>{if(x!==undefined&&x!==null&&String(x).trim()!==''&&!String(v[k]||'').trim())v[k]=String(x)};
- if(p.bid)dchFromB(d,bBy(p.bid));
- set('adr',p.adr);set('prix',(p.acq||{}).prix);set('hon',(p.acq||{}).agence);set('tf',(p.port||{}).tf);
- const it=((p.trav||{}).items||[]).filter(x=>x&&(x.l||num(x.mt))),tot=it.reduce((a,x)=>a+num(x.mt),0);if(tot)set('bud',String(Math.round(tot)));
- const L=((p.vente||{}).lots||[]);if(L.length){set('nbl',String(L.length));const ss=L.reduce((a,l)=>a+num(l.s),0);if(ss)set('sfin',String(Math.round(ss*100)/100))}
- if(!(c.obj||[]).length)c.obj=['Marchand de biens / revente'];
+const dchSet=(d,k,x)=>{d.v=d.v||{};if(x!==undefined&&x!==null&&String(x).trim()!==''&&!String(d.v[k]||'').trim())d.v[k]=String(x)};
+const dchCk=(d,g,a)=>{d.c=d.c||{};if(a&&a.length&&!(d.c[g]||[]).length)d.c[g]=a};
+function dchTrav(b){const all=Object.entries(b.trav||{}).map(([k,o])=>[k,o]).concat((b.travx||[]).map(o=>[o&&o.n,o])).filter(([k,o])=>k&&o&&o.st);return {a:all.filter(([k,o])=>o.st==='a').map(([k,o])=>'• '+k+(o.an?' ('+o.an+')':'')+(num(o.cout)?' – '+eur(num(o.cout)):'')),f:all.filter(([k,o])=>o.st==='f').map(([k,o])=>k+(o.an?' ('+o.an+')':''))}}
+function dchFromB(d,b,noT){if(!b)return;const st=(k,x)=>dchSet(d,k,x),ck=(g,a)=>dchCk(d,g,a),lt=b.lt||[],nL=lt.length||num(b.lots),tr=dchTrav(b),nm=x=>String((x&&x.n)||'');
+ st('adr',[b.adr,b.adr2].filter(Boolean).join(' – '));st('refa',b.ref);st('surf',b.surf);st('terr',b.terr);st('dpe',[b.dpe,b.ges?'GES '+b.ges:''].filter(Boolean).join(' · '));
+ st('prix',b.prix);st('hon',b.hon);st('tf',b.tf);st('chg',b.chg);st('lots',nL||'');
+ st('park',lt.filter(x=>/parking|stationnement/i.test(nm(x))).length||'');st('gar',lt.filter(x=>/garage|box/i.test(nm(x))).length||'');
+ if(num(b.prix)){const pc=b.fnot!==undefined&&String(b.fnot).trim()!==''?num(b.fnot):7.5;st('fn',Math.round(num(b.prix)*pc/100))}
+ try{const bv=bTravBud(b).v;if(bv>0)st('bud',Math.round(bv))}catch(e){}
+ if(b.type){const t=String(b.type);ck('bien',[/immeuble/i.test(t)?'Immeuble de rapport':/appart/i.test(t)?'Appartement':/maison/i.test(t)?'Maison':/local|commerc|fonds/i.test(t)?'Local commercial':'Autre'])}
+ if(b.cop)ck('prop',[b.cop==='o'?'Copropriété':'Monopropriété']);
+ {const o=String(b.occ||'');ck('occ',/mixte/i.test(o)?['Mixte']:/libre|vacant/i.test(o)?['Libre']:/occup|lou/i.test(o)?['Occupé']:[])}
+ if(tr.a.length)st('spec',tr.a.join('\n'));
+ st('stat',[b.plu&&'Zone PLU / certificat d’urbanisme : '+b.plu,b.cstb&&'Constructible : '+b.cstb].filter(Boolean).join(' · '));
+ {const bits=[],tech=[['Année de construction',b.annee],['Niveaux / étages',b.netg],['Chauffage',[b.chauf,b.ener].filter(Boolean).join(' – ')],['Toiture',b.toit],['Menuiseries',[b.menu,b.vitg].filter(Boolean).join(' – ')],['Assainissement',b.assain],['Construction',b.constr],['Nombre de pièces',b.nbp],['Activité / destination',b.act]].filter(x=>x[1]&&String(x[1]).trim());
+  if(tech.length)bits.push(tech.map(x=>x[0]+' : '+x[1]).join(' ; '));
+  if(lt.length)bits.push('Lots existants :\n'+lt.map(x=>'• '+[nm(x),num(x.s)?x.s+' m²':'',num(x.loyer)?eur(num(x.loyer))+'/mois':'',x.occ].filter(Boolean).join(' · ')).join('\n'));
+  if(tr.f.length)bits.push('Travaux déjà réalisés : '+tr.f.join(', '));
+  st('compl',bits.join('\n\n'))}
+ ck('pj',[(b.plans||[]).length?'Plans':'',lt.length?'Tableau des lots':'',lt.some(x=>num(x.loyer))?'Baux / loyers actuels':''].filter(Boolean));
+ if(!noT&&!(d.t||[]).some(x=>x&&x.l)&&lt.length){d.t=Array.from({length:Math.max(6,lt.length)},(_,i)=>{const l=lt[i];return l?{l:nm(l),q:'1',m:String(l.s||''),mo:String(l.occ||''),loy:String(l.loyer||''),rev:''}:{}})}}
+function dchFromM(d,p){if(!p)return;const st=(k,x)=>dchSet(d,k,x),ck=(g,a)=>dchCk(d,g,a),bb=p.bid?bBy(p.bid):null;if(p.bid&&!d.bid)d.bid=p.bid;
+ const L=((p.vente||{}).lots||[]);
  if(L.length&&!(d.t||[]).some(x=>x&&x.l)){d.t=Array.from({length:Math.max(6,L.length)},(_,i)=>{const l=L[i];return l?{l:l.n||'',q:'1',m:String(l.s||''),loy:String(l.loyer||''),rev:String(l.prix||(num(l.s)&&num(l.pm2)?Math.round(num(l.s)*num(l.pm2)):''))}:{}})}
- if(it.length)set('spec',it.map(x=>'• '+(x.l||'Travaux')+(num(x.mt)?' : '+eur(num(x.mt)):'')).join('\n'))}
+ const it=((p.trav||{}).items||[]).filter(x=>x&&(x.l||num(x.mt))),tot=it.reduce((a,x)=>a+num(x.mt),0);if(tot)st('bud',Math.round(tot));
+ if(it.length)st('spec',it.map(x=>'• '+(x.l||'Travaux')+(num(x.mt)?' : '+eur(num(x.mt)):'')).join('\n'));
+ if(bb)dchFromB(d,bb,L.length>0);
+ st('adr',p.adr);const ap=(p.acq||{}).prix;if(bb&&num(bb.prix)){if(num(ap)&&num(ap)!==num(bb.prix))st('neg',ap)}else st('prix',ap);
+ st('hon',(p.acq||{}).agence);st('tf',(p.port||{}).tf);
+ try{st('fn',Math.round(mdbCalc(p).notaire))}catch(e){}
+ if(L.length){st('nbl',L.length);const ss=L.reduce((a,l)=>a+num(l.s),0);if(ss)st('sfin',Math.round(ss*100)/100);if(L.some(l=>num(l.prix)||num(l.pm2)))ck('expl',['Revente']);if(L.length>1)ck('div',['Copropriété'])}
+ const vac=(p.loc||{}).vac;if(vac!==undefined&&String(vac).trim()!==''&&L.some(l=>num(l.loyer)))st('mois',Math.round(12*(1-num(vac)/100)*10)/10);
+ ck('obj',['Marchand de biens / revente'])}
 function dchRows(d){const v=d.v||{},c=d.c||{},out=[];DCH_SEC.forEach(([t,F])=>{const r=[];F.forEach(f=>{const k=f[0];if(k==='T'){(d.t||[]).forEach(x=>{const p=DCH_TH.map(h=>x[h[0]]?(h[0]==='l'?'':h[1].replace(/\s*\(.*\)/,'')+' : ')+x[h[0]]:'').filter(Boolean);if(p.length)r.push(['Lot',p.join(' · ')])})}
   else if(k==='c'){const a=c[f[1]]||[];if(a.length)r.push([f[2],a.join(', ')])}
   else{let x=String(v[f[1]]||'').trim();if(x){if(k==='d')x=fDate(x);r.push([f[2],x])}}});if(r.length)out.push([t,r])});return out}
