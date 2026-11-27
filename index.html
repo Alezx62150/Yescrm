@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YES CRM · v320</title>
+<title>YES CRM · v321</title>
 <style>
 :root{--bg:#f6f4f2;--sf:#fff;--tx:#1f2b4a;--mu:#5d6985;--ac:#b9735a;--on:#fff;--ac2:#f9ece6;--bd:#e3d9d3;--hd:#1f2b4a;--dn:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121829;--sf:#1b2338;--tx:#eef1f7;--mu:#a7b1c8;--ac:#e0a28b;--on:#1f2b4a;--ac2:#2a3350;--bd:#35405e;--hd:#0f1526;--dn:#f97066;color-scheme:dark}}
@@ -1785,6 +1785,14 @@ function dchFromB(d,b){if(!b)return;const v=d.v=d.v||{},c=d.c=d.c||{},set=(k,x)=
  set('adr',[b.adr,b.adr2].filter(Boolean).join(' – '));set('refa',b.ref);set('surf',b.surf);set('terr',b.terr);set('dpe',b.dpe);set('prix',b.prix);set('hon',b.hon);set('tf',b.tf);set('chg',b.chg);set('lots',b.lots);
  if(!(c.bien||[]).length&&b.type){const t=String(b.type);c.bien=[/immeuble/i.test(t)?'Immeuble de rapport':/appart/i.test(t)?'Appartement':/maison/i.test(t)?'Maison':/local|commerc/i.test(t)?'Local commercial':'Autre']}
  if(!(c.prop||[]).length&&b.cop)c.prop=[b.cop==='o'?'Copropriété':'Monopropriété']}
+function dchFromM(d,p){if(!p)return;const v=d.v=d.v||{},c=d.c=d.c||{},set=(k,x)=>{if(x!==undefined&&x!==null&&String(x).trim()!==''&&!String(v[k]||'').trim())v[k]=String(x)};
+ if(p.bid)dchFromB(d,bBy(p.bid));
+ set('adr',p.adr);set('prix',(p.acq||{}).prix);set('hon',(p.acq||{}).agence);set('tf',(p.port||{}).tf);
+ const it=((p.trav||{}).items||[]).filter(x=>x&&(x.l||num(x.mt))),tot=it.reduce((a,x)=>a+num(x.mt),0);if(tot)set('bud',String(Math.round(tot)));
+ const L=((p.vente||{}).lots||[]);if(L.length){set('nbl',String(L.length));const ss=L.reduce((a,l)=>a+num(l.s),0);if(ss)set('sfin',String(Math.round(ss*100)/100))}
+ if(!(c.obj||[]).length)c.obj=['Marchand de biens / revente'];
+ if(L.length&&!(d.t||[]).some(x=>x&&x.l)){d.t=Array.from({length:Math.max(6,L.length)},(_,i)=>{const l=L[i];return l?{l:l.n||'',q:'1',m:String(l.s||''),loy:String(l.loyer||''),rev:String(l.prix||(num(l.s)&&num(l.pm2)?Math.round(num(l.s)*num(l.pm2)):''))}:{}})}
+ if(it.length)set('spec',it.map(x=>'• '+(x.l||'Travaux')+(num(x.mt)?' : '+eur(num(x.mt)):'')).join('\n'))}
 function dchRows(d){const v=d.v||{},c=d.c||{},out=[];DCH_SEC.forEach(([t,F])=>{const r=[];F.forEach(f=>{const k=f[0];if(k==='T'){(d.t||[]).forEach(x=>{const p=DCH_TH.map(h=>x[h[0]]?(h[0]==='l'?'':h[1].replace(/\s*\(.*\)/,'')+' : ')+x[h[0]]:'').filter(Boolean);if(p.length)r.push(['Lot',p.join(' · ')])})}
   else if(k==='c'){const a=c[f[1]]||[];if(a.length)r.push([f[2],a.join(', ')])}
   else{let x=String(v[f[1]]||'').trim();if(x){if(k==='d')x=fDate(x);r.push([f[2],x])}}});if(r.length)out.push([t,r])});return out}
@@ -1800,7 +1808,7 @@ function vDch(){const d=dchCur();if(!DCH.id||!d)return vDchList();
  const H=(d.hist||[]).slice().reverse();
  return tabsBar()+`<div class='bar' style='align-items:center;flex-wrap:wrap'><button data-a='dchBack'>← Liste</button><h1 style='margin:0 0 0 8px'>🛠️ Demande de chiffrage Works</h1><span class='sp'></span><button data-a='dchPrint'>📄 PDF / imprimer</button><button class='d' data-a='dchDel'>Supprimer</button></div>
  <p class='m'>Demande de chiffrage de travaux envoyée à notre partenaire Works ML. Le message est préparé dans Gmail ; l’envoi est noté dans l’historique ci-dessous.</p>
- <div class='bsec'><h3>Bien concerné</h3><div class='cgrid'><div style='grid-column:1/-1'><label>Reprendre les informations d’une fiche bien (champs vides uniquement)</label><select data-dchb='1'><option value=''>— aucun —</option>${bs.map(b=>`<option value='${b.id}'${d.bid===b.id?' selected':''}>${esc([b.ref,b.adr].filter(Boolean).join(' · ')||'Bien sans adresse')}</option>`).join('')}</select></div></div></div>
+ <div class='bsec'><h3>Bien concerné</h3><div class='cgrid'><div style='grid-column:1/-1'><label>Reprendre les informations d’une fiche bien (champs vides uniquement)</label><select data-dchb='1'><option value=''>— aucun —</option>${bs.map(b=>`<option value='${b.id}'${d.bid===b.id?' selected':''}>${esc([b.ref,b.adr].filter(Boolean).join(' · ')||'Bien sans adresse')}</option>`).join('')}</select></div>${(S.mdb||[]).length?`<div style='grid-column:1/-1'><label>Ou reprendre un projet Marchand de biens (champs vides uniquement : prix, travaux, lots, loyers, revente…)</label><select data-dchm='1'><option value=''>— aucun —</option>${(S.mdb||[]).map(m=>`<option value='${m.id}'${d.mid===m.id?' selected':''}>${esc([m.name,m.adr].filter(Boolean).join(' · ')||'Projet')}</option>`).join('')}</select></div>`:''}</div></div>
  ${secs}
  <div class='bsec'><h3>✉️ Envoi à Works</h3><div style='display:flex;flex-wrap:wrap;gap:6px 18px;padding:2px 0 6px'>${DCH_TO.map(x=>`<label style='font-weight:400;display:flex;gap:6px;align-items:center;margin:0'><input type='checkbox' data-dchto='${esc(x[1])}'${(d.to||[]).includes(x[1])?' checked':''} style='width:auto'> ${esc(x[0])} <span class='m'>${esc(x[1])}</span></label>`).join('')}</div>
  <div class='cgrid'><div style='grid-column:1/-1'><label>Autre destinataire (facultatif)</label><input data-dchx='1' value="${esc(d.toX||'')}" placeholder='adresse e-mail'></div></div>
@@ -1817,6 +1825,7 @@ document.addEventListener('input',e=>{const t=e.target;if(!t||V.v!=='dch'||!t.da
 document.addEventListener('change',e=>{const t=e.target;if(!t||V.v!=='dch'||!t.dataset)return;const d=dchCur();if(!d)return;
  if(t.dataset.dchc){const g=t.dataset.dchc;d.c=d.c||{};const a=d.c[g]=d.c[g]||[];const i=a.indexOf(t.value);if(t.checked&&i<0)a.push(t.value);if(!t.checked&&i>=0)a.splice(i,1);save()}
  else if(t.dataset.dchto){d.to=d.to||[];const i=d.to.indexOf(t.dataset.dchto);if(t.checked&&i<0)d.to.push(t.dataset.dchto);if(!t.checked&&i>=0)d.to.splice(i,1);save()}
+ else if(t.dataset.dchm){d.mid=t.value;if(t.value)dchFromM(d,(S.mdb||[]).find(x=>x.id===t.value));save();render()}
  else if(t.dataset.dchb){d.bid=t.value;if(t.value)dchFromB(d,bBy(t.value));save();render()}});
 async function dchSend(){const d=dchCur();if(!d)return;const to=dchTo(d);if(!String((d.v||{}).adr||'').trim()){toast('Indiquez au moins l’adresse du bien.');return}if(!to.length){toast('Cochez au moins un destinataire.');return}
  const su=dchSubj(d),long=gmailCompose(to.join(','),su,dchBody(d));if(long)toast('Message trop long pour le lien : il est copié, collez-le dans Gmail.');
